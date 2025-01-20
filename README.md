@@ -1,8 +1,8 @@
-# StudentExchange
+# UniBazaar
 
 ## Project Description
 
-**StudentExchange** is a hyper-localized marketplace designed exclusively for university students. It allows users to buy, sell, and trade second-hand items such as textbooks, furniture, electronics, and more within their campus communities. By fostering a trusted, university-specific platform, StudentExchange aims to make affordable goods more accessible while promoting sustainability and reducing waste.
+**UniBazaar** is a hyper-localized marketplace designed exclusively for university students. It allows users to buy, sell, and trade second-hand items such as textbooks, furniture, electronics, and more within their campus communities. By fostering a trusted, university-specific platform, StudentExchange aims to make affordable goods more accessible while promoting sustainability and reducing waste.
 
 ### Key Features:
 - **University-Specific Pages**: Students can browse and post items within their campus community.
