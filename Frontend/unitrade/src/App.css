@@ -1,5 +1,6 @@
 .App {
-  text-align: center;
+  width: 100%;
+  height: 100%;
 }
 
 .App-banner-container {
@@ -46,5 +47,53 @@
   }
   to {
     background-position: -100% 0;
+  }
+}
+
+.login-left-side{
+  background: #F8F8F8;
+}
+.login-right-side{
+  background: #E1E1E1;
+}
+.loginDiv{
+  background-color: #E1E1E1;
+  border-radius: 10px;
+  width: 500px;
+  height: 600px;
+  margin-top: 167px;
+  margin-left: 244px;
+}
+
+hr.vertical-line {
+  border: 1px solid #024E4E;
+}
+
+/* .rightSideImage{
+  width: 730px;
+  height: 740px;
+  margin-top: 100px;
+  margin-left: -120px;
+  background: url('./Group\ 2014.svg')
+} */
+
+.rightSideImage{
+  width: 730px;
+  height: 740px;
+  margin-top: 100px;
+  margin-left: -120px;
+  animation: changeImage 5s infinite alternate;
+}
+
+/* Define keyframes for alternating images */
+@keyframes changeImage {
+  0% {
+    background: url('./Group\ 2014.svg');
+  }
+  50% {
+    background: url('./Group\ 2013.svg'); /* Another alternate image */
+  }
+  100% {
+    background: url('./Group\ 2014.svg'); /* Another alternate image */
   }
 }
