@@ -5,7 +5,7 @@ import menuToggle from '../../assets/imgs/menu-toggle.svg'
 import close from '../../assets/imgs/close.svg'
 import { Link } from 'react-router-dom'
 
-const Navbar = () => {
+const Navbar = ({handleLoginButtonClick}) => {
 
     const [toggle,setToggle] = useState(false)
     const handleClick = () => setToggle(!toggle)
@@ -34,10 +34,10 @@ const Navbar = () => {
               </ul>
           </div>
 
-          <div className = 'hidden md:flex'>
+          <div className = 'hidden md:flex' onClick={handleLoginButtonClick}>
             <button className='flex justify-between items-center bg-transparent px-6 gap-2 font-[playfair display] text-[24px] font-[medium]'>
               <img src = {login} className='h-[24px]'/> 
-              <Link to="/login">Login</Link>
+              Login
             </button>
             <button className='px-4 py-3 rounded-md bg-[#008080] text-white font-[playfair display] text-[24px] font-[medium]'>Transactions</button>
           </div>
