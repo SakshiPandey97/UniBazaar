@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import RegisterPage from "./RegisterPage";
+import { useUserAuth } from "./components/useUserAuth";
+import { useNavigate } from "react-router-dom";
 
-function LoginPage() {
-  const [registerActionClicked, goToRegisterPage] = useState(false);
+function LoginPage({ handleGotoRegisterPage }) {
+  const userAuth=useUserAuth()
+  const navigate=useNavigate()
+
   const validationSchema = Yup.object({
     email: Yup.string()
       .email("Invalid email address")
@@ -14,26 +17,29 @@ function LoginPage() {
       .required("Password is required"),
   });
 
+  const handleUserLogin=()=>{
+    console.log(userAuth.userState)
+    userAuth.toggleUserLogin()
+    console.log(userAuth.userState)
+    navigate("/")
+  }
+
   // Initial values
   const initialValues = {
     email: "",
     password: "",
   };
+
   const handleSubmit = (values, { setSubmitting }) => {
     console.log("Form values:", values);
     setSubmitting(false);
   };
 
-  const handleGotoRegisterPage=()=>{
-    goToRegisterPage(!registerActionClicked)
-  }
-
   return (
     <div className="w-full h-full">
-      {!registerActionClicked && (<div className="flex flex-row justify-center ">
-      <div className="flex flex-col w-[600px] h-[500px]  loginDiv justify-center">
-        
-            <span className=" ml-[50px] font-mono text-5xl font-bold text-[#008080] ">
+      <div className="flex flex-row justify-center">
+        <div className="flex flex-col w-[600px] h-[500px] loginDiv justify-center">
+          <span className="ml-[50px] font-mono text-5xl font-bold text-[#008080]">
             Login
           </span>
           <span className="ml-[50px] mt-[40px] font-mono text-gray-500">
@@ -78,7 +84,7 @@ function LoginPage() {
                         Password
                       </label>
                       <label className="mr-[50px] text-sm font-medium text-gray-500">
-                        Forgot passowrd?
+                        Forgot password?
                       </label>
                     </div>
                     <div className="flex flex-row justify-center">
@@ -86,7 +92,7 @@ function LoginPage() {
                         type="password"
                         id="password"
                         name="password"
-                        className="mt-1 p-2  w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886]"
+                        className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886]"
                       />
                     </div>
                     <ErrorMessage
@@ -99,6 +105,7 @@ function LoginPage() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
+                      onClick={handleUserLogin}
                       className="w-1/3 bg-[#6D9886] text-[#FFFFFF] text-white py-2 px-4 rounded-md hover:bg-[#008080] transition"
                     >
                       {isSubmitting ? "Submitting..." : "Login"}
@@ -112,14 +119,13 @@ function LoginPage() {
             I don’t have an account?
             <span
               className="font-mono font-bold text-[#008080] cursor-pointer"
-              onClick={handleGotoRegisterPage}
+              onClick={handleGotoRegisterPage} // Calls the function correctly now
             >
               Sign-Up
             </span>
           </span>
         </div>
-      </div>)}
-      {registerActionClicked && <RegisterPage/>}
+      </div>
     </div>
   );
 }
