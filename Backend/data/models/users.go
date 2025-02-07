@@ -20,7 +20,7 @@ type User struct {
 	UserID   int    `gorm:"column:userid;primaryKey" json:"userid"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	Password string `json:"-"`
 }
 
 // increase iterations to improve security, can also increase key length, saltlength should not be changed 16 is recommended

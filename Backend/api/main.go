@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Backend/data/models"
+	"web-service/data/models"
 	"fmt"
 	"net/http"
 )
