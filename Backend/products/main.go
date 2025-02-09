@@ -10,11 +10,16 @@ import (
 	"web-service/routes"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	client := config.ConnectDB()
-	defer client.Disconnect(context.Background())
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using default settings")
+	}
+	mongoDBClient := config.ConnectDB()
+	defer mongoDBClient.Disconnect(context.Background())
 
 	repository.InitProductRepo()
 
@@ -26,5 +31,5 @@ func main() {
 	routes.RegisterProductRoutes(router)
 
 	log.Println("Server running on port 8080")
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(":8080", routes.SetupCORS(router))
 }

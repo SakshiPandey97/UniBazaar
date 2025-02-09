@@ -13,53 +13,92 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var productCollection *mongo.Collection
+var userProductCollection *mongo.Collection
 
 func InitProductRepo() {
-	productCollection = config.GetCollection("products")
+	userProductCollection = config.GetCollection("user_product")
 	log.Println("Product repository initialized.")
 }
 
-func CreateProduct(product model.Product) error {
-	log.Printf("Attempting to create product: %+v\n", product)
+func CreateProduct(userProduct model.UserProduct) error {
+	log.Printf("Attempting to create product: %+v\n", userProduct)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := productCollection.InsertOne(ctx, product)
-	if err != nil {
-		log.Printf("Error creating product: %v\n", err)
-		return err
+	var existingUser model.UserProduct
+	err := userProductCollection.FindOne(ctx, bson.M{"UserId": userProduct.UserID}).Decode(&existingUser)
+
+	if err == nil {
+		// User exists, update the product list
+		update := bson.M{
+			"$push": bson.M{"Products": bson.M{
+				"ProductId":          userProduct.Products[0].ProductID,
+				"ProductTitle":       userProduct.Products[0].ProductTitle,
+				"ProductDescription": userProduct.Products[0].ProductDescription,
+				"ProductPostDate":    userProduct.Products[0].ProductPostDate,
+				"ProductCondition":   userProduct.Products[0].ProductCondition,
+				"ProductPrice":       userProduct.Products[0].ProductPrice,
+				"ProductLocation":    userProduct.Products[0].ProductLocation,
+				"ProductImage":       userProduct.Products[0].ProductImage,
+			}},
+		}
+		_, err = userProductCollection.UpdateOne(ctx, bson.M{"UserId": userProduct.UserID}, update)
+		if err != nil {
+			log.Printf("Error updating product list: %v\n", err)
+			return err
+		}
+
+		log.Println("Product added successfully to existing user")
+		return nil
+	}
+	if err == mongo.ErrNoDocuments {
+		_, err = userProductCollection.InsertOne(ctx, userProduct)
+		if err != nil {
+			log.Printf("Error creating new user with product: %v\n", err)
+			return err
+		}
+
+		log.Println("New user created with product successfully")
+		return nil
 	}
 
-	return nil
+	log.Printf("Database error: %v\n", err)
+	return err
 }
 
-func GetAllProducts() ([]model.Product, error) {
+func GetAllProducts() ([]model.UserProduct, error) {
 	log.Println("Fetching all products.")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	cursor, err := productCollection.Find(ctx, bson.M{})
+	cursor, err := userProductCollection.Find(ctx, bson.M{})
 	if err != nil {
 		log.Printf("Error fetching products: %v\n", err)
 		return nil, err
 	}
 
 	defer cursor.Close(ctx)
-
-	var products []model.Product
-	for cursor.Next(ctx) {
-		var product model.Product
-		if err := cursor.Decode(&product); err != nil {
-			log.Printf("Error decoding product: %v\n", err)
-			return nil, err
-		}
-		products = append(products, product)
+	var userProducts []model.UserProduct
+	if err := cursor.All(ctx, &userProducts); err != nil {
+		log.Printf("Error decoding user products: %v\n", err)
+		return nil, err
 	}
 
-	return products, nil
+	for i, user := range userProducts {
+		for j, product := range user.Products {
+			if err == nil {
+				preSignedURL, _ := config.GeneratePresignedURL(userProducts[i].Products[j].ProductImage)
+				log.Printf("preSignedURL-->%s ", preSignedURL)
+				userProducts[i].Products[j].ProductImage = preSignedURL
+				log.Printf("preSignedURL 2-->%s ", userProducts[i].Products[j].ProductImage)
+			} else {
+				log.Printf("Failed to download image for ProductID %s: %v", product.ProductID, err)
+			}
+		}
+	}
+	return userProducts, nil
 }
 
 func GetProductByID(id string) (model.Product, error) {
@@ -69,7 +108,7 @@ func GetProductByID(id string) (model.Product, error) {
 	defer cancel()
 
 	var product model.Product
-	err := productCollection.FindOne(ctx, bson.M{"productId": id}).Decode(&product)
+	err := userProductCollection.FindOne(ctx, bson.M{"productId": id}).Decode(&product)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -90,7 +129,7 @@ func UpdateProduct(id string, updatedProduct model.Product) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := productCollection.UpdateOne(ctx, bson.M{"productId": id}, bson.M{"$set": updatedProduct})
+	result, err := userProductCollection.UpdateOne(ctx, bson.M{"productId": id}, bson.M{"$set": updatedProduct})
 	if err != nil {
 		log.Printf("Error updating product: %v\n", err)
 		return err
@@ -110,7 +149,7 @@ func DeleteProduct(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := productCollection.DeleteOne(ctx, bson.M{"productId": id})
+	result, err := userProductCollection.DeleteOne(ctx, bson.M{"productId": id})
 	if err != nil {
 		log.Printf("Error deleting product: %v\n", err)
 		return err
