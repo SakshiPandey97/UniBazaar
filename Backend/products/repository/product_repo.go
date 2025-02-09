@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -143,22 +144,41 @@ func UpdateProduct(id string, updatedProduct model.Product) error {
 	return nil
 }
 
-func DeleteProduct(id string) error {
-	log.Printf("Attempting to delete product with ID: %s\n", id)
+func DeleteProduct(userId, productId string) error {
+	log.Printf("Attempting to delete product with ProductID: %s for UserID: %s\n", productId, userId)
 
+	// Create a context with a timeout to ensure the operation doesn't hang forever.
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := userProductCollection.DeleteOne(ctx, bson.M{"productId": id})
+	// Create a filter to match the UserID and the ProductID within the 'Products' array
+	filter := bson.M{
+		"UserId": userId,
+		"Products": bson.M{
+			"$elemMatch": bson.M{
+				"ProductId": productId,
+			},
+		},
+	}
+
+	// Perform the delete operation
+	result, err := userProductCollection.UpdateOne(
+		ctx,
+		filter,
+		bson.M{
+			"$pull": bson.M{"Products": bson.M{"ProductId": productId}},
+		},
+	)
 	if err != nil {
 		log.Printf("Error deleting product: %v\n", err)
-		return err
+		return fmt.Errorf("failed to delete product with ProductID %s for UserID %s: %w", productId, userId, err)
 	}
 
-	if result.DeletedCount == 0 {
-		log.Printf("No product found with ID: %s\n", id)
-		return errors.New("product not found")
+	if result.ModifiedCount == 0 {
+		log.Printf("No product found with ProductID: %s for UserID: %s\n", productId, userId)
+		return errors.New("product not found or already deleted")
 	}
 
+	log.Printf("Successfully deleted product with ProductID: %s for UserID: %s\n", productId, userId)
 	return nil
 }

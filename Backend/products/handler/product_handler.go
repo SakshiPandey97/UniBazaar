@@ -141,15 +141,23 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	log.Printf("Received request to delete product with ID: %s\n", id)
+	userId := r.URL.Query().Get("userId")
+	productId := r.URL.Query().Get("productId")
 
-	if err := repository.DeleteProduct(id); err != nil {
-		log.Printf("Error deleting product with ID %s: %v\n", id, err)
+	// Validate query parameters
+	if userId == "" || productId == "" {
+		http.Error(w, "Missing userId or productId in query parameters", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Received request to delete product with ID: %s by user %s\n", productId, userId)
+
+	if err := repository.DeleteProduct(userId, productId); err != nil {
+		log.Printf("Error deleting product with ID %s: %v\n", productId, err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	log.Printf("Product with ID %s deleted successfully.\n", id)
+	log.Printf("Product with ID %s deleted successfully.\n", productId)
 	w.WriteHeader(http.StatusNoContent)
 }
