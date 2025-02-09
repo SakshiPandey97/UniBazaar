@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -14,10 +13,6 @@ import (
 var DB *mongo.Client
 
 func ConnectDB() *mongo.Client {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No .env file found, using default settings")
-	}
 
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
