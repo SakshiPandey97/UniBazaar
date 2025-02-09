@@ -1,20 +1,20 @@
-package main
+package handler
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"users/models"
+
 	"github.com/julienschmidt/httprouter"
 )
 
-func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Welcome to UniBazaar!"))
+type Application struct {
+	Models models.Models
 }
 
-func (app *application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Id       int    `json:"id"`
 		Name     string `json:"name"`
@@ -31,7 +31,7 @@ func (app *application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
-func (app *application) PasswordResetHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) PasswordResetHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -50,7 +50,7 @@ func (app *application) PasswordResetHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (app *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Email string `json:"email"`
 	}
@@ -68,7 +68,7 @@ func (app *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (app *application) DisplayUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) DisplayUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Email string `json:"email"`
 	}
@@ -91,15 +91,11 @@ func (app *application) DisplayUserHandler(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (app *application) routes() http.Handler {
+func (app *Application) Routes() http.Handler {
 	router := httprouter.New()
 	router.HandlerFunc(http.MethodPost, "/signup", app.SignUpHandler)
 	router.HandlerFunc(http.MethodPost, "/updatePassword", app.PasswordResetHandler)
 	router.HandlerFunc(http.MethodPost, "/deleteUser", app.DeleteUserHandler)
 	router.HandlerFunc(http.MethodPost, "/displayUser", app.DisplayUserHandler)
 	return router
-}
-
-func testing() {
-	fmt.Print("hello")
 }

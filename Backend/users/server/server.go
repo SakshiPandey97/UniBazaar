@@ -1,25 +1,23 @@
-package main
+package server
 
 import (
-	"web-service/data/models"
 	"fmt"
 	"net/http"
+	config "users/config"
+	handler "users/handler"
+	models "users/models"
 )
 
-type application struct {
-	Models models.Models
-}
-
-func main() {
+func InitServer() {
 	dsn := "postgres://postgres:admin@localhost/unibazaar?sslmode=disable"
-	app := application{}
-	conn := Connect(dsn)
+	app := handler.Application{}
+	conn := config.Connect(dsn)
 	app.Models = models.NewModels(conn)
 	fmt.Println("connected to database")
 
 	srv := http.Server{
 		Addr:    ":4000",
-		Handler: app.routes(),
+		Handler: app.Routes(),
 	}
 	fmt.Printf("app running on port %d", 4000)
 	_ = srv.ListenAndServe()

@@ -43,7 +43,6 @@ func validatePassword(password string) error {
 }
 
 func (e UserModel) Insert(id int, name string, email string, password string) error {
-
 	email = strings.TrimSpace(email)
 
 	if _, err := mail.ParseAddress(email); err != nil {
