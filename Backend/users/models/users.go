@@ -12,6 +12,22 @@ import (
 	"gorm.io/gorm"
 )
 
+// for now we are only considering local universities.
+var validEDUDomains = map[string]bool{
+	"ufl.edu":         true,
+	"fsu.edu":         true,
+	"ucf.edu":         true,
+	"usf.edu":         true,
+	"fiu.edu":         true,
+	"fau.edu":         true,
+	"fgcu.edu":        true,
+	"unf.edu":         true,
+	"famu.edu":        true,
+	"ncf.edu":         true,
+	"floridapoly.edu": true,
+	"uwf.edu":         true,
+}
+
 type UserModel struct {
 	db *gorm.DB
 }
@@ -34,7 +50,7 @@ var params = &argon2id.Params{
 
 const minEntropyBits = 60
 
-func validatePassword(password string) error {
+func ValidatePassword(password string) error {
 	err := passwordvalidator.Validate(password, minEntropyBits)
 	if err != nil {
 		return fmt.Errorf("password is too weak: %v", err)
@@ -43,21 +59,15 @@ func validatePassword(password string) error {
 }
 
 func (e UserModel) Insert(id int, name string, email string, password string) error {
-	email = strings.TrimSpace(email)
-
-	if _, err := mail.ParseAddress(email); err != nil {
-		return fmt.Errorf("invalid email format: %v", err)
-	}
-
-	if !strings.HasSuffix(strings.ToLower(email), ".edu") {
-		return fmt.Errorf("invalid email: must be a .edu address")
-	}
-
-	if err := validatePassword(password); err != nil {
+	if err := ValidateEduEmail(email); err != nil {
 		return err
 	}
 
-	hashedPassword, err := hashPassword(password)
+	if err := ValidatePassword(password); err != nil {
+		return err
+	}
+
+	hashedPassword, err := HashPassword(password)
 	if err != nil {
 		fmt.Println("error hashing password:", err)
 		return err
@@ -75,11 +85,12 @@ func (e UserModel) Insert(id int, name string, email string, password string) er
 		fmt.Println("error inserting user:", res.Error)
 		return res.Error
 	}
+
 	return nil
 }
 
 func (e UserModel) Update(email string, newPassword string) error {
-	hashedPassword, err := hashPassword(newPassword)
+	hashedPassword, err := HashPassword(newPassword)
 	if err != nil {
 		fmt.Println("Error hashing password:", err)
 		return err
@@ -115,10 +126,34 @@ func (e UserModel) Read(email string) (*User, error) {
 
 }
 
-func hashPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	hashedPassword, err := argon2id.CreateHash(password, params)
 	if err != nil {
 		return "", err
 	}
 	return hashedPassword, nil
+}
+
+func ValidateEduEmail(email string) error {
+	addr, err := mail.ParseAddress(strings.TrimSpace(email))
+	if err != nil {
+		return fmt.Errorf("invalid email address: %v", err)
+	}
+
+	parts := strings.Split(addr.Address, "@")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid email address: missing @ or domain")
+	}
+
+	domain := strings.ToLower(parts[1])
+
+	if !strings.HasSuffix(domain, ".edu") {
+		return fmt.Errorf("invalid email: must be a .edu address")
+	}
+
+	if !validEDUDomains[domain] {
+		return fmt.Errorf("unrecognized .edu domain: %s", domain)
+	}
+
+	return nil
 }
