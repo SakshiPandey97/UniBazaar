@@ -31,7 +31,6 @@ func CreateProduct(userProduct model.UserProduct) error {
 	err := userProductCollection.FindOne(ctx, bson.M{"UserId": userProduct.UserID}).Decode(&existingUser)
 
 	if err == nil {
-		// User exists, update the product list
 		update := bson.M{
 			"$push": bson.M{"Products": bson.M{
 				"ProductId":          userProduct.Products[0].ProductID,
@@ -124,34 +123,46 @@ func GetProductByID(id string) (model.Product, error) {
 	return product, nil
 }
 
-func UpdateProduct(id string, updatedProduct model.Product) error {
-	log.Printf("Updating product with ID: %s\n", id)
+func UpdateProduct(userId, productId string, updateData map[string]interface{}) error {
+	userIdStr := fmt.Sprintf("%v", userId)
+
+	updateQuery := bson.M{"$set": bson.M{}}
+	for key, value := range updateData {
+		updateQuery["$set"].(bson.M)["Products.$."+key] = value
+	}
+
+	filter := bson.M{
+		"UserId":             userIdStr,
+		"Products.ProductId": productId,
+	}
+
+	log.Printf("Filter: %+v", filter)
+	log.Printf("Update Query: %+v", updateQuery)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := userProductCollection.UpdateOne(ctx, bson.M{"productId": id}, bson.M{"$set": updatedProduct})
+	result, err := userProductCollection.UpdateOne(ctx, filter, updateQuery)
 	if err != nil {
 		log.Printf("Error updating product: %v\n", err)
-		return err
+		return errors.New("failed to update product")
 	}
 
 	if result.MatchedCount == 0 {
-		log.Printf("No product found with ID: %s\n", id)
+		log.Printf("No matching product found for UserId: %s and ProductId: %s\n", userId, productId)
 		return errors.New("product not found")
 	}
 
+	log.Printf("Product with ID %s updated successfully\n", productId)
 	return nil
 }
 
 func DeleteProduct(userId, productId string) error {
 	log.Printf("Attempting to delete product with ProductID: %s for UserID: %s\n", productId, userId)
 
-	// Create a context with a timeout to ensure the operation doesn't hang forever.
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Create a filter to match the UserID and the ProductID within the 'Products' array
 	filter := bson.M{
 		"UserId": userId,
 		"Products": bson.M{
@@ -161,7 +172,6 @@ func DeleteProduct(userId, productId string) error {
 		},
 	}
 
-	// Perform the delete operation
 	result, err := userProductCollection.UpdateOne(
 		ctx,
 		filter,
@@ -169,6 +179,7 @@ func DeleteProduct(userId, productId string) error {
 			"$pull": bson.M{"Products": bson.M{"ProductId": productId}},
 		},
 	)
+
 	if err != nil {
 		log.Printf("Error deleting product: %v\n", err)
 		return fmt.Errorf("failed to delete product with ProductID %s for UserID %s: %w", productId, userId, err)
