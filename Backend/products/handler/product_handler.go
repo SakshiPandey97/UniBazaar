@@ -19,7 +19,7 @@ import (
 func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to create a new product.")
 	log.Printf(r.FormValue("productImage"))
-	// Parse the form data (max 10MB file size)
+
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		log.Printf("Error parsing form data: %v\n", err)
@@ -27,7 +27,6 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract text fields
 	product := model.Product{
 		ProductID:          uuid.NewString(),
 		ProductTitle:       r.FormValue("productTitle"),
@@ -38,11 +37,9 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 		ProductLocation:    r.FormValue("productLocation"),
 	}
 
-	// Convert form values to appropriate types
 	fmt.Sscanf(r.FormValue("productCondition"), "%d", &product.ProductCondition)
 	fmt.Sscanf(r.FormValue("productPrice"), "%f", &product.ProductPrice)
 
-	// Extract the file
 	file, _, err := r.FormFile("productImage")
 	if err != nil {
 		log.Printf("Error retrieving file: %v\n", err)
@@ -58,7 +55,7 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error processing file", http.StatusInternalServerError)
 		return
 	}
-	// Store the file reference in the product object
+
 	s3IamgeKey, uploadError := helper.UploadToS3Bucket(product.ProductID, r.FormValue("userId"), buf.Bytes(), r.FormValue("productImageType"))
 	if uploadError != nil {
 		log.Printf("Error uploading file to S3: %v\n", err)
@@ -76,7 +73,6 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return success response
 	log.Printf("Product created successfully: %+v\n", product)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(product)
@@ -114,42 +110,65 @@ func GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	log.Printf("Received request to update product with ID: %s\n", id)
+	userId := r.URL.Query().Get("userId")
+	productId := r.URL.Query().Get("productId")
 
-	var product model.Product
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		log.Printf("Error decoding request body: %v\n", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	if userId == "" || productId == "" {
+		http.Error(w, "Missing userId or productId in query parameters", http.StatusBadRequest)
 		return
 	}
 
-	if err := product.Validate(); err != nil {
-		log.Printf("Validation error: %v\n", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		return
+	}
+	log.Printf("Received JSON body: %s", string(body))
+
+	var updateData map[string]interface{}
+	if err := json.Unmarshal(body, &updateData); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := product.Validate(); err != nil {
-		log.Printf("Validation error: %v\n", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	log.Printf("Parsed update data: %+v", updateData)
+
+	if len(updateData) == 0 {
+		http.Error(w, "No fields provided for update", http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Product with ID %s updated successfully.\n", id)
+	err = repository.UpdateProduct(userId, productId, updateData)
+	if err != nil {
+		if err.Error() == "product not found" {
+			http.Error(w, "Product not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error updating product", http.StatusInternalServerError)
+		}
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Product updated successfully"))
 }
 
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	log.Printf("Received request to delete product with ID: %s\n", id)
+	userId := r.URL.Query().Get("userId")
+	productId := r.URL.Query().Get("productId")
 
-	if err := repository.DeleteProduct(id); err != nil {
-		log.Printf("Error deleting product with ID %s: %v\n", id, err)
+	if userId == "" || productId == "" {
+		http.Error(w, "Missing userId or productId in query parameters", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Received request to delete product with ID: %s by user %s\n", productId, userId)
+
+	if err := repository.DeleteProduct(userId, productId); err != nil {
+		log.Printf("Error deleting product with ID %s: %v\n", productId, err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	log.Printf("Product with ID %s deleted successfully.\n", id)
+	log.Printf("Product with ID %s deleted successfully.\n", productId)
 	w.WriteHeader(http.StatusNoContent)
 }
