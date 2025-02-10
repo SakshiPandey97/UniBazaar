@@ -39,7 +39,9 @@ const Navbar = () => {
               <Link to="/">Home</Link>
             </li>
             <li onClick={() => checkForUserLogIn("/buy")}>Buy</li>
-            <li onClick={() => checkForUserLogIn("/sell")}>Sell</li>
+            <li onClick={() => checkForUserLogIn("/sell")}>
+            Sell
+          </li>
             <li onClick={() => checkForUserLogIn("/product")}>Products</li>
             <li>
               <Link to="/about">About Us</Link>
