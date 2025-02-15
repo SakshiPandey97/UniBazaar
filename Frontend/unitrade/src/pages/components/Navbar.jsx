@@ -20,6 +20,15 @@ const Navbar = () => {
     }
   };
 
+  const handleLoginBtnClick=()=>{
+    if(userAuth.userState){
+      userAuth.toggleUserLogin()
+      userAuth.setUserID("")
+    }else{
+      navigate("/auth/")
+    }
+  }
+
   useEffect(() => {}, [userAuth.userState]);
   return (
     <div className="w-full h-[80px] bg-[#F8F8F8] border-b py-2">
@@ -51,7 +60,7 @@ const Navbar = () => {
         <div className="hidden md:flex">
           <button
             className="flex justify-between items-center bg-transparent px-6 gap-2 font-[playfair display] text-[24px] font-[medium]"
-            onClick={() => navigate("/auth/")}
+            onClick={handleLoginBtnClick}
           >
             <img src={login} className="h-[24px]" />
             {!userAuth.userState ? "Login" : "Log-Out"}
