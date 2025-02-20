@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"sync"
 
 	"web-service/helper"
 	"web-service/model"
@@ -111,35 +112,49 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := helper.ParseFormAndCreateProduct(r)
-	if err != nil {
-		handleError(w, "Error parsing form data", err, http.StatusBadRequest)
-		return
-	}
-
-	_, deletedProductImage, err := repository.FindProductByUserAndId(userId, productId)
+	existingProduct, err := repository.FindProductByUserAndId(userId, productId)
 	if err != nil {
 		handleError(w, "Error fetching product", err, http.StatusNotFound)
 		return
 	}
 
-	if deletedProductImage != "" {
-		err := repository.DeleteImageFromS3(deletedProductImage)
-		if err != nil {
-			log.Printf("Error deleting image from S3: %v\n", err)
-			handleError(w, "Error deleting image from S3", err, http.StatusInternalServerError)
-			return
-		}
-	}
-
-	s3ImageKey, err := handleProductImageUpload(w, r, &product)
+	updatedProduct, err := helper.ParseFormAndCreateProduct(r)
 	if err != nil {
+		handleError(w, "Error parsing form data", err, http.StatusBadRequest)
 		return
 	}
 
-	product.ProductImage = s3ImageKey
+	var wg sync.WaitGroup
+	wg.Add(2)
+	var imageDeleteErr, imageUploadErr error
+	var newS3ImageKey string
 
-	err = repository.UpdateProduct(userId, productId, product)
+	go func() {
+		defer wg.Done()
+		if existingProduct.ProductImage != "" {
+			imageDeleteErr = repository.DeleteImageFromS3(existingProduct.ProductImage)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		newS3ImageKey, imageUploadErr = handleProductImageUpload(w, r, &updatedProduct)
+	}()
+
+	wg.Wait()
+
+	if imageDeleteErr != nil {
+		log.Printf("Error deleting old image: %v", imageDeleteErr)
+	}
+
+	if imageUploadErr != nil {
+		handleError(w, "Error uploading new image", imageUploadErr, http.StatusInternalServerError)
+		return
+	}
+
+	updatedProduct.ProductImage = newS3ImageKey
+
+	err = repository.UpdateProduct(userId, productId, updatedProduct)
 	if err != nil {
 		handleError(w, "Error updating product", err, http.StatusInternalServerError)
 		return
@@ -147,9 +162,8 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(product); err != nil {
+	if err := json.NewEncoder(w).Encode(updatedProduct); err != nil {
 		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
-		return
 	}
 }
 
@@ -161,7 +175,6 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	productId := mux.Vars(r)["ProductId"]
-
 	if productId == "" {
 		handleError(w, "Missing productId in path parameters", errors.New("productId is required"), http.StatusBadRequest)
 		return
@@ -169,26 +182,36 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Received request to delete product with ID: %s by user %d\n", productId, userId)
 
-	_, deletedProductImage, err := repository.FindProductByUserAndId(userId, productId)
+	product, err := repository.FindProductByUserAndId(userId, productId)
 	if err != nil {
-		log.Printf("Error fetching product with ID %s: %v\n", productId, err)
 		handleError(w, "Error fetching product", err, http.StatusNotFound)
 		return
 	}
 
-	if deletedProductImage != "" {
-		err := repository.DeleteImageFromS3(deletedProductImage)
-		if err != nil {
-			log.Printf("Error deleting image from S3: %v\n", err)
-			handleError(w, "Error deleting image from S3", err, http.StatusInternalServerError)
-			return
+	var wg sync.WaitGroup
+	wg.Add(2)
+	var imageDeleteErr, dbDeleteErr error
+
+	go func() {
+		defer wg.Done()
+		if product.ProductImage != "" {
+			imageDeleteErr = repository.DeleteImageFromS3(product.ProductImage)
 		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		dbDeleteErr = repository.DeleteProduct(userId, productId)
+	}()
+
+	wg.Wait()
+
+	if imageDeleteErr != nil {
+		log.Printf("Error deleting image from S3: %v\n", imageDeleteErr)
 	}
 
-	err = repository.DeleteProduct(userId, productId)
-	if err != nil {
-		log.Printf("Error deleting product with ID %s: %v\n", productId, err)
-		handleError(w, "Error deleting product", err, http.StatusNotFound)
+	if dbDeleteErr != nil {
+		handleError(w, "Error deleting product", dbDeleteErr, http.StatusInternalServerError)
 		return
 	}
 
@@ -197,18 +220,17 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleProductImageUpload(w http.ResponseWriter, r *http.Request, product *model.Product) (string, error) {
-	imageData, err := helper.ParseProductImage(r)
+	imageData, format, err := helper.ParseProductImage(r)
 	if err != nil {
 		handleError(w, "Error reading image", err, http.StatusBadRequest)
 		return "", err
 	}
 
-	s3ImageKey, err := repository.UploadToS3Bucket(product.ProductID, r.FormValue("userId"), imageData.Bytes(), r.FormValue("productImageType"))
+	s3ImageKey, err := repository.UploadToS3Bucket(product.ProductID, r.FormValue("userId"), imageData.Bytes(), format)
 	if err != nil {
 		handleError(w, "Error uploading image to S3", err, http.StatusInternalServerError)
 		return "", err
 	}
-
 	return s3ImageKey, nil
 }
 

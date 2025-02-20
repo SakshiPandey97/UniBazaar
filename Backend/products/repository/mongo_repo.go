@@ -12,6 +12,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var userProductCollection *mongo.Collection
@@ -46,39 +47,24 @@ func findUserByID(userID int) (model.UserProduct, error) {
 }
 
 func CreateProduct(userProduct model.UserProduct) error {
-	log.Printf("Attempting to create product for UserId: %d\n", userProduct.UserID)
+	log.Printf("Attempting to upsert product for UserId: %d\n", userProduct.UserID)
 
-	_, err := findUserByID(userProduct.UserID)
-	if err == nil {
-		update := bson.M{
-			"$push": bson.M{"Products": userProduct.Products[0]},
-		}
-		ctx, cancel := getContextWithTimeout()
-		defer cancel()
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
 
-		_, err := userProductCollection.UpdateOne(ctx, bson.M{"UserId": userProduct.UserID}, update)
-		if err != nil {
-			return handleRepoError(err, "Error updating product list")
-		}
-
-		log.Printf("Product added successfully to existing user with UserId: %d\n", userProduct.UserID)
-		return nil
+	update := bson.M{
+		"$push": bson.M{"Products": bson.M{"$each": userProduct.Products}},
 	}
 
-	if err == mongo.ErrNoDocuments {
-		ctx, cancel := getContextWithTimeout()
-		defer cancel()
+	opts := options.Update().SetUpsert(true)
 
-		_, err = userProductCollection.InsertOne(ctx, userProduct)
-		if err != nil {
-			return handleRepoError(err, "Error creating new user with product")
-		}
-
-		log.Printf("New user created with product successfully for UserId: %d\n", userProduct.UserID)
-		return nil
+	_, err := userProductCollection.UpdateOne(ctx, bson.M{"UserId": userProduct.UserID}, update, opts)
+	if err != nil {
+		return handleRepoError(err, "Error upserting product")
 	}
 
-	return handleRepoError(err, "Database error while handling UserId")
+	log.Printf("Product upserted successfully for UserId: %d\n", userProduct.UserID)
+	return nil
 }
 
 func GetAllProducts() ([]model.UserProduct, error) {
@@ -113,32 +99,29 @@ func GetProductsByUserID(userID int) ([]model.Product, error) {
 }
 
 func UpdateProduct(userId int, productId string, product model.Product) error {
-	log.Printf("Attempting to update product for UserId: %d\n", userId)
-
-	updateData := bson.M{
-		"$set": bson.M{
-			"Products.$": product,
-		},
-	}
-
-	filter := bson.M{
-		"UserId":             userId,
-		"Products.ProductId": productId,
-	}
+	log.Printf("Attempting to upsert product for UserId: %d\n", userId)
 
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	result, err := userProductCollection.UpdateOne(ctx, filter, updateData)
+	filter := bson.M{"UserId": userId, "Products.ProductId": productId}
+	update := bson.M{
+		"$set": bson.M{"Products.$": product},
+	}
+
+	opts := options.Update().SetUpsert(true)
+
+	result, err := userProductCollection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
-		return handleRepoError(err, "Error updating product")
+		return handleRepoError(err, "Error upserting product")
 	}
 
-	if result.MatchedCount == 0 {
-		return fmt.Errorf("product not found for UserId: %d and ProductId: %s", userId, productId)
+	if result.MatchedCount == 0 && result.UpsertedCount > 0 {
+		log.Printf("Product inserted for UserId: %d and ProductId: %s\n", userId, productId)
+	} else {
+		log.Printf("Product updated successfully for UserId: %d and ProductId: %s\n", userId, productId)
 	}
 
-	log.Printf("Product with ID %s updated successfully\n", productId)
 	return nil
 }
 
@@ -174,7 +157,7 @@ func DeleteProduct(userId int, productId string) error {
 	return nil
 }
 
-func FindProductByUserAndId(userId int, productId string) (*model.Product, string, error) {
+func FindProductByUserAndId(userId int, productId string) (*model.Product, error) {
 	log.Printf("Attempting to find product for UserId: %d and ProductId: %s\n", userId, productId)
 
 	filter := bson.M{
@@ -189,16 +172,16 @@ func FindProductByUserAndId(userId int, productId string) (*model.Product, strin
 	err := userProductCollection.FindOne(ctx, filter).Decode(&userProduct)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, "", fmt.Errorf("product not found for UserId: %d and ProductId: %s", userId, productId)
+			return nil, fmt.Errorf("product not found for UserId: %d and ProductId: %s", userId, productId)
 		}
-		return nil, "", handleRepoError(err, "Error fetching product")
+		return nil, handleRepoError(err, "Error fetching product")
 	}
 
 	for _, product := range userProduct.Products {
 		if product.ProductID == productId {
-			return &product, product.ProductImage, nil
+			return &product, nil
 		}
 	}
 
-	return nil, "", fmt.Errorf("product not found in user's list")
+	return nil, fmt.Errorf("product not found in user's list")
 }

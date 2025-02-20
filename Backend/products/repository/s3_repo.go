@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 	"web-service/config"
@@ -17,25 +16,26 @@ import (
 )
 
 func UploadToS3Bucket(productId string, userId string, fileData []byte, filetype string) (string, error) {
+	start := time.Now()
+
 	awsClientObj := config.GetAWSClientInstance()
 	uploader := manager.NewUploader(awsClientObj)
 
-	fileParts := strings.Split(filetype, "/")
-	if len(fileParts) != 2 {
-		return "", fmt.Errorf("invalid filetype format: %s", filetype)
-	}
-	fileExtension := fileParts[1]
+	objectKey := fmt.Sprintf("products/%s/%s.%s", userId, productId, filetype)
+	log.Println("Uploading to S3 with key:", objectKey)
 
-	objectKey := fmt.Sprintf("products/%s/%s.%s", userId, productId, fileExtension)
-
-	_, uploadError := uploader.Upload(context.TODO(), &s3.PutObjectInput{
+	_, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String("unibazaar-bucket"),
 		Key:    aws.String(objectKey),
 		Body:   bytes.NewReader(fileData),
 	})
-	if uploadError != nil {
-		return "", fmt.Errorf("failed to upload to S3: %w", uploadError)
+	if err != nil {
+		log.Printf("Error uploading to Amazon S3: %v\n", err)
+		return "", err
 	}
+
+	duration := time.Since(start)
+	log.Printf("UploadToS3Bucket took %s\n", duration)
 
 	return objectKey, nil
 }

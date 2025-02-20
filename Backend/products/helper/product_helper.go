@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"log"
 	"net/http"
 	"strconv"
 	"web-service/model"
 
 	"github.com/google/uuid"
+	"github.com/nfnt/resize"
 )
 
 func GetUserID(userId string) (int, error) {
@@ -29,7 +32,7 @@ func ParseFormAndCreateProduct(r *http.Request) (model.Product, error) {
 	}
 
 	product := model.Product{
-		ProductID:          r.FormValue("productID"),
+		ProductID:          r.FormValue("productId"),
 		ProductTitle:       r.FormValue("productTitle"),
 		ProductDescription: r.FormValue("productDescription"),
 		ProductPostDate:    r.FormValue("productPostDate"),
@@ -70,18 +73,43 @@ func parseNumericalFormValues(r *http.Request, product *model.Product) error {
 	return nil
 }
 
-func ParseProductImage(r *http.Request) (bytes.Buffer, error) {
+func ParseProductImage(r *http.Request) (bytes.Buffer, string, error) {
 	file, _, err := r.FormFile("productImage")
 	if err != nil {
-		return bytes.Buffer{}, fmt.Errorf("error retrieving file: %v", err)
+		return bytes.Buffer{}, "", fmt.Errorf("error retrieving file: %v", err)
 	}
 	defer file.Close()
 
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, file)
+	img, format, err := image.Decode(file)
 	if err != nil {
-		return bytes.Buffer{}, fmt.Errorf("error reading file: %v", err)
+		return bytes.Buffer{}, "", fmt.Errorf("error decoding image: %v", err)
 	}
 
-	return buf, nil
+	compressedImage, err := compressAndResizeImage(img)
+	if err != nil {
+		return bytes.Buffer{}, "", fmt.Errorf("error compressing and resizing image: %v", err)
+	}
+
+	var buf bytes.Buffer
+	switch format {
+	case "jpeg", "jpg":
+		err = jpeg.Encode(&buf, compressedImage, &jpeg.Options{Quality: 85}) // Adjust quality here
+		if err != nil {
+			return bytes.Buffer{}, "", fmt.Errorf("error encoding compressed image: %v", err)
+		}
+	case "png":
+		err = png.Encode(&buf, compressedImage)
+		if err != nil {
+			return bytes.Buffer{}, "", fmt.Errorf("error encoding compressed image: %v", err)
+		}
+	default:
+		return bytes.Buffer{}, "", fmt.Errorf("unsupported image format: %s", format)
+	}
+
+	return buf, format, nil
+}
+
+func compressAndResizeImage(img image.Image) (image.Image, error) {
+	resizedImg := resize.Resize(800, 0, img, resize.Lanczos3)
+	return resizedImg, nil
 }
