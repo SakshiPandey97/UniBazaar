@@ -25,6 +25,7 @@ function UserLoginForm({ handleSubmit }) {
     >
       {({ isSubmitting }) => (
         <Form className="w-full">
+          {/* Email Field */}
           <div className="flex flex-col mb-4">
             <label
               htmlFor="email"
@@ -37,7 +38,8 @@ function UserLoginForm({ handleSubmit }) {
                 type="email"
                 id="email"
                 name="email"
-                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886]"
+                disabled={isSubmitting} // Disable input during submission
+                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886] disabled:bg-gray-200"
               />
             </div>
             <ErrorMessage
@@ -47,6 +49,7 @@ function UserLoginForm({ handleSubmit }) {
             />
           </div>
 
+          {/* Password Field */}
           <div className="flex flex-col mb-4">
             <div className="flex flex-row justify-between">
               <label
@@ -64,7 +67,8 @@ function UserLoginForm({ handleSubmit }) {
                 type="password"
                 id="password"
                 name="password"
-                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886]"
+                disabled={isSubmitting} // Disable input during submission
+                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886] disabled:bg-gray-200"
               />
             </div>
             <ErrorMessage
@@ -73,11 +77,13 @@ function UserLoginForm({ handleSubmit }) {
               className="text-red-500 text-sm mt-1 ml-[50px]"
             />
           </div>
+
+          {/* Submit Button */}
           <div className="flex flex-row justify-center">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-1/3 bg-[#6D9886] text-[#FFFFFF] text-white py-2 px-4 rounded-md hover:bg-[#008080] transition"
+              className="w-1/3 bg-[#6D9886] text-[#FFFFFF] py-2 px-4 rounded-md hover:bg-[#008080] transition disabled:bg-gray-400"
             >
               {isSubmitting ? "Submitting..." : "Login"}
             </button>

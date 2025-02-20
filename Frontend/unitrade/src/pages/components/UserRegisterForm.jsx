@@ -36,7 +36,8 @@ function UserRegisterForm({ handleSubmit }) {
                 type="text"
                 id="name"
                 name="name"
-                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886]"
+                disabled={isSubmitting} // Disable input when submitting
+                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886] disabled:bg-gray-200"
               />
             </div>
             <ErrorMessage
@@ -59,7 +60,8 @@ function UserRegisterForm({ handleSubmit }) {
                 type="email"
                 id="email"
                 name="email"
-                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886]"
+                disabled={isSubmitting} // Disable input when submitting
+                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886] disabled:bg-gray-200"
               />
             </div>
             <ErrorMessage
@@ -82,7 +84,8 @@ function UserRegisterForm({ handleSubmit }) {
                 type="password"
                 id="password"
                 name="password"
-                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886]"
+                disabled={isSubmitting} // Disable input when submitting
+                className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886] disabled:bg-gray-200"
               />
             </div>
             <ErrorMessage
@@ -97,7 +100,7 @@ function UserRegisterForm({ handleSubmit }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-1/3 bg-[#6D9886] text-[#FFFFFF] text-white py-2 px-4 rounded-md hover:bg-[#008080] transition"
+              className="w-1/3 bg-[#6D9886] text-[#FFFFFF] text-white py-2 px-4 rounded-md hover:bg-[#008080] transition disabled:bg-gray-400"
             >
               {isSubmitting ? "Registering..." : "Register"}
             </button>
