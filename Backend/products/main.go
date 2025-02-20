@@ -31,5 +31,5 @@ func main() {
 	routes.RegisterProductRoutes(router)
 
 	log.Println("Server running on port 8080")
-	http.ListenAndServe(":8080", routes.SetupCORS(router))
+	http.ListenAndServe("127.0.0.1:8080", routes.SetupCORS(router))
 }
