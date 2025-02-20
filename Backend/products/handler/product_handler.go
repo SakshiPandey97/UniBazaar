@@ -60,7 +60,7 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "Error creating product in database", err, http.StatusInternalServerError)
 		return
 	}
-
+  
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(product); err != nil {

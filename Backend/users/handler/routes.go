@@ -10,6 +10,7 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
 )
 
 type Application struct {
@@ -29,7 +30,6 @@ func (app *Application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-
 	trimmedName := strings.TrimSpace(input.Name)
 	fmt.Println("trimmed name: ", trimmedName)
 	if trimmedName == "" {
@@ -138,16 +138,30 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	match, err := argon2id.ComparePasswordAndHash(input.Password, user.Password)
 	if err != nil {
-		http.Error(w, "Error Occured", http.StatusInternalServerError)
+		http.Error(w, "Error occurred during password verification", http.StatusInternalServerError)
 		return
 	}
 	if !match {
-		http.Error(w, "Status Unauthorized.", http.StatusUnauthorized)
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	userId, err := app.Models.UserModel.GetUserIdByEmail(input.Email)
+	if err != nil {
+		http.Error(w, "Error occurred while fetching user ID", http.StatusInternalServerError)
+		return
+	}
+	response_data := map[string]interface{}{
+		"userId": userId,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response_data); err != nil {
+		http.Error(w, `{"error": "Failed to encode response"}`, http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Login successful")
 }
 
 func (app *Application) Routes() http.Handler {
@@ -157,5 +171,20 @@ func (app *Application) Routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/deleteUser", app.DeleteUserHandler)
 	router.HandlerFunc(http.MethodPost, "/displayUser", app.DisplayUserHandler)
 	router.HandlerFunc(http.MethodPost, "/login", app.LoginHandler)
-	return router
+
+	// Apply CORS middleware
+	return SetupCORS(router)
+}
+
+func SetupCORS(router http.Handler) http.Handler {
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		ExposedHeaders:   []string{"Content-Length"},
+		AllowCredentials: true,
+		Debug:            true, // Log CORS-related issues, can be turned off for production
+	})
+
+	return c.Handler(router)
 }
