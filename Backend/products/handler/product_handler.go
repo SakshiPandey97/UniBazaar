@@ -30,7 +30,7 @@ import (
 // @Success 201 {object} model.Product "Product created successfully"
 // @Failure 400 {object} model.ErrorResponse "Invalid User ID or form data"
 // @Failure 500 {object} model.ErrorResponse "Internal server error"
-// @Router /products [post] // Updated the endpoint to include UserId in the path
+// @Router /products [post]
 func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to create a new product.")
 
@@ -62,7 +62,6 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	// Encode and send the response
 	if err := json.NewEncoder(w).Encode(product); err != nil {
 		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
 		return
