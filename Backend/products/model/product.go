@@ -12,33 +12,33 @@ import (
 // UserProduct represents a user's product list.
 // @Description Represents a user along with their associated products in the marketplace.
 // @Type UserProduct
-// @Property userId int "Unique user ID" required
+// @Property userId int "Unique user ID" required example(123)
 // @Property products array "List of products owned by the user" required
 type UserProduct struct {
-	UserID   int       `json:"userId" bson:"UserId" validate:"nonzero"`
-	Products []Product `json:"products" bson:"Products"`
+	UserID   int       `json:"userId" bson:"UserId" validate:"nonzero" example:"123"` // UserID with example value
+	Products []Product `json:"products" bson:"Products"`                              // List of products owned by the user
 }
 
 // Product represents a product in the marketplace.
 // @Description Represents a product for sale in the marketplace.
 // @Type Product
-// @Property productId string "Unique product ID" required
-// @Property productTitle string "Product title" required
-// @Property productDescription string "Product description"
-// @Property productPostDate string "Product post date in DD-MM-YYYY format" required
-// @Property productCondition int "Product condition" required
-// @Property productPrice float64 "Price of the product" required
-// @Property productLocation string "Location of the product"
-// @Property productImage string "URL or key of the product image"
+// @Property productId string "Unique product ID" required example("9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd")
+// @Property productTitle string "Product title" required example("Laptop")
+// @Property productDescription string "Product description" example("A high-performance laptop")
+// @Property productPostDate string "Product post date in DD-MM-YYYY format" required example("20-02-2025")
+// @Property productCondition int "Product condition" required example(4)
+// @Property productPrice float64 "Price of the product" required example(999.99)
+// @Property productLocation string "Location of the product" example("University of Florida")
+// @Property productImage string "In POST: The product image file. In GET: The URL of the product image" example("https://example.com/laptop.jpg")
 type Product struct {
-	ProductID          string  `json:"productId" bson:"ProductId"`
-	ProductTitle       string  `json:"productTitle" bson:"ProductTitle" validate:"nonzero"`
-	ProductDescription string  `json:"productDescription" bson:"ProductDescription"`
-	ProductPostDate    string  `json:"productPostDate" bson:"ProductPostDate" validate:"nonzero"`
-	ProductCondition   int     `json:"productCondition" bson:"ProductCondition" validate:"nonzero"`
-	ProductPrice       float64 `json:"productPrice" bson:"ProductPrice" validate:"nonzero"`
-	ProductLocation    string  `json:"productLocation" bson:"ProductLocation"`
-	ProductImage       string  `json:"productImage" bson:"ProductImage"`
+	ProductID          string  `json:"productId" bson:"ProductId" example:"9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd"`        // Unique product ID (UUID)
+	ProductTitle       string  `json:"productTitle" bson:"ProductTitle" validate:"nonzero" example:"Laptop"`             // Product title
+	ProductDescription string  `json:"productDescription" bson:"ProductDescription" example:"A high-performance laptop"` // Product description
+	ProductPostDate    string  `json:"productPostDate" bson:"ProductPostDate" validate:"nonzero" example:"20-02-2025"`   // Product post date (DD-MM-YYYY)
+	ProductCondition   int     `json:"productCondition" bson:"ProductCondition" validate:"nonzero" example:"4"`          // Product condition
+	ProductPrice       float64 `json:"productPrice" bson:"ProductPrice" validate:"nonzero" example:"999.99"`             // Price of the product
+	ProductLocation    string  `json:"productLocation" bson:"ProductLocation" example:"University of Florida"`           // Location of the product
+	ProductImage       string  `json:"productImage" bson:"ProductImage" example:"https://example.com/laptop.jpg"`        // Product image URL in GET, Actual product image in PUT
 }
 
 func (p *Product) Validate() error {

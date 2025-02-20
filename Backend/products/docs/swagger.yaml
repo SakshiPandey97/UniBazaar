@@ -4,38 +4,61 @@ definitions:
     description: Represents an error response when an operation fails.
     properties:
       details:
+        description: Detailed error message with multiple examples
+        example: 'ProductPrice: cannot be empty or zero, Product not found'
         type: string
       error:
+        description: Error message with example value
+        example: Error updaing product
         type: string
     type: object
   model.Product:
     description: Represents a product for sale in the marketplace.
     properties:
       productCondition:
+        description: Product condition
+        example: 4
         type: integer
       productDescription:
+        description: Product description
+        example: A high-performance laptop
         type: string
       productId:
+        description: Unique product ID (UUID)
+        example: 9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd
         type: string
       productImage:
+        description: Product image URL in GET, Actual product image in PUT
+        example: https://example.com/laptop.jpg
         type: string
       productLocation:
+        description: Location of the product
+        example: University of Florida
         type: string
       productPostDate:
+        description: Product post date (DD-MM-YYYY)
+        example: 20-02-2025
         type: string
       productPrice:
+        description: Price of the product
+        example: 999.99
         type: number
       productTitle:
+        description: Product title
+        example: Laptop
         type: string
     type: object
   model.UserProduct:
     description: Represents a user along with their associated products in the marketplace.
     properties:
       products:
+        description: List of products owned by the user
         items:
           $ref: '#/definitions/model.Product'
         type: array
       userId:
+        description: UserID with example value
+        example: 123
         type: integer
     type: object
 host: localhost:8080

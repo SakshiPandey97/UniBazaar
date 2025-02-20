@@ -302,10 +302,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "details": {
-                    "type": "string"
+                    "description": "Detailed error message with multiple examples",
+                    "type": "string",
+                    "example": "ProductPrice: cannot be empty or zero, Product not found"
                 },
                 "error": {
-                    "type": "string"
+                    "description": "Error message with example value",
+                    "type": "string",
+                    "example": "Error updaing product"
                 }
             }
         },
@@ -314,28 +318,44 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "productCondition": {
-                    "type": "integer"
+                    "description": "Product condition",
+                    "type": "integer",
+                    "example": 4
                 },
                 "productDescription": {
-                    "type": "string"
+                    "description": "Product description",
+                    "type": "string",
+                    "example": "A high-performance laptop"
                 },
                 "productId": {
-                    "type": "string"
+                    "description": "Unique product ID (UUID)",
+                    "type": "string",
+                    "example": "9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd"
                 },
                 "productImage": {
-                    "type": "string"
+                    "description": "Product image URL in GET, Actual product image in PUT",
+                    "type": "string",
+                    "example": "https://example.com/laptop.jpg"
                 },
                 "productLocation": {
-                    "type": "string"
+                    "description": "Location of the product",
+                    "type": "string",
+                    "example": "University of Florida"
                 },
                 "productPostDate": {
-                    "type": "string"
+                    "description": "Product post date (DD-MM-YYYY)",
+                    "type": "string",
+                    "example": "20-02-2025"
                 },
                 "productPrice": {
-                    "type": "number"
+                    "description": "Price of the product",
+                    "type": "number",
+                    "example": 999.99
                 },
                 "productTitle": {
-                    "type": "string"
+                    "description": "Product title",
+                    "type": "string",
+                    "example": "Laptop"
                 }
             }
         },
@@ -344,13 +364,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "products": {
+                    "description": "List of products owned by the user",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Product"
                     }
                 },
                 "userId": {
-                    "type": "integer"
+                    "description": "UserID with example value",
+                    "type": "integer",
+                    "example": 123
                 }
             }
         }
