@@ -9,19 +9,10 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-// UserProduct represents a user's product list.
-// @Description Represents a user along with their associated products in the marketplace.
-// @Type UserProduct
-// @Property userId int "Unique user ID" required example(123)
-// @Property products array "List of products owned by the user" required
-type UserProduct struct {
-	UserID   int       `json:"userId" bson:"UserId" validate:"nonzero" example:"123"` // UserID with example value
-	Products []Product `json:"products" bson:"Products"`                              // List of products owned by the user
-}
-
 // Product represents a product in the marketplace.
 // @Description Represents a product for sale in the marketplace.
 // @Type Product
+// @Property userId int "Unique user ID" required example(123)
 // @Property productId string "Unique product ID" required example("9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd")
 // @Property productTitle string "Product title" required example("Laptop")
 // @Property productDescription string "Product description" example("A high-performance laptop")
@@ -31,6 +22,7 @@ type UserProduct struct {
 // @Property productLocation string "Location of the product" example("University of Florida")
 // @Property productImage string "In POST: The product image file. In GET: The URL of the product image" example("https://example.com/laptop.jpg")
 type Product struct {
+	UserID             int     `json:"userId" bson:"UserId" validate:"nonzero" example:"123"`                            // Unique user ID
 	ProductID          string  `json:"productId" bson:"ProductId" example:"9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd"`        // Unique product ID (UUID)
 	ProductTitle       string  `json:"productTitle" bson:"ProductTitle" validate:"nonzero" example:"Laptop"`             // Product title
 	ProductDescription string  `json:"productDescription" bson:"ProductDescription" example:"A high-performance laptop"` // Product description

@@ -53,14 +53,9 @@
 							"type": "text"
 						},
 						{
-							"key": "productImageType",
-							"value": "image/png",
-							"type": "text"
-						},
-						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 4.png"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 12.jpg"
 						}
 					]
 				},
@@ -88,13 +83,22 @@
 							"const jsonData = pm.response.json();\r",
 							"let imagesHtml = '';\r",
 							"\r",
-							"jsonData[0].products.forEach(product => {\r",
-							"    imagesHtml += `<img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">`;\r",
+							"jsonData.forEach(product => {\r",
+							"    imagesHtml += `\r",
+							"    <div>\r",
+							"        <h3>${product.productTitle}</h3>\r",
+							"        <p>${product.productDescription}</p>\r",
+							"        <p><strong>Price:</strong> $${product.productPrice}</p>\r",
+							"        <p><strong>Location:</strong> ${product.productLocation}</p>\r",
+							"        <p><strong>Condition:</strong> ${product.productCondition}</p>\r",
+							"        <p><strong>Post Date:</strong> ${product.productPostDate}</p>\r",
+							"        <img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">\r",
+							"    </div>`;\r",
 							"});\r",
 							"\r",
 							"pm.visualizer.set(`\r",
 							"<body>\r",
-							"  ${imagesHtml}  <!-- Insert the generated image tags here -->\r",
+							"  ${imagesHtml}\r",
 							"</body>`);\r",
 							""
 						],
@@ -141,7 +145,7 @@
 						},
 						{
 							"key": "productId",
-							"value": "9518068e-45a2-47ad-b270-fbc2459eb30b",
+							"value": "26678cba-459c-45a8-b856-a333ae4e0356",
 							"type": "text"
 						},
 						{
@@ -175,19 +179,14 @@
 							"type": "text"
 						},
 						{
-							"key": "productImageType",
-							"value": "image/jpeg",
-							"type": "text"
-						},
-						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 9.jpg"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 11.png"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/products/456/9518068e-45a2-47ad-b270-fbc2459eb30b",
+					"raw": "http://localhost:8080/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -196,7 +195,7 @@
 					"path": [
 						"products",
 						"456",
-						"9518068e-45a2-47ad-b270-fbc2459eb30b"
+						"26678cba-459c-45a8-b856-a333ae4e0356"
 					]
 				}
 			},
@@ -223,7 +222,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/products/456/ed3cb6a3-6c06-4770-8b8c-e61a71e36f55",
+					"raw": "http://localhost:8080/products/456/1359af06-49ba-485b-bab8-089aef18e56a",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -232,7 +231,7 @@
 					"path": [
 						"products",
 						"456",
-						"ed3cb6a3-6c06-4770-8b8c-e61a71e36f55"
+						"1359af06-49ba-485b-bab8-089aef18e56a"
 					]
 				}
 			},

@@ -31,7 +31,7 @@ const SellProduct = () => {
     }
   
     const formData = new FormData();
-    formData.append("userId", "1");
+    formData.append("userId", 1);
     formData.append("productTitle", productData.productTitle);
     formData.append("productDescription", productData.productDescription);
     formData.append("productPrice", productData.productPrice);
