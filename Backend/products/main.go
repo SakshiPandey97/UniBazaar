@@ -13,6 +13,11 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// @title UniBazaar Products API
+// @version 1.0
+// @description API for managing products in the UniBazaar marketplace for university students.
+// @host localhost:8080
+// @BasePath /
 func main() {
 	err := godotenv.Load()
 	if err != nil {

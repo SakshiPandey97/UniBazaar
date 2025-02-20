@@ -14,6 +14,22 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// @Summary Create a new product
+// @Description Creates a new product by parsing form data, uploading images to S3, and saving to the database.
+// @Tags Products
+// @Accept multipart/form-data
+// @Produce json
+// @Param userId formData int true "User ID"
+// @Param productTitle formData string true "Product title"
+// @Param productDescription formData string false "Product description"
+// @Param productPrice formData float64 true "Product price"
+// @Param productCondition formData int true "Product condition"
+// @Param productLocation formData string true "Product location"
+// @Param productImage formData file true "Product image"
+// @Success 201 {object} model.Product "Product created successfully"
+// @Failure 400 {object} model.ErrorResponse "Invalid userId or form data"
+// @Failure 500 {object} model.ErrorResponse "Internal server error"
+// @Router /products [post]
 func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to create a new product.")
 
@@ -53,6 +69,14 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get all products in the system
+// @Description Fetch all products from the system, regardless of the user ID.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Success 200 {array} model.UserProduct "List of all products grouped by user"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products [get]
 func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to fetch all products.")
 
@@ -73,6 +97,17 @@ func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get all products for a specific user by user ID
+// @Description Fetch all products listed by a user, identified by their user ID.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param UserId path int true "User ID"
+// @Success 200 {array} model.Product "List of products"
+// @Failure 400 {object} model.ErrorResponse "Invalid user ID"
+// @Failure 404 {object} model.ErrorResponse "No products found"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products/{UserId} [get]
 func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
@@ -99,6 +134,19 @@ func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Update a product by user ID and product ID
+// @Description Update a product's details based on the user ID and product ID.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param UserId path int true "User ID"
+// @Param ProductId path string true "Product ID"
+// @Param product body model.Product true "Product Details"
+// @Success 200 {object} model.Product "Updated product"
+// @Failure 400 {object} model.ErrorResponse "Invalid request"
+// @Failure 404 {object} model.ErrorResponse "Product not found"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products/{UserId}/{ProductId} [put]
 func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
@@ -167,6 +215,16 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Delete a product by user ID and product ID
+// @Description Delete a product from the system based on the user ID and product ID.
+// @Tags Products
+// @Param UserId path int true "User ID"
+// @Param ProductId path string true "Product ID"
+// @Success 204 "Product deleted"
+// @Failure 400 {object} model.ErrorResponse "Invalid request"
+// @Failure 404 {object} model.ErrorResponse "Product not found"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products/{UserId}/{ProductId} [delete]
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
