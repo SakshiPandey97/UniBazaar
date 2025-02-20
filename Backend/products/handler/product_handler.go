@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -15,11 +16,11 @@ import (
 )
 
 // @Summary Create a new product
-// @Description Creates a new product by parsing form data, uploading images to S3, and saving to the database.
+// @Description Creates a new product by parsing form data, uploading images to S3, and saving it to the database. The product is linked to the user via their User ID.
 // @Tags Products
 // @Accept multipart/form-data
 // @Produce json
-// @Param userId formData int true "User ID"
+// @Param UserId formData int true "User ID (form data)"
 // @Param productTitle formData string true "Product title"
 // @Param productDescription formData string false "Product description"
 // @Param productPrice formData float64 true "Product price"
@@ -27,23 +28,25 @@ import (
 // @Param productLocation formData string true "Product location"
 // @Param productImage formData file true "Product image"
 // @Success 201 {object} model.Product "Product created successfully"
-// @Failure 400 {object} model.ErrorResponse "Invalid userId or form data"
+// @Failure 400 {object} model.ErrorResponse "Invalid User ID or form data"
 // @Failure 500 {object} model.ErrorResponse "Internal server error"
-// @Router /products [post]
+// @Router /products [post] // Updated the endpoint to include UserId in the path
 func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to create a new product.")
 
-	UserID, err := helper.GetUserID(r.FormValue("userId"))
+	userID, err := helper.GetUserID(r.FormValue("userId"))
 	if err != nil {
 		handleError(w, "Invalid userId", err, http.StatusBadRequest)
 		return
 	}
 
-	product, err := helper.ParseFormAndCreateProduct(r)
+	product, err := helper.ParseFormAndCreateProduct(r, userID)
 	if err != nil {
 		handleError(w, "Error creating product", err, http.StatusBadRequest)
 		return
 	}
+
+	product.UserID = userID
 
 	s3ImageKey, err := handleProductImageUpload(w, r, &product)
 	if err != nil {
@@ -51,18 +54,15 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	product.ProductImage = s3ImageKey
 
-	userProduct := model.UserProduct{
-		UserID:   UserID,
-		Products: []model.Product{product},
-	}
-
-	if err := repository.CreateProduct(userProduct); err != nil {
+	if err := repository.CreateProduct(product); err != nil {
 		handleError(w, "Error creating product in database", err, http.StatusInternalServerError)
 		return
 	}
-  
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+
+	// Encode and send the response
 	if err := json.NewEncoder(w).Encode(product); err != nil {
 		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
 		return
@@ -70,42 +70,46 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary Get all products in the system
-// @Description Fetch all products from the system, regardless of the user ID.
+// @Description Fetch all products from the system, regardless of the user ID. If no products are found, an error is returned.
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Success 200 {array} model.UserProduct "List of all products grouped by user"
+// @Success 200 {array} model.Product "List of all products"
+// @Failure 404 {object} model.ErrorResponse "No products found in the system"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
 // @Router /products [get]
 func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to fetch all products.")
 
-	userProducts, err := repository.GetAllProducts()
+	products, err := repository.GetAllProducts()
 	if err != nil {
 		handleError(w, "Error fetching products", err, http.StatusInternalServerError)
 		return
 	}
 
-	for i := range userProducts {
-		userProducts[i].Products = repository.GetPreSignedURLs(userProducts[i].Products)
+	if len(products) == 0 {
+		handleError(w, "No products found in the system", fmt.Errorf("no products found"), http.StatusNotFound)
+		return
 	}
 
+	products = repository.GetPreSignedURLs(products)
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(userProducts); err != nil {
+	if err := json.NewEncoder(w).Encode(products); err != nil {
 		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
 		return
 	}
 }
 
 // @Summary Get all products for a specific user by user ID
-// @Description Fetch all products listed by a user, identified by their user ID.
+// @Description Fetch all products listed by a user, identified by their user ID. If no products are found, an error is returned.
 // @Tags Products
 // @Accept json
 // @Produce json
 // @Param UserId path int true "User ID"
 // @Success 200 {array} model.Product "List of products"
 // @Failure 400 {object} model.ErrorResponse "Invalid user ID"
-// @Failure 404 {object} model.ErrorResponse "No products found"
+// @Failure 404 {object} model.ErrorResponse "No products found for the given user ID"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
 // @Router /products/{UserId} [get]
 func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +139,7 @@ func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary Update a product by user ID and product ID
-// @Description Update a product's details based on the user ID and product ID.
+// @Description Update a product's details based on the user ID and product ID. The product image is also updated if provided.
 // @Tags Products
 // @Accept json
 // @Produce json
@@ -166,7 +170,7 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedProduct, err := helper.ParseFormAndCreateProduct(r)
+	updatedProduct, err := helper.ParseFormAndCreateProduct(r, userId)
 	if err != nil {
 		handleError(w, "Error parsing form data", err, http.StatusBadRequest)
 		return
@@ -216,7 +220,7 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary Delete a product by user ID and product ID
-// @Description Delete a product from the system based on the user ID and product ID.
+// @Description Delete a product from the system based on the user ID and product ID. This also removes the associated image from S3 if available.
 // @Tags Products
 // @Param UserId path int true "User ID"
 // @Param ProductId path string true "Product ID"

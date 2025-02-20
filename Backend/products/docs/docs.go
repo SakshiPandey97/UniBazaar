@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/products": {
             "get": {
-                "description": "Fetch all products from the system, regardless of the user ID.",
+                "description": "Fetch all products from the system, regardless of the user ID. If no products are found, an error is returned.",
                 "consumes": [
                     "application/json"
                 ],
@@ -30,12 +30,18 @@ const docTemplate = `{
                 "summary": "Get all products in the system",
                 "responses": {
                     "200": {
-                        "description": "List of all products grouped by user",
+                        "description": "List of all products",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.UserProduct"
+                                "$ref": "#/definitions/model.Product"
                             }
+                        }
+                    },
+                    "404": {
+                        "description": "No products found in the system",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "500": {
@@ -47,7 +53,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Creates a new product by parsing form data, uploading images to S3, and saving to the database.",
+                "description": "Creates a new product by parsing form data, uploading images to S3, and saving it to the database. The product is linked to the user via their User ID.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -61,8 +67,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
-                        "name": "userId",
+                        "description": "User ID (form data)",
+                        "name": "UserId",
                         "in": "formData",
                         "required": true
                     },
@@ -116,7 +122,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid userId or form data",
+                        "description": "Invalid User ID or form data",
                         "schema": {
                             "$ref": "#/definitions/model.ErrorResponse"
                         }
@@ -132,7 +138,7 @@ const docTemplate = `{
         },
         "/products/{UserId}": {
             "get": {
-                "description": "Fetch all products listed by a user, identified by their user ID.",
+                "description": "Fetch all products listed by a user, identified by their user ID. If no products are found, an error is returned.",
                 "consumes": [
                     "application/json"
                 ],
@@ -169,7 +175,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "No products found",
+                        "description": "No products found for the given user ID",
                         "schema": {
                             "$ref": "#/definitions/model.ErrorResponse"
                         }
@@ -185,7 +191,7 @@ const docTemplate = `{
         },
         "/products/{UserId}/{ProductId}": {
             "put": {
-                "description": "Update a product's details based on the user ID and product ID.",
+                "description": "Update a product's details based on the user ID and product ID. The product image is also updated if provided.",
                 "consumes": [
                     "application/json"
                 ],
@@ -249,7 +255,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a product from the system based on the user ID and product ID.",
+                "description": "Delete a product from the system based on the user ID and product ID. This also removes the associated image from S3 if available.",
                 "tags": [
                     "Products"
                 ],
@@ -356,22 +362,9 @@ const docTemplate = `{
                     "description": "Product title",
                     "type": "string",
                     "example": "Laptop"
-                }
-            }
-        },
-        "model.UserProduct": {
-            "description": "Represents a user along with their associated products in the marketplace.",
-            "type": "object",
-            "properties": {
-                "products": {
-                    "description": "List of products owned by the user",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Product"
-                    }
                 },
                 "userId": {
-                    "description": "UserID with example value",
+                    "description": "Unique user ID",
                     "type": "integer",
                     "example": 123
                 }

@@ -24,7 +24,7 @@ func GetUserID(userId string) (int, error) {
 	return userID, nil
 }
 
-func ParseFormAndCreateProduct(r *http.Request) (model.Product, error) {
+func ParseFormAndCreateProduct(r *http.Request, userId int) (model.Product, error) {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		log.Printf("Error parsing form data: %v", err)
@@ -32,6 +32,7 @@ func ParseFormAndCreateProduct(r *http.Request) (model.Product, error) {
 	}
 
 	product := model.Product{
+		UserID:             userId,
 		ProductID:          r.FormValue("productId"),
 		ProductTitle:       r.FormValue("productTitle"),
 		ProductDescription: r.FormValue("productDescription"),
