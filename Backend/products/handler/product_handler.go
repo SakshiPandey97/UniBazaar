@@ -72,7 +72,6 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	log.Printf("Product created successfully: %+v\n", product)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(product)
@@ -87,8 +86,7 @@ func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	log.Printf("Found %d products.\n", len(products))
+	w.Header().Set("Content-Type", "application/json")
 	jsonData, _ := json.MarshalIndent(products, "", "  ")
 	log.Printf("Final JSON Output:\n%s", string(jsonData))
 	json.NewEncoder(w).Encode(products)
