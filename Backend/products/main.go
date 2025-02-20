@@ -13,6 +13,11 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// @title UniBazaar Products API
+// @version 1.0
+// @description API for managing products in the UniBazaar marketplace for university students.
+// @host localhost:8080
+// @BasePath /
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -31,5 +36,5 @@ func main() {
 	routes.RegisterProductRoutes(router)
 
 	log.Println("Server running on port 8080")
-	http.ListenAndServe(":8080", routes.SetupCORS(router))
+	http.ListenAndServe("127.0.0.1:8080", routes.SetupCORS(router))
 }

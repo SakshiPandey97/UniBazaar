@@ -1,0 +1,288 @@
+{
+	"info": {
+		"_postman_id": "e9374cf9-11b7-4dc3-83fc-e57bcec37e74",
+		"name": "UniBazaar Products",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12412747"
+	},
+	"item": [
+		{
+			"name": "Create Product",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "userId",
+							"value": "456",
+							"type": "text"
+						},
+						{
+							"key": "productTitle",
+							"value": "asd",
+							"type": "text"
+						},
+						{
+							"key": "productDescription",
+							"value": "Fast",
+							"type": "text"
+						},
+						{
+							"key": "productPrice",
+							"value": "999",
+							"type": "text"
+						},
+						{
+							"key": "productCondition",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "productLocation",
+							"value": "GNV",
+							"type": "text"
+						},
+						{
+							"key": "productPostDate",
+							"value": "10-02-2025",
+							"type": "text"
+						},
+						{
+							"key": "productImageType",
+							"value": "image/png",
+							"type": "text"
+						},
+						{
+							"key": "productImage",
+							"type": "file",
+							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 4.png"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Products",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"let imagesHtml = '';\r",
+							"\r",
+							"jsonData[0].products.forEach(product => {\r",
+							"    imagesHtml += `<img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">`;\r",
+							"});\r",
+							"\r",
+							"pm.visualizer.set(`\r",
+							"<body>\r",
+							"  ${imagesHtml}  <!-- Insert the generated image tags here -->\r",
+							"</body>`);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Product",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "userId",
+							"value": "456",
+							"type": "text"
+						},
+						{
+							"key": "productId",
+							"value": "9518068e-45a2-47ad-b270-fbc2459eb30b",
+							"type": "text"
+						},
+						{
+							"key": "productTitle",
+							"value": "asd",
+							"type": "text"
+						},
+						{
+							"key": "productDescription",
+							"value": "Fast",
+							"type": "text"
+						},
+						{
+							"key": "productPrice",
+							"value": "999",
+							"type": "text"
+						},
+						{
+							"key": "productCondition",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "productLocation",
+							"value": "GNV",
+							"type": "text"
+						},
+						{
+							"key": "productPostDate",
+							"value": "10-02-2025",
+							"type": "text"
+						},
+						{
+							"key": "productImageType",
+							"value": "image/jpeg",
+							"type": "text"
+						},
+						{
+							"key": "productImage",
+							"type": "file",
+							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 9.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/products/456/9518068e-45a2-47ad-b270-fbc2459eb30b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"456",
+						"9518068e-45a2-47ad-b270-fbc2459eb30b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Product",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/products/456/ed3cb6a3-6c06-4770-8b8c-e61a71e36f55",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"456",
+						"ed3cb6a3-6c06-4770-8b8c-e61a71e36f55"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Products by User ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"let imagesHtml = '';\r",
+							"\r",
+							"jsonData.forEach(product => {\r",
+							"    imagesHtml += `<img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">`;\r",
+							"});\r",
+							"\r",
+							"pm.visualizer.set(`\r",
+							"<body>\r",
+							"  ${imagesHtml}  <!-- Insert the generated image tags here -->\r",
+							"</body>`);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/products/456",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"products",
+						"456"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,172 +1,307 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
+	"errors"
 	"log"
 	"net/http"
+	"sync"
 
 	"web-service/helper"
 	"web-service/model"
 	"web-service/repository"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
+// @Summary Create a new product
+// @Description Creates a new product by parsing form data, uploading images to S3, and saving to the database.
+// @Tags Products
+// @Accept multipart/form-data
+// @Produce json
+// @Param userId formData int true "User ID"
+// @Param productTitle formData string true "Product title"
+// @Param productDescription formData string false "Product description"
+// @Param productPrice formData float64 true "Product price"
+// @Param productCondition formData int true "Product condition"
+// @Param productLocation formData string true "Product location"
+// @Param productImage formData file true "Product image"
+// @Success 201 {object} model.Product "Product created successfully"
+// @Failure 400 {object} model.ErrorResponse "Invalid userId or form data"
+// @Failure 500 {object} model.ErrorResponse "Internal server error"
+// @Router /products [post]
 func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to create a new product.")
-	log.Printf(r.FormValue("productImage"))
 
-	err := r.ParseMultipartForm(10 << 20)
+	UserID, err := helper.GetUserID(r.FormValue("userId"))
 	if err != nil {
-		log.Printf("Error parsing form data: %v\n", err)
-		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		handleError(w, "Invalid userId", err, http.StatusBadRequest)
 		return
 	}
 
-	product := model.Product{
-		ProductID:          uuid.NewString(),
-		ProductTitle:       r.FormValue("productTitle"),
-		ProductDescription: r.FormValue("productDescription"),
-		ProductPostDate:    r.FormValue("productPostDate"),
-		ProductCondition:   0,
-		ProductPrice:       0.0,
-		ProductLocation:    r.FormValue("productLocation"),
-	}
-
-	fmt.Sscanf(r.FormValue("productCondition"), "%d", &product.ProductCondition)
-	fmt.Sscanf(r.FormValue("productPrice"), "%f", &product.ProductPrice)
-
-	file, _, err := r.FormFile("productImage")
+	product, err := helper.ParseFormAndCreateProduct(r)
 	if err != nil {
-		log.Printf("Error retrieving file: %v\n", err)
-		http.Error(w, "File upload error", http.StatusBadRequest)
+		handleError(w, "Error creating product", err, http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
 
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, file)
+	s3ImageKey, err := handleProductImageUpload(w, r, &product)
 	if err != nil {
-		log.Printf("Error reading file: %v\n", err)
-		http.Error(w, "Error processing file", http.StatusInternalServerError)
 		return
 	}
+	product.ProductImage = s3ImageKey
 
-	s3IamgeKey, uploadError := helper.UploadToS3Bucket(product.ProductID, r.FormValue("userId"), buf.Bytes(), r.FormValue("productImageType"))
-	if uploadError != nil {
-		log.Printf("Error uploading file to S3: %v\n", err)
-		http.Error(w, "Error uploading file", http.StatusInternalServerError)
-		return
-	}
-	product.ProductImage = s3IamgeKey
 	userProduct := model.UserProduct{
-		UserID:   r.FormValue("userId"),
+		UserID:   UserID,
 		Products: []model.Product{product},
 	}
+
 	if err := repository.CreateProduct(userProduct); err != nil {
-		log.Printf("Error creating product: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleError(w, "Error creating product in database", err, http.StatusInternalServerError)
 		return
 	}
-	log.Printf("Product created successfully: %+v\n", product)
+  
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(product)
+	if err := json.NewEncoder(w).Encode(product); err != nil {
+		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
+		return
+	}
 }
 
+// @Summary Get all products in the system
+// @Description Fetch all products from the system, regardless of the user ID.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Success 200 {array} model.UserProduct "List of all products grouped by user"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products [get]
 func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to fetch all products.")
 
-	products, err := repository.GetAllProducts()
+	userProducts, err := repository.GetAllProducts()
 	if err != nil {
-		log.Printf("Error fetching products: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleError(w, "Error fetching products", err, http.StatusInternalServerError)
 		return
 	}
+
+	for i := range userProducts {
+		userProducts[i].Products = repository.GetPreSignedURLs(userProducts[i].Products)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	jsonData, _ := json.MarshalIndent(products, "", "  ")
-	log.Printf("Final JSON Output:\n%s", string(jsonData))
-	json.NewEncoder(w).Encode(products)
+	if err := json.NewEncoder(w).Encode(userProducts); err != nil {
+		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
+		return
+	}
 }
 
-func GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	log.Printf("Received request to fetch product with ID: %s\n", id)
-
-	product, err := repository.GetProductByID(id)
+// @Summary Get all products for a specific user by user ID
+// @Description Fetch all products listed by a user, identified by their user ID.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param UserId path int true "User ID"
+// @Success 200 {array} model.Product "List of products"
+// @Failure 400 {object} model.ErrorResponse "Invalid user ID"
+// @Failure 404 {object} model.ErrorResponse "No products found"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products/{UserId} [get]
+func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
+	userID, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
-		log.Printf("Error fetching product with ID %s: %v\n", id, err)
-		http.Error(w, err.Error(), http.StatusNotFound)
+		handleError(w, "Invalid userId", err, http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Product found: %+v\n", product)
-	json.NewEncoder(w).Encode(product)
+	log.Printf("Received request to fetch all products for user ID: %d\n", userID)
+
+	products, err := repository.GetProductsByUserID(userID)
+	if err != nil {
+		handleError(w, "Error fetching products for user", err, http.StatusNotFound)
+		return
+	}
+
+	products = repository.GetPreSignedURLs(products)
+
+	log.Printf("Found %d products for user ID %d\n", len(products), userID)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(products); err != nil {
+		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
+		return
+	}
 }
 
+// @Summary Update a product by user ID and product ID
+// @Description Update a product's details based on the user ID and product ID.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param UserId path int true "User ID"
+// @Param ProductId path string true "Product ID"
+// @Param product body model.Product true "Product Details"
+// @Success 200 {object} model.Product "Updated product"
+// @Failure 400 {object} model.ErrorResponse "Invalid request"
+// @Failure 404 {object} model.ErrorResponse "Product not found"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products/{UserId}/{ProductId} [put]
 func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
-	userId := r.URL.Query().Get("userId")
-	productId := r.URL.Query().Get("productId")
-
-	if userId == "" || productId == "" {
-		http.Error(w, "Missing userId or productId in query parameters", http.StatusBadRequest)
-		return
-	}
-
-	body, err := io.ReadAll(r.Body)
+	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
-		return
-	}
-	log.Printf("Received JSON body: %s", string(body))
-
-	var updateData map[string]interface{}
-	if err := json.Unmarshal(body, &updateData); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		handleError(w, "Invalid or missing userId", err, http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Parsed update data: %+v", updateData)
-
-	if len(updateData) == 0 {
-		http.Error(w, "No fields provided for update", http.StatusBadRequest)
+	productId := mux.Vars(r)["ProductId"]
+	if productId == "" {
+		handleError(w, "Missing productId in URL parameters", nil, http.StatusBadRequest)
 		return
 	}
 
-	err = repository.UpdateProduct(userId, productId, updateData)
+	existingProduct, err := repository.FindProductByUserAndId(userId, productId)
 	if err != nil {
-		if err.Error() == "product not found" {
-			http.Error(w, "Product not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error updating product", http.StatusInternalServerError)
+		handleError(w, "Error fetching product", err, http.StatusNotFound)
+		return
+	}
+
+	updatedProduct, err := helper.ParseFormAndCreateProduct(r)
+	if err != nil {
+		handleError(w, "Error parsing form data", err, http.StatusBadRequest)
+		return
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	var imageDeleteErr, imageUploadErr error
+	var newS3ImageKey string
+
+	go func() {
+		defer wg.Done()
+		if existingProduct.ProductImage != "" {
+			imageDeleteErr = repository.DeleteImageFromS3(existingProduct.ProductImage)
 		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		newS3ImageKey, imageUploadErr = handleProductImageUpload(w, r, &updatedProduct)
+	}()
+
+	wg.Wait()
+
+	if imageDeleteErr != nil {
+		log.Printf("Error deleting old image: %v", imageDeleteErr)
+	}
+
+	if imageUploadErr != nil {
+		handleError(w, "Error uploading new image", imageUploadErr, http.StatusInternalServerError)
 		return
 	}
 
+	updatedProduct.ProductImage = newS3ImageKey
+
+	err = repository.UpdateProduct(userId, productId, updatedProduct)
+	if err != nil {
+		handleError(w, "Error updating product", err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Product updated successfully"))
+	if err := json.NewEncoder(w).Encode(updatedProduct); err != nil {
+		handleError(w, "Error encoding response", err, http.StatusInternalServerError)
+	}
 }
 
+// @Summary Delete a product by user ID and product ID
+// @Description Delete a product from the system based on the user ID and product ID.
+// @Tags Products
+// @Param UserId path int true "User ID"
+// @Param ProductId path string true "Product ID"
+// @Success 204 "Product deleted"
+// @Failure 400 {object} model.ErrorResponse "Invalid request"
+// @Failure 404 {object} model.ErrorResponse "Product not found"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /products/{UserId}/{ProductId} [delete]
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
-	userId := r.URL.Query().Get("userId")
-	productId := r.URL.Query().Get("productId")
-
-	if userId == "" || productId == "" {
-		http.Error(w, "Missing userId or productId in query parameters", http.StatusBadRequest)
+	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
+	if err != nil {
+		handleError(w, "Invalid or missing userId", err, http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Received request to delete product with ID: %s by user %s\n", productId, userId)
+	productId := mux.Vars(r)["ProductId"]
+	if productId == "" {
+		handleError(w, "Missing productId in path parameters", errors.New("productId is required"), http.StatusBadRequest)
+		return
+	}
 
-	if err := repository.DeleteProduct(userId, productId); err != nil {
-		log.Printf("Error deleting product with ID %s: %v\n", productId, err)
-		http.Error(w, err.Error(), http.StatusNotFound)
+	log.Printf("Received request to delete product with ID: %s by user %d\n", productId, userId)
+
+	product, err := repository.FindProductByUserAndId(userId, productId)
+	if err != nil {
+		handleError(w, "Error fetching product", err, http.StatusNotFound)
+		return
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	var imageDeleteErr, dbDeleteErr error
+
+	go func() {
+		defer wg.Done()
+		if product.ProductImage != "" {
+			imageDeleteErr = repository.DeleteImageFromS3(product.ProductImage)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		dbDeleteErr = repository.DeleteProduct(userId, productId)
+	}()
+
+	wg.Wait()
+
+	if imageDeleteErr != nil {
+		log.Printf("Error deleting image from S3: %v\n", imageDeleteErr)
+	}
+
+	if dbDeleteErr != nil {
+		handleError(w, "Error deleting product", dbDeleteErr, http.StatusInternalServerError)
 		return
 	}
 
 	log.Printf("Product with ID %s deleted successfully.\n", productId)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func handleProductImageUpload(w http.ResponseWriter, r *http.Request, product *model.Product) (string, error) {
+	imageData, format, err := helper.ParseProductImage(r)
+	if err != nil {
+		handleError(w, "Error reading image", err, http.StatusBadRequest)
+		return "", err
+	}
+
+	s3ImageKey, err := repository.UploadToS3Bucket(product.ProductID, r.FormValue("userId"), imageData.Bytes(), format)
+	if err != nil {
+		handleError(w, "Error uploading image to S3", err, http.StatusInternalServerError)
+		return "", err
+	}
+	return s3ImageKey, nil
+}
+
+func handleError(w http.ResponseWriter, message string, err error, statusCode int) {
+	log.Printf("%s: %v\n", message, err)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
+	response := model.ErrorResponse{
+		Error:   message,
+		Details: err.Error(),
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
