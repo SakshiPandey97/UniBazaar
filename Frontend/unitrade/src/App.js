@@ -1,19 +1,22 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./pages/components/Navbar";
 import Banner from "./pages/components/Banner";
-import Products from "./pages/components/Products";
-import SellProduct from "./pages/SellProduct";
+import Spinner from "./pages/components/Spinner";
 import { AuthProvider } from "./hooks/useUserAuth";
-import useLoginModal from "./hooks/useLoginModal"; 
+import useLoginModal from "./hooks/useLoginModal";
 import "./App.css";
 import AuthPage from "./pages/AuthPage";
+const SellProductPage = lazy(() => import("./pages/SellProduct"));
+const Products = lazy(() => import("./pages/components/Products"));
 
 function Layout() {
   return (
     <div className="App">
       <Banner />
-      <Products />
+      <Suspense fallback={<Spinner />}>
+        <Products />
+      </Suspense>
     </div>
   );
 }
@@ -26,7 +29,7 @@ function App() {
       {isModalOpen && (
         <div className="modal-overlay" onClick={toggleModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <AuthPage toggleModal={toggleModal}/>
+            <AuthPage toggleModal={toggleModal} />
           </div>
         </div>
       )}
@@ -35,7 +38,14 @@ function App() {
         <Navbar toggleModal={toggleModal} />
         <Routes>
           <Route path="/" element={<Layout />} />
-          <Route path="/sell" element={<SellProduct />} />
+          <Route
+            path="/sell"
+            element={
+              <Suspense fallback={<Spinner />}>
+                <SellProductPage />
+              </Suspense>
+            }
+          />
         </Routes>
       </Router>
     </AuthProvider>

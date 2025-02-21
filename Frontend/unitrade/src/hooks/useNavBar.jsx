@@ -7,6 +7,11 @@ const useNavbar = ({ toggleModal }) => {
   const userAuth = useUserAuth();
   const navigate = useNavigate();
 
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!isDropdownOpen);
+  };
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   const handleNavigation = (path) => {
@@ -24,6 +29,8 @@ const useNavbar = ({ toggleModal }) => {
 
   return {
     isMenuOpen,
+    isDropdownOpen,
+    toggleDropdown,
     toggleMenu,
     handleNavigation,
     handleAuthAction,
