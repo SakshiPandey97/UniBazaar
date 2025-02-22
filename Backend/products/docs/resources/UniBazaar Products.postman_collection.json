@@ -55,17 +55,15 @@
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 12.jpg"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 1.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/products",
-					"protocol": "http",
+					"raw": "{{local_url}}/products",
 					"host": [
-						"localhost"
+						"{{local_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products"
 					]
@@ -86,12 +84,6 @@
 							"jsonData.forEach(product => {\r",
 							"    imagesHtml += `\r",
 							"    <div>\r",
-							"        <h3>${product.productTitle}</h3>\r",
-							"        <p>${product.productDescription}</p>\r",
-							"        <p><strong>Price:</strong> $${product.productPrice}</p>\r",
-							"        <p><strong>Location:</strong> ${product.productLocation}</p>\r",
-							"        <p><strong>Condition:</strong> ${product.productCondition}</p>\r",
-							"        <p><strong>Post Date:</strong> ${product.productPostDate}</p>\r",
 							"        <img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">\r",
 							"    </div>`;\r",
 							"});\r",
@@ -114,12 +106,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/products",
-					"protocol": "http",
+					"raw": "{{local_url}}/products",
 					"host": [
-						"localhost"
+						"{{local_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products"
 					]
@@ -145,7 +135,7 @@
 						},
 						{
 							"key": "productId",
-							"value": "26678cba-459c-45a8-b856-a333ae4e0356",
+							"value": "5e1b8799-0705-4ed4-9112-d76dcdb1d01e",
 							"type": "text"
 						},
 						{
@@ -181,21 +171,19 @@
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 11.png"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 5.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
-					"protocol": "http",
+					"raw": "{{local_url}}/products/456/5e1b8799-0705-4ed4-9112-d76dcdb1d01e",
 					"host": [
-						"localhost"
+						"{{local_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products",
 						"456",
-						"26678cba-459c-45a8-b856-a333ae4e0356"
+						"5e1b8799-0705-4ed4-9112-d76dcdb1d01e"
 					]
 				}
 			},
@@ -222,16 +210,14 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/products/456/1359af06-49ba-485b-bab8-089aef18e56a",
-					"protocol": "http",
+					"raw": "{{local_url}}/products/456/5e1b8799-0705-4ed4-9112-d76dcdb1d01e",
 					"host": [
-						"localhost"
+						"{{local_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products",
 						"456",
-						"1359af06-49ba-485b-bab8-089aef18e56a"
+						"5e1b8799-0705-4ed4-9112-d76dcdb1d01e"
 					]
 				}
 			},
@@ -269,12 +255,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/products/456",
-					"protocol": "http",
+					"raw": "{{local_url}}/products/456",
 					"host": [
-						"localhost"
+						"{{local_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products",
 						"456"
@@ -282,6 +266,40 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://unibazaar-products.azurewebsites.net",
+			"type": "string"
+		},
+		{
+			"key": "local_url",
+			"value": "http://localhost:8080",
+			"type": "string"
 		}
 	]
 }
