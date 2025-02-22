@@ -15,7 +15,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func UploadToS3Bucket(productId string, userId string, fileData []byte, filetype string) (string, error) {
+type S3ImageRepository struct{}
+
+func NewS3ImageRepository() *S3ImageRepository {
+	return &S3ImageRepository{}
+}
+
+func (r *S3ImageRepository) UploadImage(productId string, userId string, fileData []byte, filetype string) (string, error) {
 	start := time.Now()
 
 	awsClientObj := config.GetAWSClientInstance()
@@ -40,7 +46,7 @@ func UploadToS3Bucket(productId string, userId string, fileData []byte, filetype
 	return objectKey, nil
 }
 
-func DeleteImageFromS3(objectKey string) error {
+func (r *S3ImageRepository) DeleteImage(objectKey string) error {
 	client := config.GetAWSClientInstance()
 
 	_, err := client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
@@ -55,7 +61,7 @@ func DeleteImageFromS3(objectKey string) error {
 	return nil
 }
 
-func generatePresignedURL(objectKey string) (string, error) {
+func (r *S3ImageRepository) GeneratePresignedURL(objectKey string) (string, error) {
 	client := config.GetAWSClientInstance()
 	log.Printf("Pre Key %s", objectKey)
 	psClient := s3.NewPresignClient(client)
@@ -72,7 +78,7 @@ func generatePresignedURL(objectKey string) (string, error) {
 	return req.URL, nil
 }
 
-func GetPreSignedURLs(products []model.Product) []model.Product {
+func (r *S3ImageRepository) GetPreSignedURLs(products []model.Product) []model.Product {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
@@ -81,7 +87,7 @@ func GetPreSignedURLs(products []model.Product) []model.Product {
 		go func(i int) {
 			defer wg.Done()
 
-			preSignedURL, err := generatePresignedURL(products[i].ProductImage)
+			preSignedURL, err := r.GeneratePresignedURL(products[i].ProductImage)
 			if err != nil {
 				log.Printf("Failed to generate pre-signed URL for ProductID %s: %v", products[i].ProductID, err)
 				return

@@ -15,6 +15,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type ProductHandler struct {
+	ProductRepo repository.ProductRepository
+	ImageRepo   repository.ImageRepository
+}
+
+func NewProductHandler(productRepo repository.ProductRepository, imageRepo repository.ImageRepository) *ProductHandler {
+	return &ProductHandler{
+		ProductRepo: productRepo,
+		ImageRepo:   imageRepo,
+	}
+}
+
 // @Summary Create a new product
 // @Description Creates a new product by parsing form data, uploading images to S3, and saving it to the database. The product is linked to the user via their User ID.
 // @Tags Products
@@ -31,7 +43,7 @@ import (
 // @Failure 400 {object} model.ErrorResponse "Invalid User ID or form data"
 // @Failure 500 {object} model.ErrorResponse "Internal server error"
 // @Router /products [post]
-func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to create a new product.")
 
 	userID, err := helper.GetUserID(r.FormValue("userId"))
@@ -48,13 +60,13 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	product.UserID = userID
 
-	s3ImageKey, err := handleProductImageUpload(w, r, &product)
+	s3ImageKey, err := h.handleProductImageUpload(w, r, &product)
 	if err != nil {
 		return
 	}
 	product.ProductImage = s3ImageKey
 
-	if err := repository.CreateProduct(product); err != nil {
+	if err := h.ProductRepo.CreateProduct(product); err != nil {
 		handleError(w, "Error creating product in database", err, http.StatusInternalServerError)
 		return
 	}
@@ -77,10 +89,10 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} model.ErrorResponse "No products found in the system"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
 // @Router /products [get]
-func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to fetch all products.")
 
-	products, err := repository.GetAllProducts()
+	products, err := h.ProductRepo.GetAllProducts()
 	if err != nil {
 		handleError(w, "Error fetching products", err, http.StatusInternalServerError)
 		return
@@ -91,7 +103,7 @@ func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	products = repository.GetPreSignedURLs(products)
+	products = h.ImageRepo.GetPreSignedURLs(products)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(products); err != nil {
@@ -111,7 +123,7 @@ func GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} model.ErrorResponse "No products found for the given user ID"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
 // @Router /products/{UserId} [get]
-func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
 		handleError(w, "Invalid userId", err, http.StatusBadRequest)
@@ -120,13 +132,13 @@ func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Received request to fetch all products for user ID: %d\n", userID)
 
-	products, err := repository.GetProductsByUserID(userID)
+	products, err := h.ProductRepo.GetProductsByUserID(userID)
 	if err != nil {
 		handleError(w, "Error fetching products for user", err, http.StatusNotFound)
 		return
 	}
 
-	products = repository.GetPreSignedURLs(products)
+	products = h.ImageRepo.GetPreSignedURLs(products)
 
 	log.Printf("Found %d products for user ID %d\n", len(products), userID)
 
@@ -150,7 +162,7 @@ func GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} model.ErrorResponse "Product not found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
 // @Router /products/{UserId}/{ProductId} [put]
-func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
 		handleError(w, "Invalid or missing userId", err, http.StatusBadRequest)
@@ -163,7 +175,7 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existingProduct, err := repository.FindProductByUserAndId(userId, productId)
+	existingProduct, err := h.ProductRepo.FindProductByUserAndId(userId, productId)
 	if err != nil {
 		handleError(w, "Error fetching product", err, http.StatusNotFound)
 		return
@@ -183,13 +195,13 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		if existingProduct.ProductImage != "" {
-			imageDeleteErr = repository.DeleteImageFromS3(existingProduct.ProductImage)
+			imageDeleteErr = h.ImageRepo.DeleteImage(existingProduct.ProductImage)
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		newS3ImageKey, imageUploadErr = handleProductImageUpload(w, r, &updatedProduct)
+		newS3ImageKey, imageUploadErr = h.handleProductImageUpload(w, r, &updatedProduct)
 	}()
 
 	wg.Wait()
@@ -205,7 +217,7 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	updatedProduct.ProductImage = newS3ImageKey
 
-	err = repository.UpdateProduct(userId, productId, updatedProduct)
+	err = h.ProductRepo.UpdateProduct(userId, productId, updatedProduct)
 	if err != nil {
 		handleError(w, "Error updating product", err, http.StatusInternalServerError)
 		return
@@ -228,7 +240,7 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} model.ErrorResponse "Product not found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
 // @Router /products/{UserId}/{ProductId} [delete]
-func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
 		handleError(w, "Invalid or missing userId", err, http.StatusBadRequest)
@@ -243,7 +255,7 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Received request to delete product with ID: %s by user %d\n", productId, userId)
 
-	product, err := repository.FindProductByUserAndId(userId, productId)
+	product, err := h.ProductRepo.FindProductByUserAndId(userId, productId)
 	if err != nil {
 		handleError(w, "Error fetching product", err, http.StatusNotFound)
 		return
@@ -256,13 +268,13 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		if product.ProductImage != "" {
-			imageDeleteErr = repository.DeleteImageFromS3(product.ProductImage)
+			imageDeleteErr = h.ImageRepo.DeleteImage(product.ProductImage)
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		dbDeleteErr = repository.DeleteProduct(userId, productId)
+		dbDeleteErr = h.ProductRepo.DeleteProduct(userId, productId)
 	}()
 
 	wg.Wait()
@@ -280,14 +292,14 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func handleProductImageUpload(w http.ResponseWriter, r *http.Request, product *model.Product) (string, error) {
+func (h *ProductHandler) handleProductImageUpload(w http.ResponseWriter, r *http.Request, product *model.Product) (string, error) {
 	imageData, format, err := helper.ParseProductImage(r)
 	if err != nil {
 		handleError(w, "Error reading image", err, http.StatusBadRequest)
 		return "", err
 	}
 
-	s3ImageKey, err := repository.UploadToS3Bucket(product.ProductID, r.FormValue("userId"), imageData.Bytes(), format)
+	s3ImageKey, err := h.ImageRepo.UploadImage(product.ProductID, r.FormValue("userId"), imageData.Bytes(), format)
 	if err != nil {
 		handleError(w, "Error uploading image to S3", err, http.StatusInternalServerError)
 		return "", err
