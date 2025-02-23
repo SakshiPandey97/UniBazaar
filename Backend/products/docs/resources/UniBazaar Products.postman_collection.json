@@ -55,14 +55,14 @@
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 1.jpg"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 10.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "{{local_url}}/products",
+					"raw": "{{base_url}}/products",
 					"host": [
-						"{{local_url}}"
+						"{{base_url}}"
 					],
 					"path": [
 						"products"
@@ -106,9 +106,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{local_url}}/products",
+					"raw": "{{base_url}}/products",
 					"host": [
-						"{{local_url}}"
+						"{{base_url}}"
 					],
 					"path": [
 						"products"
@@ -135,7 +135,7 @@
 						},
 						{
 							"key": "productId",
-							"value": "5e1b8799-0705-4ed4-9112-d76dcdb1d01e",
+							"value": "26678cba-459c-45a8-b856-a333ae4e0357",
 							"type": "text"
 						},
 						{
@@ -171,19 +171,19 @@
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 5.jpg"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 9.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "{{local_url}}/products/456/5e1b8799-0705-4ed4-9112-d76dcdb1d01e",
+					"raw": "{{base_url}}/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
 					"host": [
-						"{{local_url}}"
+						"{{base_url}}"
 					],
 					"path": [
 						"products",
 						"456",
-						"5e1b8799-0705-4ed4-9112-d76dcdb1d01e"
+						"26678cba-459c-45a8-b856-a333ae4e0356"
 					]
 				}
 			},
@@ -210,14 +210,14 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{local_url}}/products/456/5e1b8799-0705-4ed4-9112-d76dcdb1d01e",
+					"raw": "{{base_url}}/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
 					"host": [
-						"{{local_url}}"
+						"{{base_url}}"
 					],
 					"path": [
 						"products",
 						"456",
-						"5e1b8799-0705-4ed4-9112-d76dcdb1d01e"
+						"26678cba-459c-45a8-b856-a333ae4e0356"
 					]
 				}
 			},
@@ -255,13 +255,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{local_url}}/products/456",
+					"raw": "{{base_url}}/products/45",
 					"host": [
-						"{{local_url}}"
+						"{{base_url}}"
 					],
 					"path": [
 						"products",
-						"456"
+						"45"
 					]
 				}
 			},
