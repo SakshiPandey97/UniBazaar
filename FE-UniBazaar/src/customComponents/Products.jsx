@@ -14,7 +14,7 @@ const Products = () => {
   const { products, loading, error } = useProducts();
 
   // Log the products array to the console for debugging
-  console.log("Products: ", products);
+  console.log("Products: ", [products]);
 
   if (loading) return <Spinner />;
   if (error) return <div>{error}</div>;
@@ -30,6 +30,7 @@ const Products = () => {
           <CarouselContent className="flex justify-between gap-x-4">
             {products.map((product) => {
               console.log("Product: ", product); // Log each individual product
+              // console.log("Product Condition:", product.productCondition);
               return (
                 <CarouselItem
                   key={product.productId}
@@ -38,6 +39,7 @@ const Products = () => {
                   <ProductCard
                     title={product.productTitle}
                     price={product.productPrice}
+                    condition={product.productCondition}
                     image={product.productImage}
                     description={product.productDescription}
                   />

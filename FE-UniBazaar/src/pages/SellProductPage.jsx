@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 // import { Switch } from "@headlessui/react"; // Ensure @headlessui/react is installed
-import cartGuy from "../assets/imgs/cartGuy.svg"; // Ensure the path is correct
+import cartGuy from "../assets/imgs/cartGuy.svg"; 
+import {PRODUCT_CONDITIONS, productConditionMapping } from "../utils/productMappings";
+
 
 const SellProductPage = () => {
   const [productData, setProductData] = useState({
@@ -25,24 +27,35 @@ const SellProductPage = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("Product Condition:", productData.productCondition);  // Log the value
     if (!file) {
       alert("Please upload a file before listing the product.");
       return;
     }
+  
+    const condition = productConditionMapping[productData.productCondition];
+  
+    if (!condition) {
+      alert("Please select a valid product condition.");
+      return;
+    }
+
+    const productPostDate = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');  // 'en-GB' gives you the DD/MM/YYYY format
+    console.log("Product Post Date:", productPostDate);
+
   
     const formData = new FormData();
     formData.append("userId", 1);
     formData.append("productTitle", productData.productTitle);
     formData.append("productDescription", productData.productDescription);
     formData.append("productPrice", productData.productPrice);
-    formData.append("productCondition", productData.productCondition);
+    formData.append("productCondition", condition);
     formData.append("productLocation", productData.productLocation);
-    formData.append("productPostDate", new Date().toISOString().split("T")[0]);
+    formData.append("productPostDate", productPostDate);
     formData.append("productImage", file);
-    formData.append("productImageType", file.type); // Include image type
   
     try {
-      await fetch("http://192.168.0.203:8080/products", {
+      await fetch("https://unibazaar-products.azurewebsites.net/products", {
         method: "POST",
         body: formData,
       });
@@ -52,7 +65,6 @@ const SellProductPage = () => {
       alert("Failed to post product. Try again.");
     }
   };
-  
   
 
   return (
@@ -90,14 +102,15 @@ const SellProductPage = () => {
         <div className="mb-4">
           <h3 className="text-lg font-semibold mb-2">Product Condition</h3>
           <div className="flex gap-2">
-            {["Excellent", "Very Good", "Good", "Fair", "Poor"].map((condition) => (
+            {PRODUCT_CONDITIONS.map((condition) => (
               <button
                 key={condition}
-                onClick={() =>
-                  setProductData({ ...productData, productCondition: condition })
-                }
+                onClick={() => setProductData({ 
+                  ...productData, 
+                  productCondition: condition  // Store the string value for highlighting
+                })}
                 className={`px-4 py-2 rounded-lg border ${
-                  productData.productCondition === condition
+                  productData.productCondition === condition  // Compare against the string value for highlighting
                     ? "bg-green-500 text-white"
                     : "bg-gray-200 text-gray-700"
                 }`}
@@ -105,6 +118,7 @@ const SellProductPage = () => {
                 {condition}
               </button>
             ))}
+
           </div>
         </div>
         <input
