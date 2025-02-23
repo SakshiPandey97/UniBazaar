@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,10 +11,10 @@ import (
 	"messaging/repository"
 	ws "messaging/websocket"
 
-	gorilla "github.com/gorilla/websocket"
+	"github.com/gorilla/websocket"
 )
 
-var upgrader = gorilla.Upgrader{
+var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
@@ -26,7 +27,7 @@ func NewMessageHandler(repo *repository.MessageRepository, ws *ws.WebSocketManag
 	return &MessageHandler{repo: repo, ws: ws}
 }
 
-// WebSocket connection
+// WebSocket connection handler
 func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -34,6 +35,7 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Get userID from query params
 	userID, _ := strconv.Atoi(r.URL.Query().Get("user_id"))
 
 	client := &ws.Client{
@@ -49,6 +51,12 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 		conn.Close()
 	}()
 
+	go func() {
+		for msg := range client.SendChan {
+			conn.WriteJSON(msg)
+		}
+	}()
+
 	for {
 		var msg models.Message
 		err := conn.ReadJSON(&msg)
@@ -58,6 +66,34 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 		}
 
 		msg.Timestamp = time.Now().Unix()
-		h.ws.SendMessage(msg)
+
+		h.repo.SaveMessage(msg)
+
+		h.ws.SendMessageToReceiver(msg)
+	}
+}
+
+func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
+	limit := r.URL.Query().Get("limit")
+	if limit == "" {
+		limit = "15"
+	}
+
+	numMessages, err := strconv.Atoi(limit)
+	if err != nil {
+		http.Error(w, "Invalid limit value", http.StatusBadRequest)
+		return
+	}
+
+	messages, err := h.repo.GetLatestMessages(numMessages)
+	if err != nil {
+		http.Error(w, "Error fetching messages", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(messages); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }

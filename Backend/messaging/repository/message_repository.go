@@ -1,26 +1,58 @@
 package repository
 
 import (
+	"database/sql"
+	"log"
 	"messaging/models"
-
-	"gorm.io/gorm"
 )
 
 type MessageRepository struct {
-	db *gorm.DB
+	DB *sql.DB
 }
 
-func NewMessageRepository(db *gorm.DB) *MessageRepository {
-	return &MessageRepository{db: db}
+func NewMessageRepository(db *sql.DB) *MessageRepository {
+	return &MessageRepository{DB: db}
 }
 
-func (r *MessageRepository) SaveMessage(msg *models.Message) error {
-	return r.db.Create(msg).Error
+// Method to save a message to the database
+func (repo *MessageRepository) SaveMessage(msg models.Message) error {
+	// Insert the message into the database
+	_, err := repo.DB.Exec(`
+		INSERT INTO messages (sender_id, receiver_id, content, timestamp)
+		VALUES ($1, $2, $3, $4)`,
+		msg.SenderID, msg.ReceiverID, msg.Content, msg.Timestamp)
+
+	if err != nil {
+		log.Println("Error saving message:", err)
+		return err
+	}
+
+	return nil
 }
 
-func (r *MessageRepository) GetMessages(senderID, receiverID uint) ([]models.Message, error) {
+// Method to fetch the latest N messages
+func (repo *MessageRepository) GetLatestMessages(limit int) ([]models.Message, error) {
+	rows, err := repo.DB.Query("SELECT id, sender_id, receiver_id, content, timestamp FROM messages ORDER BY timestamp DESC LIMIT $1?", limit)
+	if err != nil {
+		log.Println("Error fetching messages:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
 	var messages []models.Message
-	err := r.db.Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
-		senderID, receiverID, receiverID, senderID).Order("timestamp asc").Find(&messages).Error
-	return messages, err
+	for rows.Next() {
+		var msg models.Message
+		if err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.Timestamp); err != nil {
+			log.Println("Error scanning message:", err)
+			return nil, err
+		}
+		messages = append(messages, msg)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Println("Error in row iteration:", err)
+		return nil, err
+	}
+
+	return messages, nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func InitServer() {
-	dsn := "postgres://postgres:Shubham16!@localhost/unibazar?sslmode=disable"
+	dsn := "postgres://postgres:postgres2025@localhost/unibazar?sslmode=disable"
 	app := handler.Application{}
 	conn := config.Connect(dsn)
 	app.Models = models.NewModels(conn)
