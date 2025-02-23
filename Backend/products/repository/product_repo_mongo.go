@@ -87,9 +87,8 @@ func (repo *MongoProductRepository) GetProductsByUserID(userID int) ([]model.Pro
 	}
 
 	if len(products) == 0 {
-		return nil, fmt.Errorf("no products found for user ID: %d", userID)
+		return nil, repo.handleRepoError(errors.New("no products found"), fmt.Sprintf("No products found for user ID: %d", userID))
 	}
-
 	return products, nil
 }
 
@@ -154,7 +153,7 @@ func (repo *MongoProductRepository) FindProductByUserAndId(userID int, productID
 	err := repo.collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("product not found for UserId: %d and ProductId: %s", userID, productID)
+			return nil, repo.handleRepoError(errors.New("no products found"), fmt.Sprintf("Product not found for UserId: %d and ProductId: %s", userID, productID))
 		}
 		return nil, repo.handleRepoError(err, "Error fetching product")
 	}
