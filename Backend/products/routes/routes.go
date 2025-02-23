@@ -18,7 +18,7 @@ func RegisterProductRoutes(router *mux.Router, productHandler *handler.ProductHa
 
 func SetupCORS(router *mux.Router) http.Handler {
 	return handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}), // Allow all origins (adjust for security)
+		handlers.AllowedOrigins([]string{"*"}), // Allow all origins (change for security)
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)(router)
