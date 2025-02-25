@@ -36,7 +36,13 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get userID from query params
-	userID, _ := strconv.Atoi(r.URL.Query().Get("user_id"))
+	userIDStr := r.URL.Query().Get("user_id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		conn.Close()
+		return
+	}
 
 	client := &ws.Client{
 		Conn:     conn,
@@ -46,33 +52,47 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 
 	h.ws.Register <- client
 
+	// Ensure client is unregistered and resources are cleaned up
 	defer func() {
 		h.ws.Unregister <- client
+		close(client.SendChan) // Close channel to prevent goroutine leaks
 		conn.Close()
 	}()
 
+	// Dedicated goroutine to send messages to the client
 	go func() {
 		for msg := range client.SendChan {
-			conn.WriteJSON(msg)
+			if err := conn.WriteJSON(msg); err != nil {
+				fmt.Println("Error writing JSON:", err)
+				break
+			}
 		}
 	}()
 
+	// Read incoming messages from the WebSocket
 	for {
 		var msg models.Message
 		err := conn.ReadJSON(&msg)
 		if err != nil {
-			fmt.Println("Error reading JSON:", err)
+			fmt.Println("WebSocket read error:", err)
 			break
 		}
 
+		// Set the timestamp before saving
 		msg.Timestamp = time.Now().Unix()
 
-		h.repo.SaveMessage(msg)
+		// Save message to repository
+		if err := h.repo.SaveMessage(msg); err != nil {
+			fmt.Println("Error saving message:", err)
+			continue // Skip sending if saving fails
+		}
 
-		h.ws.SendMessageToReceiver(msg)
+		// Send message to receiver
+		h.ws.SendOfflineMessages(client.UserID)
 	}
 }
 
+// HTTP handler to get recent messages
 func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
 	limit := r.URL.Query().Get("limit")
 	if limit == "" {
@@ -87,7 +107,8 @@ func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Reques
 
 	messages, err := h.repo.GetLatestMessages(numMessages)
 	if err != nil {
-		http.Error(w, "Error fetching messages", http.StatusInternalServerError)
+		fmt.Println("Database error:", err)
+		http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
 		return
 	}
 
