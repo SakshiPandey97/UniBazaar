@@ -17,28 +17,22 @@ import (
 )
 
 func main() {
-	// Connect to the database
 	database := db.ConnectDB()
 	if database == nil {
 		log.Fatal("Failed to connect to the database")
 	}
 	defer database.Close()
 
-	// Initialize repository and WebSocket manager
 	msgRepo := repository.NewMessageRepository(database)
-	wsManager := websocket.NewWebSocketManager(msgRepo) // Pass the message repository
+	wsManager := websocket.NewWebSocketManager(msgRepo)
 
-	// Run the WebSocket manager
 	go wsManager.Run()
 
-	// Initialize the message handler with the repository and WebSocket manager
 	msgHandler := handler.NewMessageHandler(msgRepo, wsManager)
 
-	// Define the HTTP routes
-	http.HandleFunc("/ws", msgHandler.HandleWebSocket)         // WebSocket handler
-	http.HandleFunc("/messages", msgHandler.HandleGetMessages) // Get latest messages
+	http.HandleFunc("/ws", msgHandler.HandleWebSocket)
+	http.HandleFunc("/messages", msgHandler.HandleGetMessages)
 
-	// Start the server
 	server := &http.Server{
 		Addr: ":8080",
 	}
@@ -50,7 +44,6 @@ func main() {
 		}
 	}()
 
-	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop

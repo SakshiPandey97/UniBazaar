@@ -27,7 +27,6 @@ func NewMessageHandler(repo *repository.MessageRepository, ws *ws.WebSocketManag
 	return &MessageHandler{repo: repo, ws: ws}
 }
 
-// WebSocket connection handler
 func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -35,11 +34,9 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Get userID from query params
 	userIDStr := r.URL.Query().Get("user_id")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
 		conn.Close()
 		return
 	}
@@ -47,65 +44,56 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 	client := &ws.Client{
 		Conn:     conn,
 		UserID:   uint(userID),
-		SendChan: make(chan models.Message),
+		SendChan: make(chan models.Message, 256),
+		Manager:  h.ws,
 	}
 
 	h.ws.Register <- client
 
-	// Ensure client is unregistered and resources are cleaned up
-	defer func() {
-		h.ws.Unregister <- client
-		close(client.SendChan) // Close channel to prevent goroutine leaks
-		conn.Close()
-	}()
-
-	// Dedicated goroutine to send messages to the client
-	go func() {
-		for msg := range client.SendChan {
-			if err := conn.WriteJSON(msg); err != nil {
-				fmt.Println("Error writing JSON:", err)
-				break
-			}
-		}
-	}()
-
-	// Read incoming messages from the WebSocket
-	for {
-		var msg models.Message
-		err := conn.ReadJSON(&msg)
-		if err != nil {
-			fmt.Println("WebSocket read error:", err)
-			break
-		}
-
-		// Set the timestamp before saving
-		msg.Timestamp = time.Now().Unix()
-
-		// Save message to repository
-		if err := h.repo.SaveMessage(msg); err != nil {
-			fmt.Println("Error saving message:", err)
-			continue // Skip sending if saving fails
-		}
-
-		// Send message to receiver
-		h.ws.SendOfflineMessages(client.UserID)
-	}
 }
 
-// HTTP handler to get recent messages
-func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
-	limit := r.URL.Query().Get("limit")
-	if limit == "" {
-		limit = "15"
-	}
-
-	numMessages, err := strconv.Atoi(limit)
-	if err != nil {
-		http.Error(w, "Invalid limit value", http.StatusBadRequest)
+func (h *MessageHandler) HandleSendMessage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	messages, err := h.repo.GetLatestMessages(numMessages)
+	var msg models.Message
+	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	msg.Timestamp = time.Now().Unix()
+	msg.Read = false
+
+	h.ws.Broadcast <- msg
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "message sent"})
+}
+
+func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
+	senderIDStr := r.URL.Query().Get("sender_id")
+	receiverIDStr := r.URL.Query().Get("receiver_id")
+
+	if senderIDStr == "" || receiverIDStr == "" {
+		http.Error(w, "sender_id and receiver_id are required", http.StatusBadRequest)
+		return
+	}
+
+	senderID, err := strconv.Atoi(senderIDStr)
+	if err != nil {
+		http.Error(w, "Invalid sender_id", http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, "Invalid receiver_id", http.StatusBadRequest)
+		return
+	}
+
+	messages, err := h.repo.GetConversation(uint(senderID))
 	if err != nil {
 		fmt.Println("Database error:", err)
 		http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
