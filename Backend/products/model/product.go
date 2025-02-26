@@ -3,8 +3,8 @@ package model
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
+	"time"
 
 	"gopkg.in/validator.v2"
 )
@@ -16,7 +16,7 @@ import (
 // @Property productId string "Unique product ID" required example("9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd")
 // @Property productTitle string "Product title" required example("Laptop")
 // @Property productDescription string "Product description" example("A high-performance laptop")
-// @Property productPostDate string "Product post date in DD-MM-YYYY format" required example("20-02-2025")
+// @Property productPostDate string "Product post date in MM-DD-YYYY format" required example("02-20-2025")
 // @Property productCondition int "Product condition" required example(4)
 // @Property productPrice float64 "Price of the product" required example(999.99)
 // @Property productLocation string "Location of the product" example("University of Florida")
@@ -26,7 +26,7 @@ type Product struct {
 	ProductID          string  `json:"productId" bson:"ProductId" example:"9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd"`        // Unique product ID (UUID)
 	ProductTitle       string  `json:"productTitle" bson:"ProductTitle" validate:"nonzero" example:"Laptop"`             // Product title
 	ProductDescription string  `json:"productDescription" bson:"ProductDescription" example:"A high-performance laptop"` // Product description
-	ProductPostDate    string  `json:"productPostDate" bson:"ProductPostDate" validate:"nonzero" example:"20-02-2025"`   // Product post date (DD-MM-YYYY)
+	ProductPostDate    string  `json:"productPostDate" bson:"ProductPostDate" validate:"nonzero" example:"02-20-2025"`   // Product post date (MM-DD-YYYY)
 	ProductCondition   int     `json:"productCondition" bson:"ProductCondition" validate:"nonzero" example:"4"`          // Product condition
 	ProductPrice       float64 `json:"productPrice" bson:"ProductPrice" validate:"nonzero" example:"999.99"`             // Price of the product
 	ProductLocation    string  `json:"productLocation" bson:"ProductLocation" example:"University of Florida"`           // Location of the product
@@ -38,13 +38,9 @@ func (p *Product) Validate() error {
 		return formatValidationError(err)
 	}
 
-	dateRegex := `^\d{2}-\d{2}-\d{4}$`
-	matched, err := regexp.MatchString(dateRegex, p.ProductPostDate)
+	_, err := time.Parse("01-02-2006", p.ProductPostDate)
 	if err != nil {
-		return fmt.Errorf("error while validating date: %v", err)
-	}
-	if !matched {
-		return fmt.Errorf("validation failed: productPostDate must be in DD-MM-YYYY format")
+		return fmt.Errorf("validation failed: productPostDate must be in MM-DD-YYYY format")
 	}
 
 	return nil

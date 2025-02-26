@@ -349,9 +349,9 @@ const docTemplate = `{
                     "example": "University of Florida"
                 },
                 "productPostDate": {
-                    "description": "Product post date (DD-MM-YYYY)",
+                    "description": "Product post date (MM-DD-YYYY)",
                     "type": "string",
-                    "example": "20-02-2025"
+                    "example": "02-20-2025"
                 },
                 "productPrice": {
                     "description": "Price of the product",

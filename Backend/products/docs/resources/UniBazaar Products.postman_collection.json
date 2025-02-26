@@ -49,23 +49,21 @@
 						},
 						{
 							"key": "productPostDate",
-							"value": "10-02-2025",
+							"value": "12-02-2025",
 							"type": "text"
 						},
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 12.jpg"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 10.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/products",
-					"protocol": "http",
+					"raw": "{{base_url}}/products",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products"
 					]
@@ -86,12 +84,6 @@
 							"jsonData.forEach(product => {\r",
 							"    imagesHtml += `\r",
 							"    <div>\r",
-							"        <h3>${product.productTitle}</h3>\r",
-							"        <p>${product.productDescription}</p>\r",
-							"        <p><strong>Price:</strong> $${product.productPrice}</p>\r",
-							"        <p><strong>Location:</strong> ${product.productLocation}</p>\r",
-							"        <p><strong>Condition:</strong> ${product.productCondition}</p>\r",
-							"        <p><strong>Post Date:</strong> ${product.productPostDate}</p>\r",
 							"        <img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">\r",
 							"    </div>`;\r",
 							"});\r",
@@ -114,12 +106,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/products",
-					"protocol": "http",
+					"raw": "{{base_url}}/products",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products"
 					]
@@ -145,7 +135,7 @@
 						},
 						{
 							"key": "productId",
-							"value": "26678cba-459c-45a8-b856-a333ae4e0356",
+							"value": "26678cba-459c-45a8-b856-a333ae4e0357",
 							"type": "text"
 						},
 						{
@@ -181,17 +171,15 @@
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 11.png"
+							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 9.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
-					"protocol": "http",
+					"raw": "{{base_url}}/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products",
 						"456",
@@ -222,16 +210,14 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/products/456/1359af06-49ba-485b-bab8-089aef18e56a",
-					"protocol": "http",
+					"raw": "{{base_url}}/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products",
 						"456",
-						"1359af06-49ba-485b-bab8-089aef18e56a"
+						"26678cba-459c-45a8-b856-a333ae4e0356"
 					]
 				}
 			},
@@ -269,19 +255,51 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/products/456",
-					"protocol": "http",
+					"raw": "{{base_url}}/products/45",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"products",
-						"456"
+						"45"
 					]
 				}
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://unibazaar-products.azurewebsites.net",
+			"type": "string"
+		},
+		{
+			"key": "local_url",
+			"value": "http://localhost:8080",
+			"type": "string"
 		}
 	]
 }
