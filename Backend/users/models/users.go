@@ -114,6 +114,18 @@ func (e UserModel) Insert(id int, name string, email string, password string) er
 	return nil
 }
 
+func (e UserModel) GetUserIdByEmail(email string) (int, error) {
+	var user User
+	res := e.db.Where("email = ?", email).First(&user)
+
+	if res.Error != nil {
+		fmt.Println("error while reading user information")
+		return 0, res.Error
+	}
+
+	return user.UserID, nil
+}
+
 func (e UserModel) Update(email string, newPassword string) error {
 	hashedPassword, err := HashPassword(newPassword)
 	if err != nil {
