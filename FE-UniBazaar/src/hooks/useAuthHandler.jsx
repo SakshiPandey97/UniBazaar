@@ -7,6 +7,7 @@ export function useAuthHandler({ toggleModal }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleSubmit = (values, { setSubmitting }) => {
     setSubmitting(true);
@@ -26,16 +27,18 @@ export function useAuthHandler({ toggleModal }) {
 
         if (isRegistering) {
           setSuccessMessage("Registration successful! Redirecting to login...");
+          setShowConfetti(true);
           setTimeout(() => {
+            setShowConfetti(false);
             setIsRegistering(false);
             setSuccessMessage("");
             setIsSubmitting(false);
-          }, 3000);
+          }, 4000); // Confetti disappears after 4 seconds
         } else {
           setSuccessMessage("Login successful! Redirecting to Home...");
           setTimeout(() => {
             setSuccessMessage("");
-            useAuth.toggleUserLogin()
+            useAuth.toggleUserLogin();
             toggleModal();
           }, 3000);
         }
@@ -45,6 +48,10 @@ export function useAuthHandler({ toggleModal }) {
           `${isRegistering ? "Registration" : "Login"} failed:`,
           err
         );
+        setTimeout(() => {
+          setSuccessMessage(err)
+          setSuccessMessage("");
+        }, 3000);
         setSubmitting(false);
         setIsSubmitting(false);
       });
@@ -56,6 +63,7 @@ export function useAuthHandler({ toggleModal }) {
     isRegistering,
     isSubmitting,
     successMessage,
+    showConfetti,
     handleSubmit,
     toggleAuthMode,
   };
