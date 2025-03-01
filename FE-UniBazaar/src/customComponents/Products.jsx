@@ -22,7 +22,7 @@ const Products = () => {
   return (
     <div className="flex flex-col justify-center w-full py-24">
       <div className="flex flex-col md:max-w-[1250px] m-auto max-w-[600px] justify-center">
-        <h1 className="py-5 text-3xl text-teal-600 font-bold">
+        <h1 className="py-5 text-3xl text-[#320B54] font-bold">
           Browse products
         </h1>
         <Carousel>
@@ -34,7 +34,7 @@ const Products = () => {
               return (
                 <CarouselItem
                   key={product.productId}
-                  className="basis-1/3 md:basis-1/4"
+                  className="basis-1/3 md:basis-1/4 "
                 >
                   <ProductCard
                     title={product.productTitle}

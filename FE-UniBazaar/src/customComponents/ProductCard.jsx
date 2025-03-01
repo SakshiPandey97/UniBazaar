@@ -1,33 +1,42 @@
-import { Card, CardHeader, CardDescription, CardFooter } from "@/components/ui/card";
-import { reverseProductConditionMapping } from "../utils/productMappings"; 
+import { Button } from "@/components/ui/button";
+import { generateStars } from "@/utils/generateStar";
 
-
-const ProductCard = ({ title, price, condition, image, description  }) => {
-
+const ProductCard = ({ title, price, condition, image, description }) => {
   console.log(title, price, condition, image, description);
-  const conditionString = reverseProductConditionMapping[condition] || "Unknown";
 
   return (
-<Card className="h-100 w-full bg-white shadow-xl rounded-lg flex flex-col justify-between bg-gray-100">
-  <CardHeader>
-    <img
-      src={image}
-      alt={title}
-      className="w-full h-40 object-cover rounded-lg"
-    />
-  </CardHeader>
-  <CardDescription className="flex flex-col justify-center items-center text-center py-4">
-    <h2 className="text-xl font-semibold">{title}</h2>
-    <div className="flex flex-row"><p className="text-teal-600 mt-2 text-lg font-bold">$ </p> <p className="text-bg mt-2 text-lg font-bold">{price}</p></div>
-    <p>Condition: {conditionString}</p>
-  </CardDescription>
-  <CardFooter>
-    <button className="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
-      Buy Now
-    </button>
-  </CardFooter>
-</Card>
-
+    <div className="flex flex-col w-full h-85 max-w-sm border border-black rounded-lg shadow-sm bg-[#032B54]">
+      <div className="flex flex-col h-1/2 overflow-hidden">
+        <img
+          className="rounded-t-lg w-full h-full object-cover"
+          src={image}
+          alt={title}
+        />
+      </div>
+      <div className="flex flex-col h-1/2">
+        <div className="px-5 pb-5">
+          <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            {title}
+          </h5>
+          <div className="flex items-center mt-2.5 mb-5">
+            <div className="flex items-center space-x-1 rtl:space-x-reverse">
+              {generateStars(condition)}
+            </div>
+            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-sm dark:bg-blue-200 dark:text-blue-800 ms-3">
+              5.0
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-3xl font-bold text-white ">
+              ${price}
+            </span>
+            <Button className="hover:border-[#F58B00] border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-balck font-bold py-2 px-4">
+              Read More
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

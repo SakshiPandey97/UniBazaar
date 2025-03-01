@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useUserAuth } from "./useUserAuth";
 import { useNavigate } from "react-router-dom";
 
-const useNavbar = ({ toggleModal }) => {
+const useNavbar = ({ toggleLoginModal }) => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
 
@@ -15,7 +15,7 @@ const useNavbar = ({ toggleModal }) => {
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   const handleNavigation = (path) => {
-    userAuth.userState ? navigate(path) : toggleModal();
+    userAuth.userState ? navigate(path) : toggleLoginModal();
   };
 
   const handleAuthAction = () => {
@@ -23,7 +23,7 @@ const useNavbar = ({ toggleModal }) => {
       userAuth.toggleUserLogin();
       userAuth.setUserID("");
     } else {
-      toggleModal();
+      toggleLoginModal();
     }
   };
 

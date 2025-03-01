@@ -4,7 +4,7 @@ import Navbar from "./customComponents/Navbar";
 import Banner from "./customComponents/Banner";
 import Spinner from "./customComponents/Spinner";
 import { AuthProvider } from "./hooks/useUserAuth";
-import useLoginModal from "./hooks/useLoginModal";
+import useModal from "./hooks/useModal";
 import "./App.css";
 import AuthPage from "./pages/AuthPage";
 import ViewMyProfilePage from "./pages/ViewMyProfilePage";
@@ -13,7 +13,7 @@ const Products = lazy(() => import("./customComponents/Products"));
 
 function Layout() {
   return (
-    <div className="App bg-gray-200">
+    <div className="App bg-[#D6D2D2]">
       <Banner />
       <Suspense fallback={<Spinner />}>
         <Products />
@@ -23,21 +23,21 @@ function Layout() {
 }
 
 function App() {
-  const { isModalOpen, isViewProfileOpen, openViewMyProfile, toggleModal } =
-    useLoginModal();
+  const { isModalOpen: isProfileModalOpen, toggleModal: toggleProfileModal } = useModal();
+  const { isModalOpen: isLoginModalOpen, toggleModal: toggleLoginModal } = useModal();
 
   return (
     <AuthProvider>
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={toggleModal}>
+      {isLoginModalOpen && (
+        <div className="modal-overlay" onClick={toggleLoginModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <AuthPage toggleModal={toggleModal} />
+            <AuthPage toggleModal={toggleLoginModal} />
           </div>
         </div>
       )}
 
-      {isViewProfileOpen && (
-        <div className="modal-overlay" onClick={openViewMyProfile}>
+      {isProfileModalOpen && (
+        <div className="modal-overlay" onClick={toggleProfileModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <ViewMyProfilePage />
           </div>
@@ -45,7 +45,7 @@ function App() {
       )}
 
       <Router>
-        <Navbar toggleModal={toggleModal} toggleViewProfile={openViewMyProfile} />
+        <Navbar toggleLoginModal={toggleLoginModal} />
         <Routes>
           <Route path="/" element={<Layout />} />
           <Route
