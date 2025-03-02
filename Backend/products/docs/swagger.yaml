@@ -1,0 +1,261 @@
+basePath: /
+definitions:
+  model.ErrorResponse:
+    description: Represents an error response when an operation fails.
+    properties:
+      details:
+        description: Detailed error message with multiple examples
+        example: 'ProductPrice: cannot be empty or zero, Product not found'
+        type: string
+      error:
+        description: Error message with example value
+        example: Error updaing product
+        type: string
+    type: object
+  model.Product:
+    description: Represents a product for sale in the marketplace.
+    properties:
+      productCondition:
+        description: Product condition
+        example: 4
+        type: integer
+      productDescription:
+        description: Product description
+        example: A high-performance laptop
+        type: string
+      productId:
+        description: Unique product ID (UUID)
+        example: 9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd
+        type: string
+      productImage:
+        description: Product image URL in GET, Actual product image in PUT
+        example: https://example.com/laptop.jpg
+        type: string
+      productLocation:
+        description: Location of the product
+        example: University of Florida
+        type: string
+      productPostDate:
+        description: Product post date (MM-DD-YYYY)
+        example: 02-20-2025
+        type: string
+      productPrice:
+        description: Price of the product
+        example: 999.99
+        type: number
+      productTitle:
+        description: Product title
+        example: Laptop
+        type: string
+      userId:
+        description: Unique user ID
+        example: 123
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for managing products in the UniBazaar marketplace for university
+    students.
+  title: UniBazaar Products API
+  version: "1.0"
+paths:
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Fetch all products from the system, regardless of the user ID.
+        If no products are found, an error is returned.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all products
+          schema:
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
+        "404":
+          description: No products found in the system
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all products in the system
+      tags:
+      - Products
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new product by parsing form data, uploading images to
+        S3, and saving it to the database. The product is linked to the user via their
+        User ID.
+      parameters:
+      - description: User ID (form data)
+        in: formData
+        name: UserId
+        required: true
+        type: integer
+      - description: Product title
+        in: formData
+        name: productTitle
+        required: true
+        type: string
+      - description: Product description
+        in: formData
+        name: productDescription
+        type: string
+      - description: Product price
+        in: formData
+        name: productPrice
+        required: true
+        type: number
+      - description: Product condition
+        in: formData
+        name: productCondition
+        required: true
+        type: integer
+      - description: Product location
+        in: formData
+        name: productLocation
+        required: true
+        type: string
+      - description: Product image
+        in: formData
+        name: productImage
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Product created successfully
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Invalid User ID or form data
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Create a new product
+      tags:
+      - Products
+  /products/{UserId}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch all products listed by a user, identified by their user ID.
+        If no products are found, an error is returned.
+      parameters:
+      - description: User ID
+        in: path
+        name: UserId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of products
+          schema:
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: No products found for the given user ID
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all products for a specific user by user ID
+      tags:
+      - Products
+  /products/{UserId}/{ProductId}:
+    delete:
+      description: Delete a product from the system based on the user ID and product
+        ID. This also removes the associated image from S3 if available.
+      parameters:
+      - description: User ID
+        in: path
+        name: UserId
+        required: true
+        type: integer
+      - description: Product ID
+        in: path
+        name: ProductId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Product deleted
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Delete a product by user ID and product ID
+      tags:
+      - Products
+    put:
+      consumes:
+      - application/json
+      description: Update a product's details based on the user ID and product ID.
+        The product image is also updated if provided.
+      parameters:
+      - description: User ID
+        in: path
+        name: UserId
+        required: true
+        type: integer
+      - description: Product ID
+        in: path
+        name: ProductId
+        required: true
+        type: string
+      - description: Product Details
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/model.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated product
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Update a product by user ID and product ID
+      tags:
+      - Products
+swagger: "2.0"

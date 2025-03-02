@@ -8,13 +8,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func RegisterProductRoutes(router *mux.Router) {
-	// Define product routes
-	router.HandleFunc("/products", handler.CreateProductHandler).Methods("POST")
-	router.HandleFunc("/products", handler.GetAllProductsHandler).Methods("GET")
-	router.HandleFunc("/products/{id}", handler.GetProductByIDHandler).Methods("GET")
-	router.HandleFunc("/products/{id}", handler.UpdateProductHandler).Methods("PUT")
-	router.HandleFunc("/products/{id}", handler.DeleteProductHandler).Methods("DELETE")
+func RegisterProductRoutes(router *mux.Router, productHandler *handler.ProductHandler) {
+	router.HandleFunc("/products", productHandler.CreateProductHandler).Methods("POST")
+	router.HandleFunc("/products", productHandler.GetAllProductsHandler).Methods("GET")
+	router.HandleFunc("/products/{UserId}", productHandler.GetAllProductsByUserIDHandler).Methods("GET")
+	router.HandleFunc("/products/{UserId}/{ProductId}", productHandler.UpdateProductHandler).Methods("PUT")
+	router.HandleFunc("/products/{UserId}/{ProductId}", productHandler.DeleteProductHandler).Methods("DELETE")
 }
 
 func SetupCORS(router *mux.Router) http.Handler {
