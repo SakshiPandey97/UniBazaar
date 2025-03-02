@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
 	"users/models"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/julienschmidt/httprouter"
-	"github.com/rs/cors"
 )
 
 type Application struct {
@@ -55,27 +53,95 @@ func (app *Application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Invalid Email or Password.", http.StatusBadRequest)
 	}
-
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Sign-up successful. Please check your email for the OTP.")
 }
 
-func (app *Application) PasswordResetHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email   string `json:"email"`
+		OTPCode string `json:"code"`
 	}
-
-	dec := json.NewDecoder(r.Body)
-	err := dec.Decode(&input)
-
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	err = app.Models.UserModel.Update(input.Email, input.Password)
+	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
-		fmt.Print(err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
 	}
+	if user.OTPCode != input.OTPCode {
+		user.FailedResetAttempts++
+		if user.FailedResetAttempts >= 3 {
+			_ = app.Models.UserModel.SendSecurityAlert(user)
+			user.FailedResetAttempts = 0
+			user.OTPCode = ""
+		}
+		_ = app.Models.UserModel.SaveUser(user)
+		http.Error(w, "Invalid OTP code.", http.StatusUnauthorized)
+		return
+	}
+	user.Verified = true
+	user.FailedResetAttempts = 0
+	user.OTPCode = ""
+	if err := app.Models.UserModel.UpdateVerificationStatus(user); err != nil {
+		http.Error(w, "Failed to update verification status", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Email verified successfully!")
+}
 
+func (app *Application) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	err := app.Models.UserModel.InitiatePasswordReset(input.Email)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Reset code sent. Check your email.")
+}
+
+func (app *Application) VerifyResetCodeHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email       string `json:"email"`
+		OTPCode     string `json:"otp_code"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	err := app.Models.UserModel.VerifyResetCodeAndSetNewPassword(input.Email, input.OTPCode, input.NewPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Password reset successful.")
+}
+
+func (app *Application) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email       string `json:"email"`
+		OTPCode     string `json:"otp_code"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	app.Models.UserModel.VerifyResetCodeAndSetNewPassword(input.Email, input.OTPCode, input.NewPassword)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Password updated successfully.")
 }
 
 func (app *Application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -166,25 +232,16 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func (app *Application) Routes() http.Handler {
 	router := httprouter.New()
-	router.HandlerFunc(http.MethodPost, "/signup", app.SignUpHandler)
-	router.HandlerFunc(http.MethodPost, "/updatePassword", app.PasswordResetHandler)
-	router.HandlerFunc(http.MethodPost, "/deleteUser", app.DeleteUserHandler)
-	router.HandlerFunc(http.MethodPost, "/displayUser", app.DisplayUserHandler)
-	router.HandlerFunc(http.MethodPost, "/login", app.LoginHandler)
-
-	// Apply CORS middleware
-	return SetupCORS(router)
+	router.HandlerFunc("POST", "/signup", app.SignUpHandler)
+	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler)
+	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler)
+	router.HandlerFunc("POST", "/verifyResetCode", app.VerifyResetCodeHandler)
+	router.HandlerFunc("POST", "/updatePassword", app.UpdatePasswordHandler)
+	router.HandlerFunc("POST", "/deleteUser", app.DeleteUserHandler)
+	router.HandlerFunc("POST", "/displayUser", app.DisplayUserHandler)
+	router.HandlerFunc("POST", "/login", app.LoginHandler)
+	return router
 }
 
-func SetupCORS(router http.Handler) http.Handler {
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-		ExposedHeaders:   []string{"Content-Length"},
-		AllowCredentials: true,
-		Debug:            true, // Log CORS-related issues, can be turned off for production
-	})
-
-	return c.Handler(router)
-}
+//add better errors like for the json stuff, or the email being sent.
+//fix sign up if no otp is sent :/
