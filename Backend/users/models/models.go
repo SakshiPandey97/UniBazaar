@@ -4,11 +4,12 @@ import "gorm.io/gorm"
 
 type Models struct {
 	UserModel UserModel
+	//SessionModel SessionModel
 }
 
-func NewModels(conn *gorm.DB) Models {
+func NewModels(db *gorm.DB) Models {
 	return Models{
-		UserModel: UserModel{db: conn},
+		UserModel: UserModel{db: db},
+		//SessionModel: SessionModel{db: db},
 	}
-
 }

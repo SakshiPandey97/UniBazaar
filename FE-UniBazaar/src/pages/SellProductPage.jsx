@@ -1,81 +1,59 @@
 import React, { useState } from "react";
-// import { Switch } from "@headlessui/react"; // Ensure @headlessui/react is installed
-import cartGuy from "../assets/imgs/cartGuy.svg"; 
-import {PRODUCT_CONDITIONS, productConditionMapping } from "../utils/productMappings";
-
+import CloudIcon from "../assets/imgs/cloud_icon.svg";
+import fileIcon from "../assets/imgs/file_icon.svg";
+import {
+  PRODUCT_CONDITIONS,
+  productConditionMapping,
+} from "../utils/productMappings";
+import { Button } from "@/ui/button";
+import { motion } from "framer-motion";
+import { useAnimation } from "../hooks/useAnimation";
+import { postProductAPI } from "@/api/axios";
+import ShowProductPreview from "@/customComponents/ShowProductPreview";
+import { prepareFormData } from "@/utils/prepareFormData";
+import { useProductData } from "@/hooks/useProductData";
+import { useNavigate } from "react-router-dom";
 
 const SellProductPage = () => {
-  const [productData, setProductData] = useState({
-    productTitle: "",
-    productDescription: "",
-    productPrice: "",
-    productCondition: "",
-    productLocation: "",
-  });
+  const navigate=useNavigate()
 
-  const [file, setFile] = useState(null);
-  const [contactDetails, setContactDetails] = useState(true);
-  const [allowChat, setAllowChat] = useState(false);
-  const [allowOffer, setAllowOffer] = useState(false);
-
-  const handleChange = (e) => {
-    setProductData({ ...productData, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
+  const { productData, handleChange, handleFileChange, setProductData } =
+    useProductData();
+  const { isAnimating, triggerAnimation } = useAnimation();
+  const [isUploaded, setIsUploaded] = useState(false); // Track successful upload
 
   const handleSubmit = async () => {
-    console.log("Product Condition:", productData.productCondition);  // Log the value
-    if (!file) {
+    if (!productData.productImage) {
       alert("Please upload a file before listing the product.");
       return;
     }
-  
+
     const condition = productConditionMapping[productData.productCondition];
-  
+
     if (!condition) {
       alert("Please select a valid product condition.");
       return;
     }
 
-    const productPostDate = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');  // 'en-GB' gives you the DD/MM/YYYY format
-    console.log("Product Post Date:", productPostDate);
-
-  
-    const formData = new FormData();
-    formData.append("userId", 1);
-    formData.append("productTitle", productData.productTitle);
-    formData.append("productDescription", productData.productDescription);
-    formData.append("productPrice", productData.productPrice);
-    formData.append("productCondition", condition);
-    formData.append("productLocation", productData.productLocation);
-    formData.append("productPostDate", productPostDate);
-    formData.append("productImage", file);
-  
     try {
-      await fetch("https://unibazaar-products.azurewebsites.net/products", {
-        method: "POST",
-        body: formData,
-      });
-      alert("Product posted successfully!");
+      await postProductAPI(prepareFormData(productData, productData.productImage, condition));
+      triggerAnimation();
+      setIsUploaded(true);
+      setTimeout(()=>navigate("/"),3000)
     } catch (error) {
       console.error("Error posting product:", error);
       alert("Failed to post product. Try again.");
     }
   };
-  
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Left Side - Form Section */}
       <div className="w-1/2 p-8 bg-white shadow-md">
-        <h2 className="text-2xl font-bold text-teal-600 text-center mb-6">
+        <h2 className="text-2xl font-bold text-[#320B34] text-center mb-6">
           Product Information
         </h2>
 
-        {/* Product Form Fields */}
         <input
           type="text"
           name="productTitle"
@@ -103,22 +81,23 @@ const SellProductPage = () => {
           <h3 className="text-lg font-semibold mb-2">Product Condition</h3>
           <div className="flex gap-2">
             {PRODUCT_CONDITIONS.map((condition) => (
-              <button
+              <Button
                 key={condition}
-                onClick={() => setProductData({ 
-                  ...productData, 
-                  productCondition: condition  // Store the string value for highlighting
-                })}
-                className={`px-4 py-2 rounded-lg border ${
-                  productData.productCondition === condition  // Compare against the string value for highlighting
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-700"
+                onClick={() =>
+                  setProductData({
+                    ...productData,
+                    productCondition: condition,
+                  })
+                }
+                className={`px-4 py-2 rounded-lg border text-balck font-bold ${
+                  productData.productCondition === condition
+                    ? "bg-[#F58B00]"
+                    : "bg-[#FFC67D]"
                 }`}
               >
                 {condition}
-              </button>
+              </Button>
             ))}
-
           </div>
         </div>
         <input
@@ -130,7 +109,7 @@ const SellProductPage = () => {
           className="border p-3 w-full rounded-lg mb-3"
         />
 
-        {/* File Upload - Replaced with Upload Button */}
+        {/* File Upload */}
         <div className="border-2 border-dashed border-gray-400 p-6 flex flex-col items-center">
           <input
             type="file"
@@ -153,85 +132,51 @@ const SellProductPage = () => {
             </div>
             <p className="text-gray-500 mt-2">Drag and drop files</p>
           </label>
-          <button
+          <Button
             onClick={() => document.getElementById("fileInput").click()}
-            className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg"
+            className="mt-4 hover:border-[#F58B00] border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-balck font-bold px-6 py-2 rounded-lg"
           >
             Upload
-          </button>
-          {file && <p className="text-green-600 mt-2">{file.name}</p>}
+          </Button>
+          {productData.productImage && (
+            <p className="text-green-600 mt-2">{productData.productImage.name}</p>
+          )}
         </div>
       </div>
-
-      {/* Right Side - Settings & Illustration */}
       <div className="w-1/2 flex flex-col items-center justify-center bg-gray-200 p-8 rounded-r-lg">
-        {/* Toggle Options */}
-        <div className="w-full max-w-md">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-lg">Share Contact Details</span>
-            {/* <Switch
-              checked={contactDetails}
-              onChange={setContactDetails}
-              className={`relative inline-flex items-center h-6 rounded-full w-12 transition ${
-                contactDetails ? "bg-green-500" : "bg-gray-300"
-              }`}
-            >
-              <span
-                className={`inline-block w-6 h-6 bg-white rounded-full transform transition ${
-                  contactDetails ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </Switch> */}
-          </div>
-
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-lg">Allow to Chat</span>
-            {/* <Switch
-              checked={allowChat}
-              onChange={setAllowChat}
-              className={`relative inline-flex items-center h-6 rounded-full w-12 transition ${
-                allowChat ? "bg-green-500" : "bg-gray-300"
-              }`}
-            >
-              <span
-                className={`inline-block w-6 h-6 bg-white rounded-full transform transition ${
-                  allowChat ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </Switch> */}
-          </div>
-
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-lg">Allow to Make an Offer</span>
-            {/* <Switch
-              checked={allowOffer}
-              onChange={setAllowOffer}
-              className={`relative inline-flex items-center h-6 rounded-full w-12 transition ${
-                allowOffer ? "bg-green-500" : "bg-gray-300"
-              }`}
-            >
-              <span
-                className={`inline-block w-6 h-6 bg-white rounded-full transform transition ${
-                  allowOffer ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </Switch> */}
-          </div>
-
-          {/* List Now Button with Submit Functionality */}
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700"
-          >
-            List Now
-          </button>
+        {/* Cloud Icon */}
+        <div className="flex h-3/5 justify-center mb-[-35px]">
+          <img
+            src={CloudIcon}
+            className="rounded-lg shadow-lg w-2/3"
+            alt="Cloud"
+          />
         </div>
-
-        {/* Illustration */}
-        <div className="mt-8">
-          <img src={cartGuy} className="rounded-lg shadow-lg" alt="Illustration" />
+        <div className="flex h-1/5 justify-center">
+          <motion.img
+            src={fileIcon}
+            className="rounded-lg w-10 left-1/2 -translate-x-1/2"
+            alt="File"
+            animate={{
+              y: isAnimating ? [-100, 0] : [0, -100],
+              opacity: isAnimating ? [1, 0] : [0, 1],
+            }}
+            transition={{
+              repeat: Infinity,
+              duration: 2,
+              ease: "easeInOut",
+              delay: 0.5,
+            }}
+          />
         </div>
+        <Button
+          onClick={handleSubmit}
+          className="w-2/3 hover:border-[#F58B00] justify-center border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-black font-bold py-3 rounded-lg text-lg"
+        >
+          List Now
+        </Button>
       </div>
+      {isUploaded && <ShowProductPreview productData={productData} />}
     </div>
   );
 };

@@ -27,7 +27,6 @@ export const userRegisterAPI = ({ userRegisterObject }) => {
       throw error;
     });
 };
-
 export const getAllProductsAPI = () => {
   return axios
     .get(PRODUCT_BASE_URL + "/products")
@@ -37,6 +36,20 @@ export const getAllProductsAPI = () => {
     })
     .catch((error) => {
       console.error("Error fetching products:", error);
+      throw error;
+    });
+};
+
+export const postProductAPI = (formData) => {
+  return axios
+    .post(PRODUCT_BASE_URL + "/products", formData)
+    .then((response) => {
+      alert("Product posted successfully!");
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Error posting product:", error);
+      alert("Failed to post product. Try again.");
       throw error;
     });
 };

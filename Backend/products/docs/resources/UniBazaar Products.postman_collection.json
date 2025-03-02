@@ -1,0 +1,305 @@
+{
+	"info": {
+		"_postman_id": "e9374cf9-11b7-4dc3-83fc-e57bcec37e74",
+		"name": "UniBazaar Products",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12412747"
+	},
+	"item": [
+		{
+			"name": "Create Product",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "userId",
+							"value": "456",
+							"type": "text"
+						},
+						{
+							"key": "productTitle",
+							"value": "asd",
+							"type": "text"
+						},
+						{
+							"key": "productDescription",
+							"value": "Fast",
+							"type": "text"
+						},
+						{
+							"key": "productPrice",
+							"value": "999",
+							"type": "text"
+						},
+						{
+							"key": "productCondition",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "productLocation",
+							"value": "GNV",
+							"type": "text"
+						},
+						{
+							"key": "productPostDate",
+							"value": "12-02-2025",
+							"type": "text"
+						},
+						{
+							"key": "productImage",
+							"type": "file",
+							"src": "/C:/Users/avane/Pictures/Wallpapers/F1 10.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/products",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Products",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"let imagesHtml = '';\r",
+							"\r",
+							"jsonData.forEach(product => {\r",
+							"    imagesHtml += `\r",
+							"    <div>\r",
+							"        <img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">\r",
+							"    </div>`;\r",
+							"});\r",
+							"\r",
+							"pm.visualizer.set(`\r",
+							"<body>\r",
+							"  ${imagesHtml}\r",
+							"</body>`);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/products",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Product",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "userId",
+							"value": "456",
+							"type": "text"
+						},
+						{
+							"key": "productId",
+							"value": "26678cba-459c-45a8-b856-a333ae4e0357",
+							"type": "text"
+						},
+						{
+							"key": "productTitle",
+							"value": "asd",
+							"type": "text"
+						},
+						{
+							"key": "productDescription",
+							"value": "Fast",
+							"type": "text"
+						},
+						{
+							"key": "productPrice",
+							"value": "999",
+							"type": "text"
+						},
+						{
+							"key": "productCondition",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "productLocation",
+							"value": "GNV",
+							"type": "text"
+						},
+						{
+							"key": "productPostDate",
+							"value": "10-02-2025",
+							"type": "text"
+						},
+						{
+							"key": "productImage",
+							"type": "file",
+							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 9.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"products",
+						"456",
+						"26678cba-459c-45a8-b856-a333ae4e0356"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Product",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/products/456/26678cba-459c-45a8-b856-a333ae4e0356",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"products",
+						"456",
+						"26678cba-459c-45a8-b856-a333ae4e0356"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Products by User ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"let imagesHtml = '';\r",
+							"\r",
+							"jsonData.forEach(product => {\r",
+							"    imagesHtml += `<img src=\"${product.productImage}\" alt=\"Product Image\" style=\"max-width: 300px; margin: 10px;\">`;\r",
+							"});\r",
+							"\r",
+							"pm.visualizer.set(`\r",
+							"<body>\r",
+							"  ${imagesHtml}  <!-- Insert the generated image tags here -->\r",
+							"</body>`);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/products/45",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"products",
+						"45"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://unibazaar-products.azurewebsites.net",
+			"type": "string"
+		},
+		{
+			"key": "local_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
