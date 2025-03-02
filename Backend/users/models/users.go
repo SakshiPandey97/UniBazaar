@@ -9,16 +9,10 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/sendgrid/sendgrid-go"
 	sgmail "github.com/sendgrid/sendgrid-go/helpers/mail"
-
-	
 	passwordvalidator "github.com/wagslane/go-password-validator"
-
-	
-	"github.com/alexedwards/argon2id"
-
-	
 	"gorm.io/gorm"
 )
 
@@ -41,12 +35,13 @@ type UserModel struct {
 }
 
 type User struct {
-	UserID   int    `gorm:"column:userid;primaryKey" json:"userid"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"-"`
-	OTPCode  string `json:"-"`        
-	Verified bool   `json:"verified"` 
+	UserID              int    `gorm:"column:userid;primaryKey" json:"userid"`
+	Name                string `json:"name"`
+	Email               string `json:"email"`
+	Password            string `json:"-"`
+	OTPCode             string `json:"-"`
+	FailedResetAttempts int    `json:"-"`
+	Verified            bool   `json:"-"`
 }
 
 var params = &argon2id.Params{
@@ -67,22 +62,17 @@ func ValidatePassword(password string) error {
 	return nil
 }
 
-
-func (e UserModel) Insert(id int, name string, email string, password string) error {
+func (e UserModel) Insert(id int, name, email, password string) error {
 	if err := ValidateEduEmail(email); err != nil {
 		return err
 	}
-
 	if err := ValidatePassword(password); err != nil {
 		return err
 	}
-
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
-		fmt.Println("error hashing password:", err)
 		return err
 	}
-
 	user := User{
 		UserID:   id,
 		Name:     name,
@@ -90,39 +80,29 @@ func (e UserModel) Insert(id int, name string, email string, password string) er
 		Password: hashedPassword,
 		Verified: false,
 	}
-
-	res := e.db.Create(&user)
-	if res.Error != nil {
-		fmt.Println("error inserting user:", res.Error)
-		return res.Error
+	fmt.Println("going to add user to the db")
+	if err := e.db.Create(&user).Error; err != nil {
+		fmt.Println("error occurred while inserting into the db")
+		return err
 	}
-
+	fmt.Println("added user to db")
 	otpCode := generateOTPCode()
-
-	err = e.db.Model(&user).Updates(User{OTPCode: otpCode}).Error
-	if err != nil {
+	if err := e.db.Model(&user).Updates(User{OTPCode: otpCode}).Error; err != nil {
 		return err
 	}
-
-
-	err = sendOTPEmail(email, otpCode)
-	if err != nil {
-		fmt.Println("error sending OTP:", err)
+	if err := sendOTPEmail(email, otpCode, "Your UniBazaar OTP Code"); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (e UserModel) Update(email string, newPassword string) error {
+func (e UserModel) Update(email, newPassword string) error {
 	hashedPassword, err := HashPassword(newPassword)
 	if err != nil {
-		fmt.Println("Error hashing password:", err)
 		return err
 	}
 	res := e.db.Model(&User{}).Where("email = ?", email).Update("password", hashedPassword)
 	if res.Error != nil {
-		fmt.Println("Error while updating password")
 		return res.Error
 	}
 	return nil
@@ -131,7 +111,6 @@ func (e UserModel) Update(email string, newPassword string) error {
 func (e UserModel) Delete(email string) error {
 	res := e.db.Where("email = ?", email).Delete(&User{})
 	if res.Error != nil {
-		fmt.Println("error while deleting user")
 		return res.Error
 	}
 	return nil
@@ -141,26 +120,19 @@ func (e UserModel) Read(email string) (*User, error) {
 	var user User
 	res := e.db.Where("email = ?", email).First(&user)
 	if res.Error != nil {
-		fmt.Println("error while reading user information")
 		return nil, res.Error
 	}
 	return &user, nil
 }
 
-
 func (e UserModel) UpdateVerificationStatus(user *User) error {
 	return e.db.Model(user).Updates(map[string]interface{}{
-		"otp_code": user.OTPCode,
 		"verified": user.Verified,
 	}).Error
 }
 
 func HashPassword(password string) (string, error) {
-	hashedPassword, err := argon2id.CreateHash(password, params)
-	if err != nil {
-		return "", err
-	}
-	return hashedPassword, nil
+	return argon2id.CreateHash(password, params)
 }
 
 func ValidateEduEmail(email string) error {
@@ -182,11 +154,11 @@ func ValidateEduEmail(email string) error {
 	return nil
 }
 
+// generateOTPCode creates a random 6-digit numeric code.
 func generateOTPCode() string {
 	digits := "0123456789"
 	buf := make([]byte, 6)
 	if _, err := rand.Read(buf); err != nil {
-		// fallback
 		return "000000"
 	}
 	for i := 0; i < 6; i++ {
@@ -195,23 +167,94 @@ func generateOTPCode() string {
 	return string(buf)
 }
 
-func sendOTPEmail(toEmail, otpCode string) error {
-	from := sgmail.NewEmail("UniBazaar Support", "unibazaar.marketplace@gmail.com")
-	subject := "Your UniBazaar OTP Code"
-	to := sgmail.NewEmail("New User", toEmail)
+func (e UserModel) GetUserIdByEmail(email string) (int, error) {
+	var user User
+	res := e.db.Where("email = ?", email).First(&user)
 
-	plainTextContent := fmt.Sprintf("Your OTP code is %s.\nIt expires in 5 minutes.", otpCode)
-	htmlContent := fmt.Sprintf("<strong>Your OTP code is %s</strong><br>It expires in 5 minutes.", otpCode)
-
-	message := sgmail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-
-	response, err := client.Send(message)
-	if err != nil {
-		log.Println("Failed to send OTP email:", err)
-		return err
+	if res.Error != nil {
+		fmt.Println("error while reading user information")
+		return 0, res.Error
 	}
 
-	log.Printf("OTP email sent. Status Code: %d\n", response.StatusCode)
+	return user.UserID, nil
+}
+
+// sendOTPEmail sends the 6-digit code via SendGrid.
+func sendOTPEmail(toEmail, code, subject string) error {
+	from := sgmail.NewEmail("UniBazaar Support", "unibazaar.marketplace@gmail.com")
+	to := sgmail.NewEmail("User", toEmail)
+	plainText := fmt.Sprintf("Your code is %s.\nIt expires in 5 minutes.", code)
+	htmlContent := fmt.Sprintf("<strong>Your code is %s</strong><br>It expires in 5 minutes.", code)
+	message := sgmail.NewSingleEmail(from, subject, to, plainText, htmlContent)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	response, err := client.Send(message)
+	if err != nil {
+		log.Println("Failed to send email:", err)
+		return err
+	}
+	log.Printf("Email sent. Status Code: %d\n", response.StatusCode)
 	return nil
+}
+
+func (e UserModel) InitiatePasswordReset(email string) error {
+	user, err := e.Read(email)
+	if err != nil {
+		return fmt.Errorf("user not found or DB error: %w", err)
+	}
+	user.FailedResetAttempts = 0
+	if err := e.db.Save(user).Error; err != nil {
+		return err
+	}
+	otpCode := generateOTPCode()
+	user.OTPCode = otpCode
+	if err := e.db.Save(user).Error; err != nil {
+		return err
+	}
+	if err := sendOTPEmail(email, otpCode, "UniBazaar Password Reset Code"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e UserModel) VerifyResetCodeAndSetNewPassword(email, code, newPassword string) error {
+	user, err := e.Read(email)
+	if err != nil {
+		return fmt.Errorf("user not found or DB error: %w", err)
+	}
+	if user.OTPCode != code {
+		user.FailedResetAttempts++
+		fmt.Println(user)
+		if user.FailedResetAttempts >= 3 {
+			_ = sendOTPEmail(user.Email, "Suspicious attempts detected", "UniBazaar Security Alert")
+			user.FailedResetAttempts = 0
+			user.OTPCode = ""
+		}
+		if err := e.db.Save(user).Error; err != nil {
+			return err
+		}
+		return fmt.Errorf("invalid OTP code")
+	}
+	user.FailedResetAttempts = 0
+	if err := ValidatePassword(newPassword); err != nil {
+		return err
+	}
+	hashed, err := HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	user.Password = hashed
+	user.OTPCode = ""
+	if err := e.db.Save(user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// Optional helper if needed in routes:
+func (e UserModel) SaveUser(user *User) error {
+	return e.db.Save(user).Error
+}
+
+func (e UserModel) SendSecurityAlert(user *User) error {
+	return sendOTPEmail(user.Email, "Suspicious attempts detected", "UniBazaar Security Alert")
 }

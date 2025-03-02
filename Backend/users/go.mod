@@ -5,6 +5,7 @@ go 1.23.5
 require (
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/julienschmidt/httprouter v1.3.0
+	github.com/pquerna/otp v1.4.0
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/wagslane/go-password-validator v0.3.0
 	gorm.io/driver/postgres v1.5.11
@@ -12,6 +13,7 @@ require (
 )
 
 require (
+	github.com/boombuler/barcode v1.0.2 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.2 // indirect
