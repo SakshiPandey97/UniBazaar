@@ -22,4 +22,9 @@ export default defineConfig({
     open: !isDocker, // Open in local dev, not in Docker
     host: "0.0.0.0", // Ensures Docker works properly
   },
+  test: {    // Add this section
+    globals: true,        // Enables global API like `describe`, `it`
+    environment: "jsdom", // Use JSDOM to simulate the browser environment
+    setupFiles: "./src/__tests__/setupTests.js", // Global setup file
+  },
 });
