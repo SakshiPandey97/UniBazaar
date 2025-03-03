@@ -7,7 +7,7 @@ import menuToggleIcon from "../assets/imgs/menu-toggle.svg";
 import closeIcon from "../assets/imgs/close.svg";
 import useLoginModal from "@/hooks/useModal";
 
-const Navbar = ({ toggleLoginModal}) => {
+const Navbar = ({ toggleLoginModal }) => {
   const location = useLocation();
   const {
     isMenuOpen,
@@ -65,7 +65,9 @@ const Navbar = ({ toggleLoginModal}) => {
               </li>
               <li
                 className={`cursor-pointer text-[#E5E5E5] ${
-                  isActive("/product") ? "text-black font-bold bg-[#FFC67D]" : ""
+                  isActive("/product")
+                    ? "text-black font-bold bg-[#FFC67D]"
+                    : ""
                 } hover:bg-[#FFC67D] hover:text-black`}
                 onClick={() => handleNavigation("/product")}
               >
@@ -75,7 +77,9 @@ const Navbar = ({ toggleLoginModal}) => {
                 <Link
                   to="/about"
                   className={`text-[#E5E5E5] ${
-                    isActive("/about") ? "text-black font-bold bg-[#FFC67D]" : ""
+                    isActive("/about")
+                      ? "text-black font-bold bg-[#FFC67D]"
+                      : ""
                   } hover:bg-[#FFC67D] hover:text-black`}
                 >
                   About Us
@@ -86,11 +90,14 @@ const Navbar = ({ toggleLoginModal}) => {
 
           <div className="flex flex-row hidden md:flex items-center gap-4 relative">
             <button
+              data_testid="loginBtn"
               className="flex flex-row items-center gap-2 px-4 py-3 rounded-md bg-[#E5E5E5] hover:bg-[#D6D2D2] transition duration-200 text-white text-[24px] font-medium relative"
               onClick={userAuth.userState ? toggleDropdown : toggleLoginModal}
             >
               <img src={loginIcon} className="h-[24px]" alt="Login" />
-              <span className="text-black">{userAuth.userState ? "Profile" : "Login"}</span>
+              <span className="text-black">
+                {userAuth.userState ? "Profile" : "Login"}
+              </span>
             </button>
 
             {userAuth.userState && isDropdownOpen && (
@@ -148,7 +155,9 @@ const Navbar = ({ toggleLoginModal}) => {
               <li className="p-4 hover:bg-gray-100">
                 <Link
                   to="/about"
-                  className={`${isActive("/about") ? "text-teal-600 font-bold" : ""}`}
+                  className={`${
+                    isActive("/about") ? "text-teal-600 font-bold" : ""
+                  }`}
                 >
                   About Us
                 </Link>
