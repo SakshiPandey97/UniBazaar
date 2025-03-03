@@ -11,11 +11,15 @@ function UserLoginForm({ handleSubmit }) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
+    <Formik
+      initialValues={initialValues}
+      validationSchema={validationSchema}
+      onSubmit={handleSubmit}
+    >
       {({ isSubmitting, handleChange }) => (
         <Form className="w-full">
-
           <InputField
+            data_testid="loginEmail"
             label="Email"
             name="email"
             type="email"
@@ -24,6 +28,7 @@ function UserLoginForm({ handleSubmit }) {
           />
 
           <InputField
+            data_testid="loginPassowrd"
             label="Password"
             name="password"
             type="password"
@@ -40,6 +45,7 @@ function UserLoginForm({ handleSubmit }) {
 
           <div className="flex justify-center">
             <button
+              data_testid="submitLoginBtn"
               type="submit"
               disabled={isSubmitting}
               className="w-1/3 hover:border-[#F58B00] border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-balck font-bold py-2 px-4 rounded-md transition disabled:bg-gray-400"

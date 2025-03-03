@@ -2,6 +2,7 @@ import React from "react";
 import { Field, ErrorMessage } from "formik";
 
 function InputField({
+  data_testid,
   label,
   name,
   type,
@@ -22,6 +23,7 @@ function InputField({
       </div>
       <div className="flex justify-center">
         <Field
+          data_testid={data_testid}
           type={type}
           id={name}
           name={name}
