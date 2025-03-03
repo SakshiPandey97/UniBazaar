@@ -9,7 +9,7 @@ type Models struct {
 
 func NewModels(db *gorm.DB) Models {
 	return Models{
-		UserModel: UserModel{db: db},
+		UserModel: UserModel{DB: db},
 		//SessionModel: SessionModel{db: db},
 	}
 }
