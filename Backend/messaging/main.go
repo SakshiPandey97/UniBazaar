@@ -14,6 +14,8 @@ import (
 	"messaging/handler"
 	"messaging/repository"
 	"messaging/websocket"
+
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -24,17 +26,41 @@ func main() {
 	defer database.Close()
 
 	msgRepo := repository.NewMessageRepository(database)
+	userRepo := repository.NewUserRepository(database)
 	wsManager := websocket.NewWebSocketManager(msgRepo)
 
 	go wsManager.Run()
 
 	msgHandler := handler.NewMessageHandler(msgRepo, wsManager)
 
-	http.HandleFunc("/ws", msgHandler.HandleWebSocket)
-	http.HandleFunc("/messages", msgHandler.HandleGetMessages)
+	userHandler := handler.NewUserHandler(userRepo)
 
+	// Create a new ServeMux
+	mux := http.NewServeMux()
+
+	// Register your handlers
+	mux.HandleFunc("/ws", msgHandler.HandleWebSocket)
+	mux.HandleFunc("/messages", msgHandler.HandleGetMessages)
+	mux.HandleFunc("/users", userHandler.GetUsersHandler)
+
+
+	// Configure CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"}, // Allow requests from your frontend
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		ExposedHeaders:   []string{"Content-Length"},
+		AllowCredentials: true,
+		Debug:            true, // Log CORS-related issues
+	})
+
+	// Wrap your ServeMux with the CORS middleware
+	handler := c.Handler(mux)
+
+	// Create the server with the CORS-wrapped handler
 	server := &http.Server{
-		Addr: ":8080",
+		Addr:    ":8080",
+		Handler: handler,
 	}
 
 	go func() {
