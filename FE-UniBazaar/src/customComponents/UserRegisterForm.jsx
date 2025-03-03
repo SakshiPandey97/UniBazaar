@@ -15,6 +15,7 @@ function UserRegisterForm({ handleSubmit }) {
       {({ isSubmitting, handleChange }) => (
         <Form className="w-full">
           <InputField
+            data_testid="registerName"
             label="Name"
             name="name"
             type="text"
@@ -23,6 +24,7 @@ function UserRegisterForm({ handleSubmit }) {
           />
 
           <InputField
+            data_testid="registerEmail"
             label="Email"
             name="email"
             type="email"
@@ -31,6 +33,7 @@ function UserRegisterForm({ handleSubmit }) {
           />
 
           <InputField
+            data_testid="registerPassword"
             label="Password"
             name="password"
             type="password"
@@ -40,6 +43,7 @@ function UserRegisterForm({ handleSubmit }) {
 
           <div className="flex flex-row justify-center">
             <button
+              data_testid="submitRegisterBtn"
               type="submit"
               disabled={isSubmitting}
               className="w-1/3 hover:border-[#F58B00] border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-balck font-bold py-2 px-4 rounded-md transition disabled:bg-gray-400"
