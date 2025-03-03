@@ -1,12 +1,12 @@
 import { useAuthHandler } from "../hooks/useAuthHandler";
 import React from "react";
 import Confetti from "react-confetti";
-import { useWindowSize } from "react-use"; 
+import { useWindowSize } from "react-use";
 import UserRegisterForm from "../customComponents/UserRegisterForm";
 import UserLoginForm from "../customComponents/UserLoginForm";
 
 function AuthPage({ toggleModal }) {
-  const { width, height } = useWindowSize(); 
+  const { width, height } = useWindowSize();
   const {
     isRegistering,
     isSubmitting,
@@ -20,7 +20,10 @@ function AuthPage({ toggleModal }) {
     <>
       {showConfetti && <Confetti width={width} height={height} />}
       <div className="w-full h-full flex justify-center items-center relative">
-        <div className="flex flex-col w-[600px] h-[500px] loginDiv justify-center p-6 bg-white rounded-lg shadow-lg">
+        <div
+          data-testid="loginForm"
+          className="flex flex-col w-[600px] h-[500px] loginDiv justify-center p-6 bg-white rounded-lg shadow-lg"
+        >
           <h1 className="ml-[50px] font-mono text-5xl font-bold text-[#032B54]">
             {isRegistering ? "Sign Up" : "Login"}
           </h1>
@@ -54,6 +57,7 @@ function AuthPage({ toggleModal }) {
               ? "Already have an account?"
               : "I don’t have an account?"}
             <span
+              data_testid="toggleLoginRegister"
               className="font-bold text-[#032B54] cursor-pointer ml-1 hover:underline"
               onClick={toggleAuthMode}
             >

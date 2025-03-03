@@ -45,7 +45,7 @@ function App() {
       )}
 
       <Router>
-        <Navbar toggleLoginModal={toggleLoginModal} />
+        <Navbar toggleLoginModal={toggleLoginModal} toggleViewProfile={toggleProfileModal} />
         <Routes>
           <Route path="/" element={<Layout />} />
           <Route
