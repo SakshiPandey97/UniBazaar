@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"strings"
 	"users/models"
+	"users/utils"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -43,7 +45,6 @@ func (app *Application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Sign-up successful. Check your email for OTP.")
 }
-
 
 func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
@@ -97,8 +98,6 @@ func (app *Application) ForgotPasswordHandler(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Reset code sent. Check your email.")
 }
-
-
 
 func (app *Application) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
@@ -251,9 +250,84 @@ func (app *Application) UpdatePhoneHandler(w http.ResponseWriter, r *http.Reques
 	fmt.Fprintln(w, "Phone updated successfully.")
 }
 
-func (app *Application) Routes() http.Handler {
-	router := httprouter.New()
+func (app *Application) VerifyJWTHandler(w http.ResponseWriter, r *http.Request) {
+	bearer := r.Header.Get("Authorization")
+	parts := strings.Split(bearer, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		fmt.Println("invalid authorization header")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	authToken := parts[1]
+	fmt.Printf("the authorization token passed by the user is: %s \n", authToken)
 
+	jwtToken, err := utils.ParseJWT(authToken)
+	if err != nil {
+		fmt.Println("error occurred while parsing the provided JWT Token")
+		return
+	}
+
+	claims, ok := jwtToken.Claims.(jwt.MapClaims)
+
+	if !ok {
+		fmt.Println("error occurred while retrieving claims")
+		return
+	}
+	userMap, ok := claims["user"].(map[string]interface{})
+
+	if !ok {
+		fmt.Println("error while retrieving claims")
+		return
+	}
+
+	userClaim := models.User{
+		Name:     userMap["Name"].(string),
+		Email:    userMap["Email"].(string),
+		Password: userMap["Phone"].(string),
+	}
+
+	fmt.Printf("user: %v \n", userClaim)
+	if jwtToken.Valid {
+		fmt.Println("token provided are valid")
+		_, err = w.Write([]byte(fmt.Sprintf("%v", userClaim)))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+}
+
+func (app *Application) GetJWTHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		Phone string `json:"phone"`
+	}
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	err := dec.Decode(&input)
+	if err != nil {
+		fmt.Println("error occureed while decoding input: " + err.Error())
+	}
+	user := models.CreateUser(input.Name, input.Email, input.Phone)
+	authToken, err := utils.GenerateJWT(*user)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	w.Header().Set("Authorization", "Bearer "+authToken)
+	_, err = w.Write([]byte("JWT generated succesfully!"))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+func (app *Application) Routes() http.Handler {
+
+	router := httprouter.New()
 	router.HandlerFunc("POST", "/signup", app.SignUpHandler)
 	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler)
 	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler)
@@ -263,6 +337,8 @@ func (app *Application) Routes() http.Handler {
 	router.HandlerFunc("POST", "/login", app.LoginHandler)
 	router.HandlerFunc("POST", "/updateName", app.UpdateNameHandler)
 	router.HandlerFunc("POST", "/updatePhone", app.UpdatePhoneHandler)
+	router.HandlerFunc(http.MethodPost, "/getjwt", app.GetJWTHandler)
+	router.HandlerFunc(http.MethodGet, "/verifyjwt", app.VerifyJWTHandler)
 
 	return router
 }

@@ -136,6 +136,8 @@ func (e UserModel) Insert(id int, name, email, password, phone string) error {
 	if err != nil {
 		return err
 	}
+
+	//TODO: Return the user to the handler otherwise we will not be able to keep track of the user id
 	user := User{
 		UserID:   id,
 		Name:     name,
@@ -311,4 +313,14 @@ func sendOTPEmail(toEmail, code, subject string) error {
 	}
 	log.Printf("Email sent. Status Code: %d\n", response.StatusCode)
 	return nil
+}
+
+func CreateUser(name string, email string, phone string) *User {
+	user := User {
+		Name: name,
+		Email: email,
+		Phone: phone,
+	}
+
+	return &user
 }
