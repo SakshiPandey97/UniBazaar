@@ -1475,7 +1475,7 @@ To run Cypress tests, use:
 ```bash
 npx cypress open
 ```
-###Video
+### **Video** 
 
 [https://youtu.be/zvNfPwMtuNg](https://youtu.be/zvNfPwMtuNg)
 
