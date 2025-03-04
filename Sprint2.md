@@ -392,56 +392,7 @@ Other email services such as **AWS SES** and **Mailgun** were considered, but Se
 
 ---
 
-## 2. OTP Generation & Security Measures
-To enhance authentication security, UniBazaar uses a **random 6-digit OTP** for email verification and password reset.
-
-- **Generated Using Cryptographic Randomness:** The OTP is created using Go's `crypto/rand` package to ensure unpredictability.
-- **Short Expiry Time:** OTP codes expire within a limited time window (e.g., 5 minutes) to reduce brute-force attempts.
-- **Failure Tracking & Lockout Mechanism:** If a user enters an incorrect OTP multiple times (3 or more failures), the system sends a **security alert email**.
-
-
-This ensures **OTP codes are unique, secure, and difficult to guess**, enhancing authentication security.
-
-
----
-## 3. No Unit Tests for Email-Sent OTPs
-Currently, there are no unit tests for verifying whether OTP emails are actually sent.
-
-- **Relies on External Services:** Email delivery depends on **SendGrid**, making it difficult to test in an isolated backend environment.
-- **Better suited for Integration Testing:** Instead of unit tests, **integration tests** with a mock SendGrid API should be used to validate OTP email sending.
-- **Logs & Provider Monitoring:** The best way to ensure email delivery works correctly is through **server logs and SendGrid’s dashboard** rather than unit tests.
-
----
-
-## 4. No OTP for Phone Verification
-At the moment, phone verification is **not implemented** due to the following reasons:
-
-- **Cost Considerations:** SendGrid (owned by Twilio) provides a free tier for **email-based OTPs**, but **phone-based OTP verification via Twilio SMS requires payment**.
-- **Target Audience:** Since **UniBazaar is a student-focused platform**, we aim to minimize operational costs.
-- **Exploring Alternatives:** Future phone verification strategies may include:
-  - **Optional Twilio verification for premium users**.
-  - **Using an alternative SMS provider with lower costs**.
-  - **Validating phone numbers via a third-party API instead of OTP verification**.
-
----
-
-## 5. Incomplete JWT Implementation
-Currently, the JWT implementation is **incomplete**, and further enhancements are planned in the next sprint.
-
-- **What Has Been Implemented So Far:**
-  - **JWT Verification Handler:** Extracts, parses, and validates JWT tokens from API requests.
-  - **JWT Generation Handler:** Creates JWT tokens upon user authentication.
-- **What’s Missing & Planned for Next Sprint:**
-  - **Unit tests for token parsing and claim extraction**.
-  - **Integration tests for end-to-end authentication flow**.
-  - **Token expiration handling and refresh token implementation**.
-  - **Stronger JWT validation mechanisms to prevent misuse**.
-
-By implementing these security improvements in the upcoming sprint, **UniBazaar will have a more robust authentication system** with tested JWT handling and improved security.
-
----
-
-## 6. Why Use Argon2id for Password Hashing?
+## 2. Why Use Argon2id for Password Hashing?
 **Argon2id** is the recommended password hashing algorithm by OWASP and is used in UniBazaar due to:
 
 - **Memory-Hardness:** Argon2id is resistant to GPU and ASIC-based brute force attacks due to its high memory requirements.
@@ -450,7 +401,7 @@ By implementing these security improvements in the upcoming sprint, **UniBazaar 
 
 ---
 
-## 7. Password Entropy Enforcement (go-password-validator)
+## 3. Password Entropy Enforcement (go-password-validator)
 
 To enforce strong password security, UniBazaar uses `go-password-validator` with a **minimum entropy requirement of 60 bits**. This ensures that passwords are not easily guessable by:
 
@@ -458,7 +409,28 @@ To enforce strong password security, UniBazaar uses `go-password-validator` with
 - **Mitigating Dictionary Attacks:** Prevents users from choosing common or easily cracked passwords.
 - **Providing Real-Time Feedback:** If a password is weak, the API returns a message guiding the user to create a stronger one.
 
+### Example of Password Entropy Validation
+```go
+const minEntropyBits = 60
+err := passwordvalidator.Validate(password, minEntropyBits)
+if err != nil {
+    return fmt.Errorf("password is too weak: %v", err)
+}
+```
+
 By enforcing **entropy-based validation**, UniBazaar prevents users from choosing weak passwords while maintaining usability.
+
+---
+
+## 4. OTP Generation & Security Measures
+To enhance authentication security, UniBazaar uses a **random 6-digit OTP** for email verification and password reset.
+
+- **Generated Using Cryptographic Randomness:** The OTP is created using Go's `crypto/rand` package to ensure unpredictability.
+- **Short Expiry Time:** OTP codes expire within a limited time window (e.g., 5 minutes) to reduce brute-force attempts.
+- **Failure Tracking & Lockout Mechanism:** If a user enters an incorrect OTP multiple times (3 or more failures), the system sends a **security alert email**.
+
+
+This ensures **OTP codes are unique, secure, and difficult to guess**, enhancing authentication security.
 
 ---
 
@@ -715,6 +687,56 @@ Below is a summary of the available endpoints in this API:
 
 ## Conclusion
 This API facilitates real-time and stored messaging functionalities through WebSockets and REST endpoints, enabling seamless communication between users. The system ensures chat history persistence, so conversations remain intact even if users experience connectivity issues. 
+
+---
+
+## Messaging Unit Tests
+
+This module contains unit tests for the **messaging service**, ensuring correct behavior of message-related operations using **Testify** for mocking and assertions.
+
+### **Testing Framework**
+- **Go Testing Package (`testing`)** – Standard testing framework in Go.
+- **Testify (`github.com/stretchr/testify`):** 
+  - `mock` – Used to create a mock message repository.
+  - `assert` – Used for validating expected and actual outcomes.
+
+### **Mocking Message Repository**
+A **MockMessageRepository** is created to simulate database interactions without an actual database.
+
+### **Tested Functions**
+1. **`SaveMessage`**  
+   - **Test:** Ensures a message is successfully saved.
+   - **Mocked Call:** `SaveMessage(models.Message)`
+   - **Expected Behavior:** No errors returned.
+
+2. **`GetLatestMessages`**  
+   - **Test:** Retrieves the latest messages with a limit.
+   - **Mocked Call:** `GetLatestMessages(limit int)`
+   - **Expected Behavior:** Returns an expected list of messages.
+
+3. **`MarkMessageAsRead`**  
+   - **Test:** Marks a message as read by its ID.
+   - **Mocked Call:** `MarkMessageAsRead(messageID int)`
+   - **Expected Behavior:** No errors returned.
+
+4. **`GetUnreadMessages`**  
+   - **Test:** Fetches unread messages for a user.
+   - **Mocked Call:** `GetUnreadMessages(userID uint)`
+   - **Expected Behavior:** Returns unread messages.
+
+5. **`GetConversation`**  
+   - **Test:** Retrieves conversation history for a user.
+   - **Mocked Call:** `GetConversation(userID uint)`
+   - **Expected Behavior:** Returns a list of exchanged messages.
+
+### **Running Tests**
+To execute the test suite, use:
+```bash
+go test ./...
+```
+
+### *Work in Progress*
+There are a few functions that encountered issues during testing due to library or mocking constraints (I'm still not sure). I am actively working on resolving these challenges, and they are scheduled to be completed in the next sprint.
 
 ---
 # Products: Backend API Documentation
@@ -1431,3 +1453,25 @@ The tests cover critical areas of the app, including UI rendering, state managem
 - **Expected Behavior:** `isMenuOpen` and `isDropdownOpen` are both `false`.
 
 ---
+
+### **End-to-End Testing (Cypress)**  
+Cypress was used for **end-to-end testing**, with a successful test for the **login functionality**, as demonstrated in the recorded video.  
+
+#### **Tested Scenario: Login Flow**  
+- **Steps Covered:**  
+  1. Navigate to the login page.  
+  2. Enter valid credentials.  
+  3. Click the login button.  
+  4. Verify successful authentication and redirection to the dashboard.  
+
+- **Expected Behavior:**  
+  - User should be authenticated and redirected to the dashboard upon successful login.  
+  - Incorrect credentials should display an error message.  
+
+### **Running Tests**  
+
+#### **Cypress E2E Tests**  
+To run Cypress tests, use:  
+```bash
+npx cypress open
+```
