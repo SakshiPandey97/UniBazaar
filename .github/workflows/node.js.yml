@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Prevents infinite hangs
+    timeout-minutes: 15  
 
     strategy:
       matrix:
@@ -22,7 +22,7 @@ jobs:
 
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false  # Prevents cancellation of previous jobs
+      cancel-in-progress: false  
 
     steps:
     - name: Checkout Repository
@@ -33,24 +33,16 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: FE-UniBazaar/package-lock.json  # Ensures caching for correct directory
-
-    - name: Clean npm cache
-      run: npm cache clean --force
-      working-directory: FE-UniBazaar
-
-    - name: Remove node_modules
-      run: rm -rf node_modules package-lock.json
-      working-directory: FE-UniBazaar
+        cache-dependency-path: FE-UniBazaar/package-lock.json  # Correct path
 
     - name: Install Dependencies
-      run: npm install
-      working-directory: FE-UniBazaar
+      run: npm ci
+      working-directory: FE-UniBazaar  # Correct path
 
     - name: Build Application
       run: npm run build --if-present
-      working-directory: FE-UniBazaar
+      working-directory: FE-UniBazaar  # Correct path
 
     - name: Run Tests
       run: npm test
-      working-directory: FE-UniBazaar
+      working-directory: FE-UniBazaar  # Correct path
