@@ -22,7 +22,10 @@ function AuthPage({ toggleModal }) {
       <div className="w-full h-full flex justify-center items-center relative">
         <div
           data-testid="loginForm"
-          className="flex flex-col w-[600px] h-[500px] loginDiv justify-center p-6 bg-white rounded-lg shadow-lg"
+          className={`flex flex-col 
+            w-full sm:w-[400px] md:w-[500px] lg:w-[550px] xl:w-[600px] 
+            ${isRegistering ? "h-[600px]" : "h-[500px]"} 
+            loginDiv justify-center p-6 bg-white rounded-lg shadow-lg`}          
         >
           <h1 className="ml-[50px] font-mono text-5xl font-bold text-[#032B54]">
             {isRegistering ? "Sign Up" : "Login"}

@@ -4,7 +4,7 @@ import { validationSchema } from "@/utils/validSchema";
 import InputField from "./InputField";
 
 function UserRegisterForm({ handleSubmit }) {
-  const initialValues = { name: "", email: "", password: "" };
+  const initialValues = { name: "", email: "", password: "", phoneNumber: "" };
 
   return (
     <Formik
@@ -37,6 +37,14 @@ function UserRegisterForm({ handleSubmit }) {
             label="Password"
             name="password"
             type="password"
+            isSubmitting={isSubmitting}
+            onChange={handleChange}
+          />
+          <InputField
+            data-testid="registerNumber"
+            label="Phone Number"
+            name="phoneNumber"
+            type="tel"
             isSubmitting={isSubmitting}
             onChange={handleChange}
           />
