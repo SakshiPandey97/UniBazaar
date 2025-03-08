@@ -1,48 +1,32 @@
 name: Node.js CI
-
-on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'FE-UniBazaar/**'
-      
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - 'FE-UniBazaar/**'
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15  
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false  
-
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: FE-UniBazaar/package-lock.json  # Correct path
-
-    - name: Install Dependencies
-      run: npm ci
-      working-directory: FE-UniBazaar  # Correct path
-
-    - name: Build Application
-      run: npm run build --if-present
-      working-directory: FE-UniBazaar  # Correct path
-
-    - name: Run Tests
-      run: npm test
-      working-directory: FE-UniBazaar  # Correct path
+ 
+ on:
+   push:
+     branches: [ "main" ]
+     paths:
+       - 'FE-UniBazaar/**'
+       
+   pull_request:
+     branches: [ "main" ]
+     paths:
+       - 'FE-UniBazaar/**'
+ jobs:
+   build:
+ 
+     runs-on: ubuntu-latest
+ 
+     strategy:
+       matrix:
+         node-version: [18.x]
+         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+ 
+     steps:
+     - uses: actions/checkout@v4
+     - name: Use Node.js ${{ matrix.node-version }}
+       uses: actions/setup-node@v4
+       with:
+         node-version: ${{ matrix.node-version }}
+         cache: 'npm'
+     - run: npm ci
+     - run: npm run build --if-present
+     - run: npm test
