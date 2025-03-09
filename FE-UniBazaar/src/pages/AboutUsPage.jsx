@@ -2,7 +2,7 @@ import React from 'react'
 
 function AboutUsPage() {
   return (
-    <div>AboutUsPage</div>
+    <div>AboutUs Page</div>
   )
 }
 
