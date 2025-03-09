@@ -22,19 +22,26 @@ jobs:
         go-version: '1.20'
 
     - name: Verify Go Modules
-      working-directory: Backend/users
       run: |
-        if [ ! -f go.mod ]; then
-          echo "Error: go.mod file is missing. Ensure it is committed to the repository."
-          exit 1
-        fi
+        cd Backend/users
+        ls -la  # Debugging to check if go.mod and go.sum exist
+      shell: bash
+
+    - name: Ensure Dependencies are Installed
+      run: |
+        cd Backend/users
         go mod tidy
-        ls -la
+        go mod download
+      shell: bash
 
     - name: Build Users Service
-      working-directory: Backend/users
-      run: go build -v .
+      run: |
+        cd Backend/users
+        go build -v .
+      shell: bash
 
     - name: Run Tests
-      working-directory: Backend/users
-      run: go test -v .
+      run: |
+        cd Backend/users
+        go test -v ./...
+      shell: bash
