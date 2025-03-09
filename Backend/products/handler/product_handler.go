@@ -87,7 +87,7 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to fetch all products.")
 
-	lastID := r.URL.Query().Get("lastID")
+	lastID := r.URL.Query().Get("lastId")
 	limitStr := r.URL.Query().Get("limit")
 
 	limit := 10
