@@ -13,7 +13,7 @@ func InitServer() {
 	app := handler.Application{}
 	conn := config.Connect(dsn)
 	app.Models = models.NewModels(conn)
-	fmt.Println("connected  to database")
+	fmt.Println("connected  to  database")
 
 	srv := http.Server{
 		Addr:    ":4000",
