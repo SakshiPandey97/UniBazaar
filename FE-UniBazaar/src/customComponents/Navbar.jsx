@@ -6,6 +6,7 @@ import loginIcon from "../assets/imgs/login.svg";
 import menuToggleIcon from "../assets/imgs/menu-toggle.svg";
 import closeIcon from "../assets/imgs/close.svg";
 import useLoginModal from "@/hooks/useModal";
+import Logo from "./Logo";
 
 const Navbar = ({ toggleLoginModal }) => {
   const location = useLocation();
@@ -27,11 +28,12 @@ const Navbar = ({ toggleLoginModal }) => {
         <div className="flex flex-row justify-between md:max-w-[1480px] max-w-[600px] mx-auto items-center">
           <div className="flex w-1/10">
             <Link to="/" className="relative inline-block">
-              <img
+              {/* <img
                 src={logo}
                 className="h-[50px] md:h-[60px] w-auto transition hover:opacity-75"
                 alt="Logo"
-              />
+              /> */}
+              <Logo/>
             </Link>
           </div>
 
@@ -170,9 +172,6 @@ const Navbar = ({ toggleLoginModal }) => {
               >
                 <img src={loginIcon} className="h-[20px]" alt="Login" />
                 <span>{userAuth.userState ? "Log-Out" : "Login"}</span>
-              </button>
-              <button className="px-4 py-5 rounded-md bg-[#008080] text-white">
-                Transactions
               </button>
             </div>
           </div>

@@ -26,6 +26,7 @@
     "embla-carousel-react": "^8.5.2",
     "formik": "^2.4.6",
     "framer-motion": "^12.4.7",
+    "input-otp": "^1.4.2",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-confetti": "^6.2.3",
