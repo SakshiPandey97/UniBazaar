@@ -19,20 +19,21 @@ jobs:
       with:
         go-version: '1.20'
 
-    - name: Download Go dependencies
+    - name: Initialize Go Modules (if needed)
       run: |
         cd Backend/users
+        go mod init  # This might be redundant, but ensures module is initialized
         go mod tidy
       shell: bash
 
     - name: Build Users Service
       run: |
         cd Backend/users
-        go build -v ./...
+        go build -v .
       shell: bash
 
     - name: Run Tests
       run: |
         cd Backend/users
-        go test -v ./...
+        go test -v .
       shell: bash
