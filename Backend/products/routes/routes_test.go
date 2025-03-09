@@ -8,6 +8,7 @@ import (
 	"web-service/model"
 
 	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -20,13 +21,13 @@ func (m *MockProductRepository) CreateProduct(product model.Product) error {
 	return args.Error(0)
 }
 
-func (m *MockProductRepository) GetAllProducts() ([]model.Product, error) {
-	args := m.Called()
+func (m *MockProductRepository) GetAllProducts(lastID string, limit int) ([]model.Product, error) {
+	args := m.Called(lastID, limit)
 	return args.Get(0).([]model.Product), args.Error(1)
 }
 
-func (m *MockProductRepository) GetProductsByUserID(userID int) ([]model.Product, error) {
-	args := m.Called(userID)
+func (m *MockProductRepository) GetProductsByUserID(userID int, lastID string, limit int) ([]model.Product, error) {
+	args := m.Called(userID, lastID, limit)
 	return args.Get(0).([]model.Product), args.Error(1)
 }
 
@@ -86,18 +87,24 @@ func TestRegisterProductRoutes(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	t.Log("POST /products response: ", rr.Body.String())
 
-	mockProductRepo.On("GetAllProducts").Return([]model.Product{}, nil).Once()
+	mockProductRepo.On("GetAllProducts", "327efad4-4ac0-462e-b1cf-811662821212", 2).Return([]model.Product{
+		{UserID: 1, ProductTitle: "Product 1", ProductID: "product1"},
+		{UserID: 1, ProductTitle: "Product 2", ProductID: "product2"},
+	}, nil).Once()
 
-	req, err = http.NewRequest(http.MethodGet, "/products", nil)
+	mockImageRepo.On("GetPreSignedURLs", mock.AnythingOfType("[]model.Product")).Return([]model.Product{}, nil).Once()
+
+	req, err = http.NewRequest(http.MethodGet, "/products?limit=2&lastID=327efad4-4ac0-462e-b1cf-811662821212", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr = httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	t.Log("GET /products response: ", rr.Body.String())
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
 }
 
 func TestCORSHeaders(t *testing.T) {

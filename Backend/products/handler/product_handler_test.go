@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"web-service/model"
 
@@ -27,13 +28,13 @@ func (m *MockProductRepository) CreateProduct(product model.Product) error {
 	return args.Error(0)
 }
 
-func (m *MockProductRepository) GetAllProducts() ([]model.Product, error) {
-	args := m.Called()
+func (m *MockProductRepository) GetAllProducts(lastID string, limit int) ([]model.Product, error) {
+	args := m.Called(lastID, limit)
 	return args.Get(0).([]model.Product), args.Error(1)
 }
 
-func (m *MockProductRepository) GetProductsByUserID(userID int) ([]model.Product, error) {
-	args := m.Called(userID)
+func (m *MockProductRepository) GetProductsByUserID(userID int, lastID string, limit int) ([]model.Product, error) {
+	args := m.Called(userID, lastID, limit)
 	return args.Get(0).([]model.Product), args.Error(1)
 }
 
@@ -158,14 +159,17 @@ func TestGetAllProductsHandler(t *testing.T) {
 	handler := NewProductHandler(mockProductRepo, mockImageRepo)
 
 	products := []model.Product{
-		{UserID: 1, ProductTitle: "Product 1"},
-		{UserID: 2, ProductTitle: "Product 2"},
+		{UserID: 1, ProductTitle: "Product 1", ProductID: "product1"},
+		{UserID: 2, ProductTitle: "Product 2", ProductID: "product2"},
 	}
 
-	mockProductRepo.On("GetAllProducts").Return(products, nil)
+	lastID := "product1"
+	limit := 5
+
+	mockProductRepo.On("GetAllProducts", lastID, limit).Return(products, nil)
 	mockImageRepo.On("GetPreSignedURLs", mock.Anything).Return(products)
 
-	req, _ := http.NewRequest("GET", "/products", nil)
+	req, _ := http.NewRequest("GET", "/products?lastID="+lastID+"&limit="+strconv.Itoa(limit), nil)
 	rr := httptest.NewRecorder()
 
 	handler.GetAllProductsHandler(rr, req)
@@ -182,22 +186,20 @@ func TestGetAllProductsByUserIDHandler(t *testing.T) {
 
 	userID := 1
 	products := []model.Product{
-		{UserID: userID, ProductTitle: "Product 1"},
-		{UserID: userID, ProductTitle: "Product 2"},
+		{UserID: userID, ProductTitle: "Product 1", ProductID: "product1"},
+		{UserID: userID, ProductTitle: "Product 2", ProductID: "product2"},
 	}
 
-	mockProductRepo.On("GetProductsByUserID", userID).Return(products, nil)
+	lastID := "product1"
+	limit := 5
+
+	mockProductRepo.On("GetAllProducts", lastID, limit).Return(products, nil)
 	mockImageRepo.On("GetPreSignedURLs", mock.Anything).Return(products)
 
-	req, _ := http.NewRequest("GET", "/products/1", nil)
+	req, _ := http.NewRequest("GET", "/products?lastID="+lastID+"&limit="+strconv.Itoa(limit), nil)
 	rr := httptest.NewRecorder()
 
-	vars := map[string]string{
-		"UserId": "1",
-	}
-	req = mux.SetURLVars(req, vars)
-
-	handler.GetAllProductsByUserIDHandler(rr, req)
+	handler.GetAllProductsHandler(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	mockProductRepo.AssertExpectations(t)
