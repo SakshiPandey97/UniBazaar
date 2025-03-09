@@ -1,29 +1,28 @@
 name: Node.js CI
-
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [18.x]
-
     steps:
     - uses: actions/checkout@v4
+    - name: Check directory structure
+      run: |
+        ls -la
+        ls -la FE-UniBazaar || echo "FE-UniBazaar directory not found"
+        find . -name "package-lock.json"
     - uses: actions/setup-node@v4
       with:
         node-version: 18
         cache: 'npm'
-        cache-dependency-path: FE-UniBazaar/package-lock.json  # ✅ Correct path
-
+        cache-dependency-path: ./FE-UniBazaar/package-lock.json
     - run: npm ci
-      working-directory: FE-UniBazaar  # ✅ Set working directory
-
+      working-directory: ./FE-UniBazaar
     - run: npm test
-      working-directory: FE-UniBazaar  # ✅ Set working directory
+      working-directory: ./FE-UniBazaar
