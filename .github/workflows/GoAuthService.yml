@@ -1,10 +1,12 @@
-name: Go Users Service CI
+name: Go CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -19,21 +21,29 @@ jobs:
       with:
         go-version: '1.20'
 
-    - name: Initialize Go Modules (if needed)
+    - name: Initialize Go Modules
       run: |
         cd Backend/users
-        go mod init  # This might be redundant, but ensures module is initialized
+        if [ ! -f go.mod ]; then
+          go mod init github.com/your-repo/backend-users
+        fi
         go mod tidy
+      shell: bash
+
+    - name: Verify Go Modules
+      run: |
+        cd Backend/users
+        ls -la
       shell: bash
 
     - name: Build Users Service
       run: |
         cd Backend/users
-        go build -v .
+        go build -v ./...
       shell: bash
 
     - name: Run Tests
       run: |
         cd Backend/users
-        go test -v .
+        go test -v ./...
       shell: bash
