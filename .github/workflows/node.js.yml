@@ -16,15 +16,15 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
 steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-node@v4
   with:
-    node-version: 20
+    node-version: 18
     cache: 'npm'
-    cache-dependency-path: FE-UniBazaar/package-lock.json
+    cache-dependency-path: subdir/package-lock.json
 - run: npm ci
 - run: npm test
