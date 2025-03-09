@@ -328,17 +328,17 @@ func (app *Application) GetJWTHandler(w http.ResponseWriter, r *http.Request) {
 func (app *Application) Routes() http.Handler {
 
 	router := httprouter.New()
-	router.HandlerFunc("POST", "/signup", app.SignUpHandler)
-	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler)
-	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler)
-	router.HandlerFunc("POST", "/updatePassword", app.UpdatePasswordHandler)
+	router.HandlerFunc("POST", "/signup", app.SignUpHandler) //new
+	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler) //new
+	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler) //new
+	router.HandlerFunc("POST", "/updatePassword", app.UpdatePasswordHandler) //new
 	router.HandlerFunc("POST", "/deleteUser", app.DeleteUserHandler)
 	router.HandlerFunc("POST", "/displayUser", app.DisplayUserHandler)
 	router.HandlerFunc("POST", "/login", app.LoginHandler)
-	router.HandlerFunc("POST", "/updateName", app.UpdateNameHandler)
-	router.HandlerFunc("POST", "/updatePhone", app.UpdatePhoneHandler)
-	router.HandlerFunc(http.MethodPost, "/getjwt", app.GetJWTHandler)
-	router.HandlerFunc(http.MethodGet, "/verifyjwt", app.VerifyJWTHandler)
+	router.HandlerFunc("POST", "/updateName", app.UpdateNameHandler) //new
+	router.HandlerFunc("POST", "/updatePhone", app.UpdatePhoneHandler) //new
+	router.HandlerFunc(http.MethodPost, "/getjwt", app.GetJWTHandler) //new
+	router.HandlerFunc(http.MethodGet, "/verifyjwt", app.VerifyJWTHandler) //new
 
 	return router
 }
