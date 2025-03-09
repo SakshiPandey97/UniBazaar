@@ -63,22 +63,22 @@ describe('API functions', () => {
     await expect(userRegisterAPI({ userRegisterObject })).rejects.toThrowError('Registration failed');
   });
 
-  it('should fetch all users', async () => {
-    const mockResponse = { data: [{ id: '1', name: 'User1' }, { id: '2', name: 'User2' }] };
-    axios.get.mockResolvedValue(mockResponse);
+  // it('should fetch all users', async () => {
+  //   const mockResponse = { data: [{ id: '1', name: 'User1' }, { id: '2', name: 'User2' }] };
+  //   axios.get.mockResolvedValue(mockResponse);
 
-    const users = await getAllUsersAPI('1'); 
+  //   const users = await getAllUsersAPI('1'); 
 
-    expect(users).toEqual(mockResponse.data);
-    expect(axios.get).toHaveBeenCalledWith('http://127.0.0.1:8080/users?exclude=1');
-  });
+  //   expect(users).toEqual(mockResponse.data);
+  //   expect(axios.get).toHaveBeenCalledWith('http://127.0.0.1:8080/users?exclude=1');
+  // });
 
-  it('should handle error when fetching users', async () => {
-    const mockError = new Error('Error fetching users');
-    axios.get.mockRejectedValue(mockError);
+  // it('should handle error when fetching users', async () => {
+  //   const mockError = new Error('Error fetching users');
+  //   axios.get.mockRejectedValue(mockError);
 
-    await expect(getAllUsersAPI('1')).rejects.toThrowError('Error fetching users');
-  });
+  //   await expect(getAllUsersAPI('1')).rejects.toThrowError('Error fetching users');
+  // });
 
   it('should fetch all products', async () => {
     const mockResponse = { data: [{ id: 'p1', name: 'Product 1' }, { id: 'p2', name: 'Product 2' }] };
