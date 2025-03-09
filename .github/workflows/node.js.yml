@@ -2,8 +2,12 @@ name: Node.js CI
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'FE-UniBazaar/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'FE-UniBazaar/**'
 jobs:
   build:
     runs-on: ubuntu-latest
