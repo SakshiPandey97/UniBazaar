@@ -26,7 +26,7 @@ jobs:
       run: go mod tidy
 
     - name: Build Users Service
-      run: go build -v ./...
+      run: go build -v ./  # Change to current working directory, which should be Backend/users
 
     - name: Run Tests
-      run: go test -v ./...
+      run: go test -v ./  # Run tests in the current working directory
