@@ -21,29 +21,20 @@ jobs:
       with:
         go-version: '1.20'
 
-    - name: Initialize Go Modules
+    - name: Verify Go Modules
+      working-directory: Backend/users
       run: |
-        cd Backend/users
         if [ ! -f go.mod ]; then
-          go mod init github.com/your-repo/backend-users
+          echo "Error: go.mod file is missing. Ensure it is committed to the repository."
+          exit 1
         fi
         go mod tidy
-      shell: bash
-
-    - name: Verify Go Modules
-      run: |
-        cd Backend/users
         ls -la
-      shell: bash
 
     - name: Build Users Service
-      run: |
-        cd Backend/users
-        go build -v ./...
-      shell: bash
+      working-directory: Backend/users
+      run: go build -v .
 
     - name: Run Tests
-      run: |
-        cd Backend/users
-        go test -v ./...
-      shell: bash
+      working-directory: Backend/users
+      run: go test -v .
