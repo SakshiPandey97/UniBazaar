@@ -28,11 +28,11 @@ jobs:
     - name: Build Users Service
       run: |
         cd Backend/users
-        go build -v ./
+        go build -v ./...
       shell: bash
 
     - name: Run Tests
       run: |
         cd Backend/users
-        go test -v ./
+        go test -v ./...
       shell: bash
