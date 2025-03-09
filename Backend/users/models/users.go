@@ -263,7 +263,7 @@ func (e UserModel) InitiatePasswordReset(email string) error {
 	return nil
 }
 
-// VerifyResetCodeAndSetNewPassword checks the OTP, sets new password
+
 func (e UserModel) VerifyResetCodeAndSetNewPassword(email, code, newPassword string) error {
 	user, err := e.Read(email)
 	if err != nil {
@@ -297,7 +297,7 @@ func (e UserModel) VerifyResetCodeAndSetNewPassword(email, code, newPassword str
 	return nil
 }
 
-// Reuse your existing sendOTPEmail code
+
 func sendOTPEmail(toEmail, code, subject string) error {
 	from := sgmail.NewEmail("UniBazaar Support", "unibazaar.marketplace@gmail.com")
 	to := sgmail.NewEmail("User", toEmail)
