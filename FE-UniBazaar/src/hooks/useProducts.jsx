@@ -10,11 +10,16 @@ const useProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await getAllProductsAPI(); 
+        const lastId = "";
+        const limit = 10;
+  
+        const data = await getAllProductsAPI(limit, lastId); 
+        
         const mappedProducts = data.map((item) => new Product(item));
         const sortedProducts = mappedProducts.sort(
           (a, b) => new Date(b.productPostDate) - new Date(a.productPostDate)
         );
+        
         setProducts(sortedProducts); 
       } catch (err) {
         setError("Error fetching products");
@@ -23,9 +28,9 @@ const useProducts = () => {
         setLoading(false); 
       }
     };
-
+  
     fetchProducts();
-  },[]);
+  }, []);
 
   return { products, loading, error };  
 };
