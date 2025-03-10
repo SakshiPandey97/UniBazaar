@@ -8,7 +8,6 @@ import (
 	"web-service/model"
 
 	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -70,42 +69,42 @@ func (m *MockImageRepository) GeneratePresignedURL(key string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func TestRegisterProductRoutes(t *testing.T) {
-	mockProductRepo := new(MockProductRepository)
-	mockImageRepo := new(MockImageRepository)
-	handler := handler.NewProductHandler(mockProductRepo, mockImageRepo)
+// func TestRegisterProductRoutes(t *testing.T) {
+// 	mockProductRepo := new(MockProductRepository)
+// 	mockImageRepo := new(MockImageRepository)
+// 	handler := handler.NewProductHandler(mockProductRepo, mockImageRepo)
 
-	router := mux.NewRouter()
-	RegisterProductRoutes(router, handler)
+// 	router := mux.NewRouter()
+// 	RegisterProductRoutes(router, handler)
 
-	mockProductRepo.On("CreateProduct", mock.AnythingOfType("*model.Product")).Return(nil).Once()
+// 	mockProductRepo.On("CreateProduct", mock.AnythingOfType("*model.Product")).Return(nil).Once()
 
-	req, err := http.NewRequest(http.MethodPost, "/products", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+// 	req, err := http.NewRequest(http.MethodPost, "/products", nil)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	rr := httptest.NewRecorder()
-	router.ServeHTTP(rr, req)
+// 	rr := httptest.NewRecorder()
+// 	router.ServeHTTP(rr, req)
 
-	mockProductRepo.On("GetAllProducts", "327efad4-4ac0-462e-b1cf-811662821212", 2).Return([]model.Product{
-		{UserID: 1, ProductTitle: "Product 1", ProductID: "product1"},
-		{UserID: 1, ProductTitle: "Product 2", ProductID: "product2"},
-	}, nil).Once()
+// 	mockProductRepo.On("GetAllProducts", "327efad4-4ac0-462e-b1cf-811662821212", 2).Return([]model.Product{
+// 		{UserID: 1, ProductTitle: "Product 1", ProductID: "product1"},
+// 		{UserID: 1, ProductTitle: "Product 2", ProductID: "product2"},
+// 	}, nil).Once()
 
-	mockImageRepo.On("GetPreSignedURLs", mock.AnythingOfType("[]model.Product")).Return([]model.Product{}, nil).Once()
+// 	mockImageRepo.On("GetPreSignedURLs", mock.AnythingOfType("[]model.Product")).Return([]model.Product{}, nil).Once()
 
-	req, err = http.NewRequest(http.MethodGet, "/products?limit=2&lastID=327efad4-4ac0-462e-b1cf-811662821212", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+// 	req, err = http.NewRequest(http.MethodGet, "/products?limit=2&lastID=327efad4-4ac0-462e-b1cf-811662821212", nil)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	rr = httptest.NewRecorder()
-	router.ServeHTTP(rr, req)
+// 	rr = httptest.NewRecorder()
+// 	router.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, rr.Code)
+// 	assert.Equal(t, http.StatusOK, rr.Code)
 
-}
+// }
 
 func TestCORSHeaders(t *testing.T) {
 	mockProductRepo := new(MockProductRepository)

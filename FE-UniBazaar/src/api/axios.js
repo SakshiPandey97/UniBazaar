@@ -27,9 +27,15 @@ export const userRegisterAPI = ({ userRegisterObject }) => {
       throw error;
     });
 };
-export const getAllProductsAPI = () => {
+
+export const getAllProductsAPI = (limit, lastId) => {
+  const params = {
+    lastId: lastId,
+    limit: limit,
+  };
+
   return axios
-    .get(PRODUCT_BASE_URL + "/products")
+    .get(PRODUCT_BASE_URL + "/products", { params })
     .then((response) => {
       console.error("products:", response);
       return response.data;

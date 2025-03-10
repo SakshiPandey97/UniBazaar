@@ -33,7 +33,7 @@ const Navbar = ({ toggleLoginModal }) => {
                 className="h-[50px] md:h-[60px] w-auto transition hover:opacity-75"
                 alt="Logo"
               /> */}
-              <Logo/>
+              <Logo />
             </Link>
           </div>
 
@@ -42,47 +42,44 @@ const Navbar = ({ toggleLoginModal }) => {
               <li>
                 <Link
                   to="/"
-                  className={`text-[#E5E5E5] ${
-                    isActive("/") ? "text-black font-bold bg-[#FFC67D] " : ""
-                  } hover:bg-[#FFC67D] hover:text-black`}
+                  className={`text-[#E5E5E5] ${isActive("/") ? "text-black font-bold bg-[#FFC67D] " : ""
+                    } hover:bg-[#FFC67D] hover:text-black`}
                 >
                   Home
                 </Link>
               </li>
               <li
-                className={`cursor-pointer text-[#E5E5E5] ${
-                  isActive("/buy") ? "text-black font-bold bg-[#FFC67D]" : ""
-                } hover:bg-[#FFC67D] hover:text-black`}
+                className={`cursor-pointer text-[#E5E5E5] ${isActive("/buy") ? "text-black font-bold bg-[#FFC67D]" : ""
+                  } hover:bg-[#FFC67D] hover:text-black`}
                 onClick={() => handleNavigation("/buy")}
               >
                 Buy
               </li>
               <li
-                className={`cursor-pointer text-[#E5E5E5] ${
-                  isActive("/sell") ? "text-black font-bold bg-[#FFC67D] " : ""
-                } hover:bg-[#FFC67D] hover:text-black`}
+                className={`cursor-pointer text-[#E5E5E5] ${isActive("/sell") ? "text-black font-bold bg-[#FFC67D] " : ""
+                  } hover:bg-[#FFC67D] hover:text-black`}
                 onClick={() => handleNavigation("/sell")}
               >
                 Sell
               </li>
               <li
-                className={`cursor-pointer text-[#E5E5E5] ${
-                  isActive("/product")
+              ><Link
+                to="/products"
+                className={`text-[#E5E5E5] ${isActive("/products")
                     ? "text-black font-bold bg-[#FFC67D]"
                     : ""
-                } hover:bg-[#FFC67D] hover:text-black`}
-                onClick={() => handleNavigation("/product")}
+                  } hover:bg-[#FFC67D] hover:text-black`}
               >
-                Products
+                  Products
+                </Link>
               </li>
               <li>
                 <Link
                   to="/about"
-                  className={`text-[#E5E5E5] ${
-                    isActive("/about")
+                  className={`text-[#E5E5E5] ${isActive("/about")
                       ? "text-black font-bold bg-[#FFC67D]"
                       : ""
-                  } hover:bg-[#FFC67D] hover:text-black`}
+                    } hover:bg-[#FFC67D] hover:text-black`}
                 >
                   About Us
                 </Link>
@@ -131,25 +128,22 @@ const Navbar = ({ toggleLoginModal }) => {
           <div className="absolute z-500 p-4 bg-white w-full px-8 md:hidden shadow-lg">
             <ul>
               <li
-                className={`p-4 hover:bg-gray-100 ${
-                  isActive("/buy") ? "text-teal-600 font-bold" : ""
-                }`}
+                className={`p-4 hover:bg-gray-100 ${isActive("/buy") ? "text-teal-600 font-bold" : ""
+                  }`}
                 onClick={() => handleNavigation("/buy")}
               >
                 Buy
               </li>
               <li
-                className={`p-4 hover:bg-gray-100 ${
-                  isActive("/sell") ? "text-teal-600 font-bold" : ""
-                }`}
+                className={`p-4 hover:bg-gray-100 ${isActive("/sell") ? "text-teal-600 font-bold" : ""
+                  }`}
                 onClick={() => handleNavigation("/sell")}
               >
                 Sell
               </li>
               <li
-                className={`p-4 hover:bg-gray-100 ${
-                  isActive("/product") ? "text-teal-600 font-bold" : ""
-                }`}
+                className={`p-4 hover:bg-gray-100 ${isActive("/product") ? "text-teal-600 font-bold" : ""
+                  }`}
                 onClick={() => handleNavigation("/product")}
               >
                 Products
@@ -157,9 +151,8 @@ const Navbar = ({ toggleLoginModal }) => {
               <li className="p-4 hover:bg-gray-100">
                 <Link
                   to="/about"
-                  className={`${
-                    isActive("/about") ? "text-teal-600 font-bold" : ""
-                  }`}
+                  className={`${isActive("/about") ? "text-teal-600 font-bold" : ""
+                    }`}
                 >
                   About Us
                 </Link>

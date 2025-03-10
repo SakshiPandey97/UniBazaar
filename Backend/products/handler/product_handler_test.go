@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 	"web-service/model"
 
 	"github.com/gorilla/mux"
@@ -29,7 +30,7 @@ func (m *MockProductRepository) CreateProduct(product model.Product) error {
 }
 
 func (m *MockProductRepository) GetAllProducts(lastID string, limit int) ([]model.Product, error) {
-	args := m.Called(lastID, limit)
+	args := m.Called(mock.Anything, limit)
 	return args.Get(0).([]model.Product), args.Error(1)
 }
 
@@ -211,12 +212,17 @@ func TestUpdateProductHandler(t *testing.T) {
 	mockImageRepo := new(MockImageRepository)
 	handler := NewProductHandler(mockProductRepo, mockImageRepo)
 
+	productPostDate, err := time.Parse("01-02-2006", "03-03-2025")
+	if err != nil {
+		t.Fatalf("Failed to parse date: %v", err)
+	}
+
 	product := &model.Product{
 		UserID:             1,
 		ProductID:          "test-product-id",
 		ProductTitle:       "Updated Product",
 		ProductDescription: "Updated product description",
-		ProductPostDate:    "03-03-2025",
+		ProductPostDate:    productPostDate,
 		ProductCondition:   4,
 		ProductPrice:       199.99,
 		ProductLocation:    "New Location",

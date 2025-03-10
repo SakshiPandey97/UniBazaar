@@ -80,6 +80,8 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 // @Tags Products
 // @Accept json
 // @Produce json
+// @Param lastId query string false "ID of the last product to fetch" required=false
+// @Param limit query int false "Number of products to fetch (default is 10)" required=false
 // @Success 200 {array} model.Product "List of all products"
 // @Failure 404 {object} model.ErrorResponse "No products found in the system"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
@@ -119,6 +121,8 @@ func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Param UserId path int true "User ID"
+// @Param lastID query string false "ID of the last product to fetch" required=false
+// @Param limit query int false "Number of products to fetch (default is 10)" required=false
 // @Success 200 {array} model.Product "List of products"
 // @Failure 400 {object} model.ErrorResponse "Invalid user ID"
 // @Failure 404 {object} model.ErrorResponse "No products found for the given user ID"

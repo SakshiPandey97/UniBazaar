@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 	"web-service/model"
 
 	"github.com/google/uuid"
@@ -31,9 +32,18 @@ func ParseFormAndCreateProduct(r *http.Request, userId int) (model.Product, erro
 		ProductID:          r.FormValue("productId"),
 		ProductTitle:       r.FormValue("productTitle"),
 		ProductDescription: r.FormValue("productDescription"),
-		ProductPostDate:    r.FormValue("productPostDate"),
 		ProductLocation:    r.FormValue("productLocation"),
 		ProductImage:       r.FormValue("productImage"),
+	}
+
+	if productPostDate := r.FormValue("productPostDate"); productPostDate != "" {
+		parsedDate, err := time.Parse("01-02-2006", productPostDate)
+		if err != nil {
+			return model.Product{}, fmt.Errorf("invalid product post date format: %v", err)
+		}
+		product.ProductPostDate = parsedDate
+	} else {
+		return model.Product{}, fmt.Errorf("product post date is required")
 	}
 
 	if product.ProductID == "" {
