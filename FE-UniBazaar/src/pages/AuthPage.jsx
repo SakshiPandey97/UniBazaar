@@ -1,73 +1,51 @@
-import { useAuthHandler } from "../hooks/useAuthHandler";
 import React from "react";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
-import UserRegisterForm from "../customComponents/UserRegisterForm";
-import UserLoginForm from "../customComponents/UserLoginForm";
+import { useAuthHandler } from "@/hooks/useAuthHandler";
+import InputOtp from "@/customComponents/InputOtp";
+import UserLoginView from "@/customComponents/UserLoginView";
+import UserRegisterView from "@/customComponents/UserRegisterView";
 
 function AuthPage({ toggleModal }) {
   const { width, height } = useWindowSize();
+
   const {
     isRegistering,
+    showConfetti,
     isSubmitting,
     successMessage,
-    showConfetti,
-    handleSubmit,
+    isVerifyingOTP,
+    registeredEmail,
     toggleAuthMode,
+    handleSubmit,
   } = useAuthHandler({ toggleModal });
 
   return (
     <>
       {showConfetti && <Confetti width={width} height={height} />}
+
       <div className="w-full h-full flex justify-center items-center relative">
-        <div
-          data-testid="loginForm"
-          className={`flex flex-col 
-            w-full sm:w-[400px] md:w-[500px] lg:w-[550px] xl:w-[600px] 
-            ${isRegistering ? "h-[600px]" : "h-[500px]"} 
-            loginDiv justify-center p-6 bg-white rounded-lg shadow-lg`}          
-        >
-          <h1 className="ml-[50px] font-mono text-5xl font-bold text-[#032B54]">
-            {isRegistering ? "Sign Up" : "Login"}
-          </h1>
-          <p className="ml-[50px] mt-[40px] font-mono text-gray-500">
-            {isRegistering ? "Create your account" : "Welcome Back!!"}
-          </p>
-
-          {/* Success Message */}
-          {successMessage && (
-            <p className="text-[#F58B00] font-mono text-center mt-2 animate-fadeIn">
-              {successMessage}
-            </p>
-          )}
-
-          <div className="flex justify-center mt-[10px]">
-            {isRegistering ? (
-              <UserRegisterForm
-                handleSubmit={handleSubmit}
-                isSubmitting={isSubmitting}
-              />
-            ) : (
-              <UserLoginForm
-                handleSubmit={handleSubmit}
-                isSubmitting={isSubmitting}
-              />
-            )}
-          </div>
-
-          <p className="font-mono flex flex-row justify-center mt-2">
-            {isRegistering
-              ? "Already have an account?"
-              : "I don’t have an account?"}
-            <span
-              data_testid="toggleLoginRegister"
-              className="font-bold text-[#032B54] cursor-pointer ml-1 hover:underline"
-              onClick={toggleAuthMode}
-            >
-              {isRegistering ? "Login" : "Sign-Up"}
-            </span>
-          </p>
-        </div>
+        {isVerifyingOTP ? (
+          <InputOtp email={registeredEmail} />
+        ) : isRegistering ? (
+          <UserRegisterView
+            authHandlers={{
+              isSubmitting,
+              successMessage,
+              toggleAuthMode,
+              handleSubmit,
+            }}
+          />
+        ) : (
+          <UserLoginView
+            authHandlers={{
+              isSubmitting,
+              successMessage,
+              toggleAuthMode,
+              handleSubmit,
+            }}
+          />
+        )}
       </div>
     </>
   );

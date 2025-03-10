@@ -27,6 +27,19 @@ export const userRegisterAPI = ({ userRegisterObject }) => {
       throw error;
     });
 };
+
+export const userVerificationAPI = ({ userVerificationObject }) => {
+  return axios
+    .post(USER_BASE_URL + "/verifyEmail", userVerificationObject)
+    .then((response) => {
+      return response.data.userId;
+    })
+    .catch((error) => {
+      console.error("Error Verifying user in:", error);
+      throw error;
+    });
+};
+
 export const getAllProductsAPI = () => {
   return axios
     .get(PRODUCT_BASE_URL + "/products")
