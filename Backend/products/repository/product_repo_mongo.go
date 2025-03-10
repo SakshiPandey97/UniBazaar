@@ -49,24 +49,18 @@ func (repo *MongoProductRepository) CreateProduct(product model.Product) error {
 	return nil
 }
 
-func (repo *MongoProductRepository) GetAllProducts(lastID string, limit int) ([]model.Product, error) {
-	log.Printf("Fetching products after ID: %s, Limit: %d", lastID, limit)
+func (repo *MongoProductRepository) getProducts(filter bson.M, limit int) ([]model.Product, error) {
+	log.Printf("Fetching products with filter: %v, Limit: %d", filter, limit)
 
 	ctx, cancel := repo.getContextWithTimeout()
 	defer cancel()
-
-	var filter bson.M = bson.M{}
-
-	if lastID != "" {
-		log.Printf("Using lastID for filtering: %s", lastID)
-		filter = bson.M{"ProductId": bson.M{"$gt": lastID}}
-	}
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "ProductId", Value: 1}}}},
 		{{Key: "$limit", Value: int64(limit)}},
 	}
+
 	cursor, err := repo.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, repo.handleRepoError(err, "Error fetching products using aggregation")
@@ -78,17 +72,34 @@ func (repo *MongoProductRepository) GetAllProducts(lastID string, limit int) ([]
 		return nil, repo.handleRepoError(err, "Error decoding products")
 	}
 
+	if len(products) == 0 {
+		return nil, repo.handleRepoError(errors.New("no products found"), fmt.Sprintf("Error fetching products"))
+	}
+
+	return products, nil
+}
+
+func (repo *MongoProductRepository) GetAllProducts(lastID string, limit int) ([]model.Product, error) {
+	log.Printf("Fetching products after ID: %s, Limit: %d", lastID, limit)
+
+	filter := bson.M{}
+	if lastID != "" {
+		log.Printf("Using lastID for filtering: %s", lastID)
+		filter = bson.M{"ProductId": bson.M{"$gt": lastID}}
+	}
+
+	products, err := repo.getProducts(filter, limit)
+	if err != nil {
+		return nil, err
+	}
+
 	return products, nil
 }
 
 func (repo *MongoProductRepository) GetProductsByUserID(userID int, lastID string, limit int) ([]model.Product, error) {
 	log.Printf("Fetching products for user ID: %d after ID: %s, Limit: %d", userID, lastID, limit)
 
-	ctx, cancel := repo.getContextWithTimeout()
-	defer cancel()
-
 	filter := bson.M{"UserId": userID}
-
 	if lastID != "" {
 		log.Printf("Using lastID for filtering: %s", lastID)
 		filter = bson.M{
@@ -99,25 +110,9 @@ func (repo *MongoProductRepository) GetProductsByUserID(userID int, lastID strin
 		}
 	}
 
-	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: filter}},
-		{{Key: "$sort", Value: bson.D{{Key: "ProductId", Value: 1}}}},
-		{{Key: "$limit", Value: int64(limit)}},
-	}
-
-	cursor, err := repo.collection.Aggregate(ctx, pipeline)
+	products, err := repo.getProducts(filter, limit)
 	if err != nil {
-		return nil, repo.handleRepoError(err, "Error fetching user products using aggregation")
-	}
-	defer cursor.Close(ctx)
-
-	var products []model.Product
-	if err := cursor.All(ctx, &products); err != nil {
-		return nil, repo.handleRepoError(err, "Error decoding user products")
-	}
-
-	if len(products) == 0 {
-		return nil, repo.handleRepoError(errors.New("no products found"), fmt.Sprintf("No products found for user ID: %d", userID))
+		return nil, err
 	}
 
 	return products, nil

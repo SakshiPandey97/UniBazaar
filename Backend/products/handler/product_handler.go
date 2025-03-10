@@ -3,10 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
 
 	"web-service/helper"
@@ -92,21 +90,11 @@ func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Re
 	lastID := r.URL.Query().Get("lastId")
 	limitStr := r.URL.Query().Get("limit")
 
-	limit := 10
-	if limitStr != "" {
-		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-			limit = parsedLimit
-		}
-	}
+	limit := helper.ParseLimit(limitStr)
 
 	products, err := h.ProductRepo.GetAllProducts(lastID, limit)
 	if err != nil {
 		handleErrorResponse(w, "Error fetching products", err, http.StatusInternalServerError)
-		return
-	}
-
-	if len(products) == 0 {
-		handleErrorResponse(w, "No products found in the system", fmt.Errorf("no products found"), http.StatusNotFound)
 		return
 	}
 
@@ -135,15 +123,10 @@ func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	lastID := r.URL.Query().Get("lastID")
+	lastID := r.URL.Query().Get("lastId")
 	limitStr := r.URL.Query().Get("limit")
 
-	limit := 10
-	if limitStr != "" {
-		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-			limit = parsedLimit
-		}
-	}
+	limit := helper.ParseLimit(limitStr)
 
 	log.Printf("Received request to fetch all products for user ID: %d with lastID: %s and limit: %d\n", userID, lastID, limit)
 

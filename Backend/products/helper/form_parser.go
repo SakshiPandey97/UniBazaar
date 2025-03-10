@@ -20,6 +20,15 @@ func GetUserID(userId string) (int, error) {
 	return userID, nil
 }
 
+func ParseLimit(limitStr string) int {
+	if limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+			return parsedLimit
+		}
+	}
+	return 10
+}
+
 func ParseFormAndCreateProduct(r *http.Request, userId int) (model.Product, error) {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
