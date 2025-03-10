@@ -28,12 +28,23 @@ export const userRegisterAPI = ({ userRegisterObject }) => {
     });
 };
 
+export const userVerificationAPI = ({ userVerificationObject }) => {
+  return axios
+    .post(USER_BASE_URL + "/verifyEmail", userVerificationObject)
+    .then((response) => {
+      return response.data.userId;
+    })
+    .catch((error) => {
+      console.error("Error Verifying user in:", error);
+      throw error;
+    });
+};
+
 export const getAllProductsAPI = (limit, lastId) => {
   const params = {
     lastId: lastId,
     limit: limit,
   };
-
   return axios
     .get(PRODUCT_BASE_URL + "/products", { params })
     .then((response) => {

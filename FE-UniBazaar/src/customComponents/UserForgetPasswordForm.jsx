@@ -6,8 +6,8 @@ import { validationSchema } from "@/utils/validSchema";
 
 const initialValues = { email: "", password: "" };
 
-function UserLoginForm({ handleLoginFormSubmission }) {
-  const {handleSubmit, isSubmitting} = handleLoginFormSubmission;
+function UserForgetPasswordForm({ handleResetFormSubmission }) {
+  const {handleSubmit, isSubmitting} = handleResetFormSubmission;
   const [password, setPassword] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
@@ -20,17 +20,15 @@ function UserLoginForm({ handleLoginFormSubmission }) {
       {({ isSubmitting, handleChange }) => (
         <Form className="w-full">
           <InputField
-            data_testid="loginEmail"
             label="Email"
             name="email"
             type="email"
             isSubmitting={isSubmitting}
             onChange={handleChange}
           />
-
+          <div className="flex flex-col">
           <InputField
-            data_testid="loginPassowrd"
-            label="Password"
+            label="New Password"
             name="password"
             type="password"
             isSubmitting={isSubmitting}
@@ -40,18 +38,17 @@ function UserLoginForm({ handleLoginFormSubmission }) {
               setPassword(e.target.value);
               handleChange(e);
             }}
-            isPassword={true}
           />
+          </div>
           {isFocused && <PasswordReqBox password={password} />}
 
           <div className="flex justify-center">
             <button
-              data_testid="submitLoginBtn"
               type="submit"
               disabled={isSubmitting}
               className="w-1/3 hover:border-[#F58B00] border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-balck font-bold py-2 px-4 rounded-md transition disabled:bg-gray-400"
             >
-              {isSubmitting ? "Submitting..." : "Login"}
+              {isSubmitting ? "Submitting..." : "Reset"}
             </button>
           </div>
         </Form>
@@ -60,4 +57,4 @@ function UserLoginForm({ handleLoginFormSubmission }) {
   );
 }
 
-export default UserLoginForm;
+export default UserForgetPasswordForm;

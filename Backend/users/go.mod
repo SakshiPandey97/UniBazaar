@@ -1,6 +1,6 @@
 module users
 
-go 1.23.5
+go 1.23
 
 require (
 	github.com/alexedwards/argon2id v1.0.0

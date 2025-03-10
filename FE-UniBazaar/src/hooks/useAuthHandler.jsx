@@ -1,13 +1,24 @@
+import { userLoginAPI, userRegisterAPI } from "@/api/axios";
+import { useUserAuth } from "@/hooks/useUserAuth";
 import { useState } from "react";
-import { userLoginAPI, userRegisterAPI } from "../api/axios";
-import { useUserAuth } from "./useUserAuth";
 
 export function useAuthHandler({ toggleModal }) {
   const useAuth = useUserAuth();
-  const [isRegistering, setIsRegistering] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
+
+  const handleRegisterSuccess = (email) => {
+    setRegisteredEmail(email);
+    setIsVerifyingOTP(true);
+  };
+
+  const toggleAuthMode = () => {
+    setIsRegistering((prev) => !prev);
+  };
 
   const handleSubmit = (values, { setSubmitting }) => {
     setSubmitting(true);
@@ -26,14 +37,14 @@ export function useAuthHandler({ toggleModal }) {
         );
 
         if (isRegistering) {
-          setSuccessMessage("Registration successful! Redirecting to login...");
+          setSuccessMessage(
+            "Registration successful! Redirecting to Email Verification..."
+          );
           setShowConfetti(true);
+          handleRegisterSuccess(values.email);
           setTimeout(() => {
             setShowConfetti(false);
-            setIsRegistering(false);
-            setSuccessMessage("");
-            setIsSubmitting(false);
-          }, 4000); // Confetti disappears after 4 seconds
+          }, 4000);
         } else {
           setSuccessMessage("Login successful! Redirecting to Home...");
           setTimeout(() => {
@@ -48,23 +59,20 @@ export function useAuthHandler({ toggleModal }) {
           `${isRegistering ? "Registration" : "Login"} failed:`,
           err
         );
-        setTimeout(() => {
-          setSuccessMessage(err)
-          setSuccessMessage("");
-        }, 3000);
+        setSuccessMessage(err);
+        setTimeout(() => setSuccessMessage(""), 3000);
         setSubmitting(false);
         setIsSubmitting(false);
       });
   };
 
-  const toggleAuthMode = () => setIsRegistering((prev) => !prev);
-
   return {
     isRegistering,
+    showConfetti,
     isSubmitting,
     successMessage,
-    showConfetti,
-    handleSubmit,
+    isVerifyingOTP,
     toggleAuthMode,
+    handleSubmit,
   };
 }

@@ -10,7 +10,6 @@ function InputField({
   onFocus,
   onBlur,
   onChange,
-  isPassword = false,
   additionalProps = {},
 }) {
   return (
@@ -19,7 +18,6 @@ function InputField({
         <label htmlFor={name} className="text-sm font-medium text-gray-700">
           {label}
         </label>
-        {isPassword && <span className="text-sm font-medium text-gray-500 cursor-pointer">Forgot password?</span>}
       </div>
       <div className="flex justify-center">
         <Field
