@@ -1,22 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import useAllProducts from "../hooks/useAllProducts";
-import Product from "../modal/product";
-import useModal from "../hooks/useModal";
-import Modal from "@/customComponents/Modal";
-import ProductDetailCard from "@/customComponents/ProductDetailCard";
+import ProductCard from "@/customComponents/ProductCard";
 
 function ProductsPage() {
   const [lastId, setLastId] = useState("");
-  const [selectedProductId, setSelectedProductId] = useState(null);
   const limit = 12;
 
-  const { products, loading, error, hasMoreProducts } = useAllProducts(limit, lastId);
-
+  const { products, loading, error, hasMoreProducts } = useAllProducts(
+    limit,
+    lastId
+  );
   const loadMoreButtonRef = useRef(null);
   const loadMoreButtonPositionRef = useRef(0);
-
-  const { isModalOpen, toggleModal } = useModal();
-
   const loadMoreProducts = () => {
     if (products.length > 0) {
       setLastId(products[products.length - 1].productId);
@@ -36,16 +31,6 @@ function ProductsPage() {
       });
     }
   }, [products]);
-
-  const openModal = (product) => {
-    setSelectedProductId(product.productId);
-    toggleModal();
-  };
-
-  const closeModal = () => {
-    toggleModal();
-    setSelectedProductId(null);
-  };
 
   if (loading) {
     return (
@@ -74,18 +59,14 @@ function ProductsPage() {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-3xl font-semibold mb-6">Products</h2>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
-          <ProductDetailCard
+          <ProductCard
             key={product.productId}
             product={product}
-            isSelected={selectedProductId === product.productId}
-            onClick={() => openModal(product)}
           />
         ))}
       </div>
-
       <div className="flex justify-center mt-8">
         {!hasMoreProducts ? (
           <div className="text-lg text-gray-500">No more products</div>
@@ -100,11 +81,6 @@ function ProductsPage() {
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} toggleModal={closeModal}>
-        {selectedProductId && (
-          <ProductDetailCard product={products.find(p => p.productId === selectedProductId)} onClick={closeModal} />
-        )}
-      </Modal>
     </div>
   );
 }

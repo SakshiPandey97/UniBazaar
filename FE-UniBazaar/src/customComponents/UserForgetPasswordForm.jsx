@@ -28,12 +28,6 @@ function UserForgetPasswordForm({ handleResetFormSubmission }) {
               type="password"
               placeholder="Email"
               isSubmitting={isSubmitting}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                handleChange(e);
-              }}
             />
           </div>
 
