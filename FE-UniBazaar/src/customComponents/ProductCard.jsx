@@ -1,36 +1,56 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { generateStars } from "@/utils/generateStar";
 
 const ProductCard = ({ title, price, condition, image, description }) => {
-  console.log(title, price, condition, image, description);
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className="flex flex-col w-full h-85 max-w-sm border border-black rounded-lg shadow-sm bg-[#032B54]">
-      <div className="flex flex-col h-1/2 overflow-hidden">
+    <div
+      className="relative flex flex-col w-full max-w-sm border border-gray-300 rounded-xl shadow-lg overflow-hidden bg-gray-900 transition-transform transform hover:scale-105 hover:shadow-2xl"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image Section with Title Overlay */}
+      <div className="relative h-64 w-full overflow-hidden">
         <img
-          className="rounded-t-lg w-full h-full object-cover"
+          className="w-full h-full object-cover transition-all duration-500"
           src={image}
           alt={title}
         />
+        <div
+          className={`absolute bottom-0 left-0 w-full bg-gradient-to-t from-black to-transparent p-4 text-white transition-opacity ${
+            isHovered ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <h5 className="text-lg font-semibold tracking-tight">{title}</h5>
+        </div>
       </div>
-      <div className="flex flex-col h-1/2">
-        <div className="px-5 pb-5">
-          <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
-            {title}
-          </h5>
-          <div className="flex items-center mt-2.5 mb-5">
-            <div className="flex items-center space-x-1 rtl:space-x-reverse">
-              {generateStars(condition)}
-            </div>
-            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-sm dark:bg-blue-200 dark:text-blue-800 ms-3">
+
+      {/* Hover View - Detailed Information */}
+      <div
+        className={`absolute top-0 left-0 w-full h-full bg-black/40 backdrop-blur-md text-white p-5 flex flex-col justify-between opacity-0 transition-opacity duration-500 ${
+          isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div>
+          <h5 className="text-xl font-semibold">{title}</h5>
+          <p className="text-gray-400 text-sm mt-2">{description}</p>
+        </div>
+
+        <div>
+          {/* Rating */}
+          <div className="flex items-center">
+            <div className="flex space-x-1">{generateStars(condition)}</div>
+            <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-md">
               5.0
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-3xl font-bold text-white ">
-              ${price}
-            </span>
-            <Button className="hover:border-[#F58B00] border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-balck font-bold py-2 px-4">
+
+          {/* Price & Button */}
+          <div className="flex items-center justify-between mt-4">
+            <span className="text-2xl font-bold text-[#F58B00]">${price}</span>
+            <Button className="bg-[#F58B00] hover:bg-[#FFC67D] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all hover:shadow-lg hover:text-black">
               Read More
             </Button>
           </div>
