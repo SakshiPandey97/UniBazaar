@@ -4,7 +4,7 @@ import { validationSchema } from "@/utils/validSchema";
 import InputField from "./InputField";
 
 function UserRegisterForm({ handleRegisterFormSubmission }) {
-  const {handleSubmit, isSubmitting} = handleRegisterFormSubmission;
+  const { handleSubmit, isSubmitting } = handleRegisterFormSubmission;
   const initialValues = { name: "", email: "", password: "", phone: "" };
 
   return (
@@ -17,7 +17,7 @@ function UserRegisterForm({ handleRegisterFormSubmission }) {
         <Form className="w-full">
           <InputField
             data_testid="registerName"
-            label="Name"
+            placeholder="Name"
             name="name"
             type="text"
             isSubmitting={isSubmitting}
@@ -26,7 +26,7 @@ function UserRegisterForm({ handleRegisterFormSubmission }) {
 
           <InputField
             data_testid="registerEmail"
-            label="Email"
+            placeholder="Email"
             name="email"
             type="email"
             isSubmitting={isSubmitting}
@@ -35,7 +35,7 @@ function UserRegisterForm({ handleRegisterFormSubmission }) {
 
           <InputField
             data_testid="registerPassword"
-            label="Password"
+            placeholder="Password"
             name="password"
             type="password"
             isSubmitting={isSubmitting}
@@ -43,7 +43,7 @@ function UserRegisterForm({ handleRegisterFormSubmission }) {
           />
           <InputField
             data-testid="registerNumber"
-            label="Phone Number"
+            placeholder="Phone Number"
             name="phone"
             type="text"
             isSubmitting={isSubmitting}

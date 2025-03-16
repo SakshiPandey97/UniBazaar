@@ -1,15 +1,12 @@
 import React, { useState } from "react";
 import { Formik, Form } from "formik";
-import PasswordReqBox from "./PasswordReqBox";
 import InputField from "./InputField";
 import { validationSchema } from "@/utils/validSchema";
 
 const initialValues = { email: "", password: "" };
 
 function UserLoginForm({ handleLoginFormSubmission }) {
-  const {handleSubmit, isSubmitting} = handleLoginFormSubmission;
-  const [password, setPassword] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
+  const { handleSubmit, isSubmitting } = handleLoginFormSubmission;
 
   return (
     <Formik
@@ -21,18 +18,18 @@ function UserLoginForm({ handleLoginFormSubmission }) {
         <Form className="w-full">
           <InputField
             data_testid="loginEmail"
-            label="Email"
             name="email"
             type="email"
+            placeholder="Email"
             isSubmitting={isSubmitting}
             onChange={handleChange}
           />
 
           <InputField
             data_testid="loginPassowrd"
-            label="Password"
             name="password"
             type="password"
+            placeholder="Password"
             isSubmitting={isSubmitting}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
@@ -42,7 +39,6 @@ function UserLoginForm({ handleLoginFormSubmission }) {
             }}
             isPassword={true}
           />
-          {isFocused && <PasswordReqBox password={password} />}
 
           <div className="flex justify-center">
             <button

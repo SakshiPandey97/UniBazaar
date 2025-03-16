@@ -7,6 +7,7 @@ function InputField({
   name,
   type,
   isSubmitting,
+  placeholder,
   onFocus,
   onBlur,
   onChange,
@@ -14,14 +15,10 @@ function InputField({
 }) {
   return (
     <div className="flex flex-col mb-4 relative">
-      <div className="flex justify-between px-[50px]">
-        <label htmlFor={name} className="text-sm font-medium text-gray-700">
-          {label}
-        </label>
-      </div>
       <div className="flex justify-center">
         <Field
           data_testid={data_testid}
+          placeholder={placeholder}
           type={type}
           id={name}
           name={name}
