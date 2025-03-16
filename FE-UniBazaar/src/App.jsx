@@ -1,9 +1,6 @@
-import React, { lazy, Suspense } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
 } from "react-router-dom";
 import Navbar from "./customComponents/Navbar";
 import { AuthProvider } from "./hooks/useUserAuth";

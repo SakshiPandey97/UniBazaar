@@ -133,3 +133,26 @@ func TestParseNumericalFormValues_InvalidData(t *testing.T) {
 		})
 	}
 }
+
+func TestParseLimit(t *testing.T) {
+	tests := []struct {
+		name     string
+		limitStr string
+		expected int
+	}{
+		{"Valid limit", "20", 20},
+		{"Empty limit", "", 10},
+		{"Invalid limit (non-numeric)", "abc", 10},
+		{"Negative limit", "-5", 10},
+		{"Zero limit", "0", 10},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ParseLimit(tt.limitStr)
+			if result != tt.expected {
+				t.Errorf("For input '%s', expected %d, but got %d", tt.limitStr, tt.expected, result)
+			}
+		})
+	}
+}

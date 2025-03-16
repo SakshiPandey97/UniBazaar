@@ -3,14 +3,10 @@ import { Field, ErrorMessage } from "formik";
 
 function InputField({
   data_testid,
-  label,
   name,
   type,
   isSubmitting,
   placeholder,
-  onFocus,
-  onBlur,
-  onChange,
   additionalProps = {},
 }) {
   return (
@@ -24,9 +20,6 @@ function InputField({
           name={name}
           disabled={isSubmitting}
           className="mt-1 p-2 w-4/5 border rounded-md focus:outline-none focus:ring focus:ring-[#6D9886] disabled:bg-gray-200 bg-white"
-          onFocus={onFocus}
-          onBlur={onBlur}
-          onChange={onChange}
           {...additionalProps}
         />
       </div>

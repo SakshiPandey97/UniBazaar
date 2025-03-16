@@ -15,8 +15,7 @@ const useNavbar = ({ toggleLoginModal }) => {
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   const handleNavigation = (path) => {
-    //userAuth.userState ? 
-    navigate(path) //: toggleLoginModal();
+    userAuth.userState ? navigate(path) : toggleLoginModal();
   };
 
   const handleAuthAction = () => {
