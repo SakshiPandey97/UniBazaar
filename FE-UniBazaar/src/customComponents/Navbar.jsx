@@ -1,11 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import useNavbar from "../hooks/useNavBar";
-import logo from "../assets/imgs/logo.svg";
 import loginIcon from "../assets/imgs/login.svg";
 import menuToggleIcon from "../assets/imgs/menu-toggle.svg";
 import closeIcon from "../assets/imgs/close.svg";
-import useLoginModal from "@/hooks/useModal";
 import Logo from "./Logo";
 
 const Navbar = ({ toggleLoginModal }) => {
@@ -24,152 +22,135 @@ const Navbar = ({ toggleLoginModal }) => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full h-[80px] bg-[#032B54] border-b py-2 z-50 shadow-lg">
-        <div className="flex flex-row justify-between md:max-w-[1480px] max-w-[600px] mx-auto items-center">
-          <div className="flex w-1/10">
-            <Link to="/" className="relative inline-block">
-              {/* <img
-                src={logo}
-                className="h-[50px] md:h-[60px] w-auto transition hover:opacity-75"
-                alt="Logo"
-              /> */}
-              <Logo />
-            </Link>
-          </div>
-
-          <div className="flex w-7/10 justify-evenly">
-            <ul className="hidden md:flex font-[serif] text-[32px] font-medium gap-6">
-              <li>
-                <Link
-                  to="/"
-                  className={`text-[#E5E5E5] ${isActive("/") ? "text-black font-bold bg-[#FFC67D] " : ""
-                    } hover:bg-[#FFC67D] hover:text-black`}
-                >
-                  Home
-                </Link>
-              </li>
-              <li
-                className={`cursor-pointer text-[#E5E5E5] ${isActive("/buy") ? "text-black font-bold bg-[#FFC67D]" : ""
-                  } hover:bg-[#FFC67D] hover:text-black`}
-                onClick={() => handleNavigation("/buy")}
-              >
-                Buy
-              </li>
-              <li
-                className={`cursor-pointer text-[#E5E5E5] ${isActive("/sell") ? "text-black font-bold bg-[#FFC67D] " : ""
-                  } hover:bg-[#FFC67D] hover:text-black`}
-                onClick={() => handleNavigation("/sell")}
-              >
-                Sell
-              </li>
-              <li
-              ><Link
-                to="/products"
-                className={`text-[#E5E5E5] ${isActive("/products")
-                    ? "text-black font-bold bg-[#FFC67D]"
-                    : ""
-                  } hover:bg-[#FFC67D] hover:text-black`}
-              >
-                  Products
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/about"
-                  className={`text-[#E5E5E5] ${isActive("/about")
-                      ? "text-black font-bold bg-[#FFC67D]"
-                      : ""
-                    } hover:bg-[#FFC67D] hover:text-black`}
-                >
-                  About Us
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="flex flex-row hidden md:flex items-center gap-4 relative">
-            <button
-              data_testid="loginBtn"
-              className="flex flex-row items-center gap-2 px-4 py-3 rounded-md bg-[#E5E5E5] hover:bg-[#D6D2D2] transition duration-200 text-white text-[24px] font-medium relative"
-              onClick={userAuth.userState ? toggleDropdown : toggleLoginModal}
-            >
-              <img src={loginIcon} className="h-[24px]" alt="Login" />
-              <span className="text-black">
-                {userAuth.userState ? "Profile" : "Login"}
-              </span>
-            </button>
-
-            {userAuth.userState && isDropdownOpen && (
-              <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-md shadow-lg border border-gray-300 z-50">
-                <ul className="py-2">
-                  <li
-                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                    onClick={toggleLoginModal}
-                  >
-                    View My Profile
-                  </li>
-                  <li
-                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-red-500"
-                    onClick={handleAuthAction}
-                  >
-                    Log Out
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <button className="md:hidden" onClick={toggleMenu}>
-            <img src={isMenuOpen ? closeIcon : menuToggleIcon} alt="Menu" />
-          </button>
+      <nav className="fixed top-0 left-0 w-full h-[80px] bg-gradient-to-r from-[#002855] via-[#014F86] to-[#032B54] border-b py-2 z-50 shadow-md md:px-8 px-4 flex justify-between items-center">
+        <div className="flex items-center">
+          <Link to="/" className="relative inline-block">
+            <Logo />
+          </Link>
         </div>
 
-        {isMenuOpen && (
-          <div className="absolute z-500 p-4 bg-white w-full px-8 md:hidden shadow-lg">
-            <ul>
-              <li
-                className={`p-4 hover:bg-gray-100 ${isActive("/buy") ? "text-teal-600 font-bold" : ""
-                  }`}
-                onClick={() => handleNavigation("/buy")}
-              >
-                Buy
-              </li>
-              <li
-                className={`p-4 hover:bg-gray-100 ${isActive("/sell") ? "text-teal-600 font-bold" : ""
-                  }`}
-                onClick={() => handleNavigation("/sell")}
-              >
-                Sell
-              </li>
-              <li
-                className={`p-4 hover:bg-gray-100 ${isActive("/product") ? "text-teal-600 font-bold" : ""
-                  }`}
-                onClick={() => handleNavigation("/product")}
-              >
-                Products
-              </li>
-              <li className="p-4 hover:bg-gray-100">
-                <Link
-                  to="/about"
-                  className={`${isActive("/about") ? "text-teal-600 font-bold" : ""
-                    }`}
-                >
-                  About Us
-                </Link>
-              </li>
-            </ul>
-            <div className="flex flex-col my-4 gap-4">
+        <div className="hidden md:flex gap-8 text-lg font-semibold">
+          {[
+            { path: "/", label: "Home" },
+            {
+              path: "#",
+              label: "Buy",
+              onClick: () => handleNavigation("/buy"),
+            },
+            {
+              path: "#",
+              label: "Sell",
+              onClick: () => handleNavigation("/sell"),
+            },
+            { path: "/product", label: "Products" },
+            { path: "/about", label: "About Us" },
+          ].map(({ path, label, onClick }) =>
+            onClick ? (
               <button
-                className="border border-[#008080] flex items-center justify-center bg-transparent px-6 gap-2 py-3"
-                onClick={handleAuthAction}
+                key={label}
+                onClick={onClick}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black`}
               >
-                <img src={loginIcon} className="h-[20px]" alt="Login" />
-                <span>{userAuth.userState ? "Log-Out" : "Login"}</span>
+                {label}
               </button>
+            ) : (
+              <Link
+                key={path}
+                to={path}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  isActive(path)
+                    ? "bg-[#FFC67D] text-black font-bold"
+                    : "text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black"
+                }`}
+              >
+                {label}
+              </Link>
+            )
+          )}
+        </div>
+
+        <div className="hidden md:flex items-center gap-4 relative">
+          <button
+            data_testid="loginBtn"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#E5E5E5] hover:bg-[#D6D2D2] transition duration-200 text-black font-medium"
+            onClick={userAuth.userState ? toggleDropdown : toggleLoginModal}
+          >
+            <img src={loginIcon} className="h-[24px]" alt="Login" />
+            {userAuth.userState ? "Profile" : "Login"}
+          </button>
+
+          {userAuth.userState && isDropdownOpen && (
+            <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-300 z-50">
+              <ul className="py-2">
+                <li
+                  className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                  onClick={toggleLoginModal}
+                >
+                  View My Profile
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-red-500"
+                  onClick={handleAuthAction}
+                >
+                  Log Out
+                </li>
+              </ul>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        <button className="md:hidden" onClick={toggleMenu}>
+          <img
+            src={isMenuOpen ? closeIcon : menuToggleIcon}
+            alt="Menu"
+            className="h-8 w-8"
+          />
+        </button>
       </nav>
+
+      {isMenuOpen && (
+        <div className="absolute top-[80px] left-0 w-full bg-white px-6 py-4 md:hidden shadow-lg z-50">
+          <ul className="space-y-4">
+            {[
+              {
+                path: "#",
+                label: "Buy",
+                onClick: () => handleNavigation("/buy"),
+              },
+              {
+                path: "#",
+                label: "Sell",
+                onClick: () => handleNavigation("/sell"),
+              },
+
+              { path: "/product", label: "Products" },
+              { path: "/about", label: "About Us" },
+            ].map(({ path, label }) => (
+              <li
+                key={path}
+                className={`p-4 rounded-lg transition ${
+                  isActive(path)
+                    ? "bg-[#FFC67D] text-black font-bold"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => handleNavigation(path)}
+              >
+                {label}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-4 flex flex-col gap-4">
+            <button
+              className="border border-[#008080] flex items-center justify-center bg-transparent px-6 gap-2 py-3 rounded-lg"
+              onClick={handleAuthAction}
+            >
+              <img src={loginIcon} className="h-[20px]" alt="Login" />
+              {userAuth.userState ? "Log-Out" : "Login"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Spacer to prevent content from being hidden behind fixed navbar */}
       <div className="pt-[80px]"></div>
