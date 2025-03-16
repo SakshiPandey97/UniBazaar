@@ -68,14 +68,22 @@ func (ws *WebSocketManager) Run() {
 			}
 
 			ws.mu.RLock()
-			receiverClient, exists := ws.Clients[msg.ReceiverID]
+			receiverClient, receiverExists := ws.Clients[msg.ReceiverID]
+			senderClient, senderExists := ws.Clients[msg.SenderID]
 			ws.mu.RUnlock()
 
-			if exists {
+			if receiverExists {
 				select {
 				case receiverClient.SendChan <- msg:
 				default:
 					ws.Unregister <- receiverClient
+				}
+			}
+			if senderExists {
+				select {
+				case senderClient.SendChan <- msg:
+				default:
+					ws.Unregister <- senderClient
 				}
 			}
 		}
@@ -144,9 +152,10 @@ func (c *Client) WritePump() {
 }
 
 func (ws *WebSocketManager) SendOfflineMessages(userID uint) {
-	chatHistory, err := ws.Repo.GetConversation(userID)
+	// Get unread messages for the user.
+	unreadMessages, err := ws.Repo.GetUnreadMessages(userID)
 	if err != nil {
-		log.Println("Error fetching chat history:", err)
+		log.Println("Error fetching unread messages:", err)
 		return
 	}
 
@@ -155,8 +164,19 @@ func (ws *WebSocketManager) SendOfflineMessages(userID uint) {
 	ws.mu.RUnlock()
 
 	if exists {
-		for _, msg := range chatHistory {
-			client.SendChan <- msg
+		// Send each unread message to the client.
+		for _, msg := range unreadMessages {
+			select {
+			case client.SendChan <- msg:
+				//Mark the messages as read
+				err := ws.Repo.MarkMessageAsRead(msg.ID)
+				if err != nil {
+					log.Println("Error marking message as read:", err)
+				}
+			case <-time.After(1 * time.Second):
+				log.Println("Timeout sending offline message")
+				return
+			}
 		}
 	}
 }

@@ -77,14 +77,14 @@ const Navbar = ({ toggleLoginModal }) => {
               </li>
               <li>
                 <Link
-                  to="/about"
+                  to="/messaging"
                   className={`text-[#E5E5E5] ${
-                    isActive("/about")
+                    isActive("/messaging")
                       ? "text-black font-bold bg-[#FFC67D]"
                       : ""
                   } hover:bg-[#FFC67D] hover:text-black`}
                 >
-                  About Us
+                  Messaging
                 </Link>
               </li>
             </ul>
@@ -156,12 +156,12 @@ const Navbar = ({ toggleLoginModal }) => {
               </li>
               <li className="p-4 hover:bg-gray-100">
                 <Link
-                  to="/about"
+                  to="/messaging"
                   className={`${
-                    isActive("/about") ? "text-teal-600 font-bold" : ""
+                    isActive("/messaging") ? "text-teal-600 font-bold" : ""
                   }`}
                 >
-                  About Us
+                  Messaging
                 </Link>
               </li>
             </ul>

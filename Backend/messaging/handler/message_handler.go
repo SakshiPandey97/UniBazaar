@@ -11,6 +11,7 @@ import (
 	"messaging/repository"
 	ws "messaging/websocket"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
@@ -73,36 +74,63 @@ func (h *MessageHandler) HandleSendMessage(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(map[string]string{"status": "message sent"})
 }
 
-func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
-	senderIDStr := r.URL.Query().Get("sender_id")
-	receiverIDStr := r.URL.Query().Get("receiver_id")
+// func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
+// 	senderIDStr := r.URL.Query().Get("sender_id")
+// 	receiverIDStr := r.URL.Query().Get("receiver_id")
 
-	if senderIDStr == "" || receiverIDStr == "" {
-		http.Error(w, "sender_id and receiver_id are required", http.StatusBadRequest)
-		return
-	}
+// 	if senderIDStr == "" || receiverIDStr == "" {
+// 		http.Error(w, "sender_id and receiver_id are required", http.StatusBadRequest)
+// 		return
+// 	}
 
-	senderID, err := strconv.Atoi(senderIDStr)
+// 	senderID, err := strconv.Atoi(senderIDStr)
+// 	if err != nil {
+// 		http.Error(w, "Invalid sender_id", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	if err != nil {
+// 		http.Error(w, "Invalid receiver_id", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	messages, err := h.repo.GetConversation(uint(senderID))
+// 	if err != nil {
+// 		fmt.Println("Database error:", err)
+// 		http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
+// 		return
+// 	}
+
+//		w.Header().Set("Content-Type", "application/json")
+//		w.WriteHeader(http.StatusOK)
+//		if err := json.NewEncoder(w).Encode(messages); err != nil {
+//			http.Error(w, "Error encoding response", http.StatusInternalServerError)
+//		}
+//	}
+func (h *MessageHandler) GetConversationHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user1IDStr := vars["user1ID"]
+	user2IDStr := vars["user2ID"]
+
+	// Basic validation and type conversion
+	user1ID, err := strconv.ParseUint(user1IDStr, 10, 32)
 	if err != nil {
-		http.Error(w, "Invalid sender_id", http.StatusBadRequest)
+		http.Error(w, "Invalid user1ID", http.StatusBadRequest)
 		return
 	}
-
+	user2ID, err := strconv.ParseUint(user2IDStr, 10, 32)
 	if err != nil {
-		http.Error(w, "Invalid receiver_id", http.StatusBadRequest)
+		http.Error(w, "Invalid user2ID", http.StatusBadRequest)
 		return
 	}
 
-	messages, err := h.repo.GetConversation(uint(senderID))
+	conversations, err := h.repo.GetConversation(uint(user1ID), uint(user2ID))
 	if err != nil {
-		fmt.Println("Database error:", err)
-		http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error getting conversation: %v", err), http.StatusInternalServerError)
 		return
 	}
 
+	// Respond with the messages
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(messages); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
-	}
+	json.NewEncoder(w).Encode(conversations)
 }

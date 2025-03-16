@@ -76,28 +76,52 @@ func (repo *MessageRepository) GetUnreadMessages(userID uint) ([]models.Message,
 
 	return messages, rows.Err()
 }
-func (r *MessageRepository) GetConversation(userID uint) ([]models.Message, error) {
-	var messages []models.Message
+func (r *MessageRepository) GetConversation(user1ID uint, user2ID uint) ([]models.Conversation, error) {
+	var conversations []models.Conversation
 
 	rows, err := r.DB.Query(`
-		SELECT id, sender_id, receiver_id, content, timestamp, read 
-		FROM messages 
-		WHERE sender_id = $1 OR receiver_id = $1
-		ORDER BY timestamp ASC`,
-		userID)
+		SELECT
+		    m.id,
+		    m.sender_id,
+		    m.receiver_id,
+		    m.content,
+		    m.timestamp,
+			m.read,
+		    s.name AS sender_name,
+		    r.name AS receiver_name
+		FROM
+		    messages m
+		JOIN
+		    users s ON m.sender_id = s.id
+		JOIN
+		    users r ON m.receiver_id = r.id
+		WHERE
+		    (m.sender_id = $1 AND m.receiver_id = $2)
+		    OR (m.sender_id = $2 AND m.receiver_id = $1)
+		ORDER BY
+		    m.timestamp ASC;
+		`, user1ID, user2ID)
 
 	if err != nil {
+		log.Println("Error fetching conversation:", err)
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var msg models.Message
-		err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.Timestamp, &msg.Read)
+		var conv models.Conversation
+		err := rows.Scan(&conv.MessageID, &conv.SenderID, &conv.ReceiverID, &conv.MessageText, &conv.Timestamp, &conv.Read, &conv.SenderName, &conv.ReceiverName)
 		if err != nil {
+			log.Println("Error scanning conversation row:", err)
 			return nil, err
 		}
-		messages = append(messages, msg)
+		conversations = append(conversations, conv)
 	}
-	return messages, nil
+
+	if err := rows.Err(); err != nil {
+		log.Println("Error during row iteration:", err)
+		return nil, err
+	}
+
+	return conversations, nil
 }

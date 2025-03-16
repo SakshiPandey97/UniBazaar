@@ -4,7 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import Spinner from "@/customComponents/Spinner";
 import PageWrapper from "@/customComponents/PageWrapper";
 import SellProductPage from "@/pages/SellProductPage";
-import AboutUsPage from "@/pages/AboutUsPage";
+import Messaging from "@/pages/Messaging";
 import LandingPage from "@/pages/LandingPage";
 
 function AnimatedRoutes() {
@@ -25,10 +25,10 @@ function AnimatedRoutes() {
           }
         />
         <Route
-          path="/about"
+          path="/messaging"
           element={
             <PageWrapper direction="right">
-              <AboutUsPage />
+              <Messaging />
             </PageWrapper>
           }
         />
