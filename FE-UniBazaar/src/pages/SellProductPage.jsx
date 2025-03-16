@@ -9,7 +9,6 @@ import { Button } from "@/ui/button";
 import { motion } from "framer-motion";
 import { useAnimation } from "../hooks/useAnimation";
 import { postProductAPI } from "@/api/axios";
-import ShowProductPreview from "@/customComponents/ShowProductPreview";
 import { prepareFormData } from "@/utils/prepareFormData";
 import { useProductData } from "@/hooks/useProductData";
 import { useNavigate } from "react-router-dom";
@@ -148,7 +147,6 @@ const SellProductPage = () => {
           List Now
         </Button>
       </div>
-      {isUploaded && <ShowProductPreview productData={productData} />}
     </div>
   );
 };
