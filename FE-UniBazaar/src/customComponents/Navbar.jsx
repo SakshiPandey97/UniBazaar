@@ -35,7 +35,7 @@ const Navbar = ({ toggleLoginModal }) => {
             {
               path: "#",
               label: "Messaging",
-              onClick: () => handleNavigation("/Messaging"),
+              onClick: () => handleNavigation("/messaging"),
             },
             {
               path: "#",
@@ -115,7 +115,7 @@ const Navbar = ({ toggleLoginModal }) => {
               {
                 path: "#",
                 label: "Messaging",
-                onClick: () => handleNavigation("/Messaging"),
+                onClick: () => handleNavigation("/messaging"),
               },
               {
                 path: "#",
