@@ -28,6 +28,7 @@
     "framer-motion": "^12.4.7",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.475.0",
+    "package.json": "^2.0.1",
     "react": "^19.0.0",
     "react-confetti": "^6.2.3",
     "react-dom": "^19.0.0",

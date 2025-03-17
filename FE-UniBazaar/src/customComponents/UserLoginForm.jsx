@@ -31,12 +31,6 @@ function UserLoginForm({ handleLoginFormSubmission }) {
             type="password"
             placeholder="Password"
             isSubmitting={isSubmitting}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              handleChange(e);
-            }}
             isPassword={true}
           />
 

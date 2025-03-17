@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -79,6 +78,8 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 // @Tags Products
 // @Accept json
 // @Produce json
+// @Param lastId query string false "ID of the last product to fetch" required=false
+// @Param limit query int false "Number of products to fetch (default is 10)" required=false
 // @Success 200 {array} model.Product "List of all products"
 // @Failure 404 {object} model.ErrorResponse "No products found in the system"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
@@ -86,14 +87,14 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to fetch all products.")
 
-	products, err := h.ProductRepo.GetAllProducts()
+	lastID := r.URL.Query().Get("lastId")
+	limitStr := r.URL.Query().Get("limit")
+
+	limit := helper.ParseLimit(limitStr)
+
+	products, err := h.ProductRepo.GetAllProducts(lastID, limit)
 	if err != nil {
 		handleErrorResponse(w, "Error fetching products", err, http.StatusInternalServerError)
-		return
-	}
-
-	if len(products) == 0 {
-		handleErrorResponse(w, "No products found in the system", fmt.Errorf("no products found"), http.StatusNotFound)
 		return
 	}
 
@@ -108,6 +109,8 @@ func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Param UserId path int true "User ID"
+// @Param lastID query string false "ID of the last product to fetch" required=false
+// @Param limit query int false "Number of products to fetch (default is 10)" required=false
 // @Success 200 {array} model.Product "List of products"
 // @Failure 400 {object} model.ErrorResponse "Invalid user ID"
 // @Failure 404 {object} model.ErrorResponse "No products found for the given user ID"
@@ -120,9 +123,14 @@ func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	log.Printf("Received request to fetch all products for user ID: %d\n", userID)
+	lastID := r.URL.Query().Get("lastId")
+	limitStr := r.URL.Query().Get("limit")
 
-	products, err := h.ProductRepo.GetProductsByUserID(userID)
+	limit := helper.ParseLimit(limitStr)
+
+	log.Printf("Received request to fetch all products for user ID: %d with lastID: %s and limit: %d\n", userID, lastID, limit)
+
+	products, err := h.ProductRepo.GetProductsByUserID(userID, lastID, limit)
 	if err != nil {
 		handleErrorResponse(w, "Error fetching products for user", err, http.StatusNotFound)
 		return

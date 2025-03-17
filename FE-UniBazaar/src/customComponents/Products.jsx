@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -9,10 +9,18 @@ import {
 import Spinner from "./Spinner";
 import useProducts from "../hooks/useProducts";
 import ProductCard from "./ProductCard";
+import Modal from "@/customComponents/Modal"
+import useModal from "@/hooks/useModal";
 
 const Products = () => {
   const { products, loading, error } = useProducts();
-
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const { isModalOpen, toggleModal } = useModal();
+  
+  const closeModal = () => {
+    toggleModal();
+    setSelectedProductId(null);
+  };
   if (loading) return <Spinner />;
   if (error) return <div>{error}</div>;
 
@@ -24,7 +32,6 @@ const Products = () => {
         </h1>
         <Carousel className="relative flex bg-white border border-gray-200 rounded-xl p-6 shadow-lg transition-all hover:shadow-2xl">
           
-          {/* Previous Button with Custom Styling */}
           <CarouselPrevious className="absolute z-10 left-4 top-1/2 -translate-y-1/2 bg-gradient-to-r from-gray-800 to-gray-600 text-white p-3 rounded-full shadow-md hover:scale-110 transition-all flex items-center justify-center w-10 h-10">
             <span className="text-lg font-bold">&#8592;</span>
           </CarouselPrevious>
@@ -35,24 +42,21 @@ const Products = () => {
                 key={product.productId}
                 className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 transform transition-transform hover:scale-105 hover:shadow-lg"
               >
-                <ProductCard
-                  title={product.productTitle}
-                  price={product.productPrice}
-                  condition={product.productCondition}
-                  image={product.productImage}
-                  description={product.productDescription}
-                />
+                <ProductCard product={product} onClick={() => setSelectedProduct(product)} />
               </CarouselItem>
             ))}
           </CarouselContent>
 
-          {/* Next Button with Custom Styling */}
           <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-gradient-to-l from-gray-800 to-gray-600 text-white p-3 rounded-full shadow-md hover:scale-110 transition-all flex items-center justify-center w-10 h-10">
             <span className="text-lg font-bold">&#8594;</span>
           </CarouselNext>
 
         </Carousel>
       </div>
+
+      <Modal isOpen={isModalOpen} toggleModal={closeModal}>
+        {selectedProduct && <ProductDetailCard product={selectedProduct} />}
+      </Modal>{" "}
     </div>
   );
 };

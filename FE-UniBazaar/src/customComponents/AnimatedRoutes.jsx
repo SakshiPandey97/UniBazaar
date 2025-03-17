@@ -5,6 +5,8 @@ import Spinner from "@/customComponents/Spinner";
 import PageWrapper from "@/customComponents/PageWrapper";
 import SellProductPage from "@/pages/SellProductPage";
 import Messaging from "@/pages/Messaging";
+import AboutUsPage from "@/pages/AboutUsPage";
+import ProductsPage from "@/pages/ProductsPage";
 import LandingPage from "@/pages/LandingPage";
 
 function AnimatedRoutes() {
@@ -26,6 +28,22 @@ function AnimatedRoutes() {
         />
         <Route
           path="/messaging"
+          element={
+            <PageWrapper direction="right">
+              <Messaging />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <PageWrapper direction="right">
+              <ProductsPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/about"
           element={
             <PageWrapper direction="right">
               <Messaging />

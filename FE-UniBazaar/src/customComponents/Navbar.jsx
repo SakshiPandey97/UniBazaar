@@ -42,7 +42,7 @@ const Navbar = ({ toggleLoginModal }) => {
               label: "Sell",
               onClick: () => handleNavigation("/sell"),
             },
-            { path: "/product", label: "Products" },
+            { path: "/products", label: "Products" },
             { path: "/about", label: "About Us" },
           ].map(({ path, label, onClick }) =>
             onClick ? (
