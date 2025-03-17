@@ -15,6 +15,7 @@ import (
 	"messaging/repository"
 	"messaging/websocket"
 
+	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
@@ -36,13 +37,13 @@ func main() {
 	userHandler := handler.NewUserHandler(userRepo)
 
 	// Create a new ServeMux
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
 
 	// Register your handlers
-	mux.HandleFunc("/ws", msgHandler.HandleWebSocket)
-	mux.HandleFunc("/messages", msgHandler.HandleGetMessages)
-	mux.HandleFunc("/users", userHandler.GetUsersHandler)
-
+	r.HandleFunc("/ws", msgHandler.HandleWebSocket)
+	r.HandleFunc("/api/conversation/{user1ID}/{user2ID}", msgHandler.GetConversationHandler).Methods(http.MethodGet)
+	r.HandleFunc("/messages", msgHandler.HandleSendMessage).Methods(http.MethodPost)
+	r.HandleFunc("/users", userHandler.GetUsersHandler).Methods("GET")
 
 	// Configure CORS
 	c := cors.New(cors.Options{
@@ -55,7 +56,7 @@ func main() {
 	})
 
 	// Wrap your ServeMux with the CORS middleware
-	handler := c.Handler(mux)
+	handler := c.Handler(r)
 
 	// Create the server with the CORS-wrapped handler
 	server := &http.Server{
