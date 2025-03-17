@@ -9,7 +9,6 @@ import {
 import Spinner from "./Spinner";
 import useProducts from "../hooks/useProducts";
 import ProductCard from "./ProductCard";
-import ProductDetailCard from "./ProductDetailCard";
 import Modal from "@/customComponents/Modal"
 import useModal from "@/hooks/useModal";
 
