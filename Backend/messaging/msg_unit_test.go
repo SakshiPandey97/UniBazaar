@@ -1,8 +1,8 @@
 package main
 
 import (
-	"testing"
 	"messaging/models"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -25,7 +25,7 @@ func (m *MockMessageRepository) GetLatestMessages(limit int) ([]models.Message, 
 	return nil, args.Error(1)
 }
 
-func (m *MockMessageRepository) MarkMessageAsRead(messageID int) error {
+func (m *MockMessageRepository) MarkMessageAsRead(messageID string) error {
 	args := m.Called(messageID)
 	return args.Error(0)
 }
@@ -38,8 +38,8 @@ func (m *MockMessageRepository) GetUnreadMessages(userID uint) ([]models.Message
 	return nil, args.Error(1)
 }
 
-func (m *MockMessageRepository) GetConversation(userID uint) ([]models.Message, error) {
-	args := m.Called(userID)
+func (m *MockMessageRepository) GetConversation(user1ID, user2ID uint) ([]models.Message, error) {
+	args := m.Called(user1ID, user2ID)
 	if args.Get(0) != nil {
 		return args.Get(0).([]models.Message), args.Error(1)
 	}
@@ -62,8 +62,8 @@ func TestSaveMessage(t *testing.T) {
 func TestGetLatestMessages(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
 	expectedMessages := []models.Message{
-		{ID: 1, SenderID: 1, ReceiverID: 2, Content: "Test message", Timestamp: 1234567890, Read: false},
-		{ID: 2, SenderID: 2, ReceiverID: 1, Content: "Another message", Timestamp: 1234567891, Read: true},
+		{ID: "1", SenderID: 1, ReceiverID: 2, Content: "Test message", Timestamp: 1234567890, Read: false},
+		{ID: "2", SenderID: 2, ReceiverID: 1, Content: "Another message", Timestamp: 1234567891, Read: true},
 	}
 	mockRepo.On("GetLatestMessages", 10).Return(expectedMessages, nil)
 	messages, err := mockRepo.GetLatestMessages(10)
@@ -74,8 +74,8 @@ func TestGetLatestMessages(t *testing.T) {
 
 func TestMarkMessageAsRead(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
-	mockRepo.On("MarkMessageAsRead", 1).Return(nil)
-	err := mockRepo.MarkMessageAsRead(1)
+	mockRepo.On("MarkMessageAsRead", "1").Return(nil)
+	err := mockRepo.MarkMessageAsRead("1")
 	assert.Nil(t, err)
 	mockRepo.AssertExpectations(t)
 }
@@ -83,7 +83,7 @@ func TestMarkMessageAsRead(t *testing.T) {
 func TestGetUnreadMessages(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
 	expectedMessages := []models.Message{
-		{ID: 1, SenderID: 1, ReceiverID: 2, Content: "Unread message", Timestamp: 1234567892, Read: false},
+		{ID: "1", SenderID: 1, ReceiverID: 2, Content: "Unread message", Timestamp: 1234567892, Read: false},
 	}
 	mockRepo.On("GetUnreadMessages", uint(2)).Return(expectedMessages, nil)
 	messages, err := mockRepo.GetUnreadMessages(2)
@@ -95,11 +95,11 @@ func TestGetUnreadMessages(t *testing.T) {
 func TestGetConversation(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
 	expectedMessages := []models.Message{
-		{ID: 1, SenderID: 1, ReceiverID: 2, Content: "Message 1", Timestamp: 1234567890, Read: false},
-		{ID: 2, SenderID: 2, ReceiverID: 1, Content: "Message 2", Timestamp: 1234567891, Read: true},
+		{ID: "1", SenderID: 1, ReceiverID: 2, Content: "Message 1", Timestamp: 1234567890, Read: false},
+		{ID: "2", SenderID: 2, ReceiverID: 1, Content: "Message 2", Timestamp: 1234567891, Read: true},
 	}
-	mockRepo.On("GetConversation", uint(1)).Return(expectedMessages, nil)
-	messages, err := mockRepo.GetConversation(1)
+	mockRepo.On("GetConversation", uint(1), uint(2)).Return(expectedMessages, nil)
+	messages, err := mockRepo.GetConversation(1, 2)
 	assert.Nil(t, err)
 	assert.Equal(t, expectedMessages, messages)
 	mockRepo.AssertExpectations(t)

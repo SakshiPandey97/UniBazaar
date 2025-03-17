@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getCurrentUserId } from "../utils/getUserId";
 import { getAllUsersAPI } from "../api/axios";
+import { v4 as uuidv4 } from 'uuid';
 
 const Chat = () => {
   const [users, setUsers] = useState([]);
@@ -11,20 +12,17 @@ const Chat = () => {
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   const ws = useRef(null);
-  const usersRef = useRef([]);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
   const userId = getCurrentUserId();
 
-  // Fetch users on mount
   useEffect(() => {
     if (userId) {
       const fetchUsers = async () => {
         try {
           const data = await getAllUsersAPI(userId);
           setUsers(data);
-          usersRef.current = data; // Keep users in ref to avoid stale state
         } catch (error) {
           console.error("Failed to fetch users:", error);
           setTimeout(fetchUsers, 5000);
@@ -37,55 +35,30 @@ const Chat = () => {
     }
   }, [userId]);
 
-  // Initialize WebSocket once
   useEffect(() => {
-    if (!ws.current && userId) {
-      ws.current = new WebSocket(`ws://localhost:8080/ws?user_id=${userId}`);
+    if (userId) {
+      const newWs = new WebSocket(`ws://localhost:8080/ws?user_id=${userId}`);
+      ws.current = newWs;
 
-      ws.current.onopen = () => {
+      newWs.onopen = async () => {
         console.log(`Connected as User ${userId}`);
       };
 
-      ws.current.onmessage = (event) => {
+      newWs.onmessage = (event) => {
         const receivedMessage = JSON.parse(event.data);
         console.log("Received message:", receivedMessage);
 
         setMessages((prevMessages) => {
-          const isDuplicate = prevMessages.some(
-            (msg) => msg.message_id === receivedMessage.id
-          );
-          if (isDuplicate) return prevMessages;
-
-          // Use latest users list
-          const senderUser = usersRef.current.find(
-            (u) => u.id === receivedMessage.sender_id
-          );
-          const senderName =
-            receivedMessage.sender_id === userId ? "You" : senderUser?.name || "Unknown";
-
-          return [
-            ...prevMessages,
-            {
-              message_id: receivedMessage.id,
-              sender_id: receivedMessage.sender_id,
-              receiver_id: receivedMessage.receiver_id,
-              message_text: receivedMessage.content, // Fix blank message issue
-              timestamp: receivedMessage.timestamp,
-              read: receivedMessage.read,
-              sender_name: senderName,
-            },
-          ];
+            return [...prevMessages, receivedMessage];
         });
-
-        scrollToBottom();
       };
 
-      ws.current.onerror = (error) => {
+      newWs.onerror = (error) => {
         console.error("WebSocket Error:", error);
       };
 
-      ws.current.onclose = () => {
-        console.log("WebSocket closed.");
+      newWs.onclose = (event) => {
+        console.log("WebSocket closed:", event);
       };
 
       return () => {
@@ -95,22 +68,29 @@ const Chat = () => {
         }
       };
     }
-  }, [userId]);
+  }, [userId, users]);
 
-  // Fetch messages when a user is selected
   useEffect(() => {
     if (selectedUser && userId) {
       const fetchMessages = async () => {
         try {
           const url = `http://localhost:8080/api/conversation/${userId}/${selectedUser.id}`;
+          console.log("Fetching messages from:", url);
+          console.log("Selected User:", selectedUser);
+          console.log("User ID:", userId);
+          console.log("Receiver ID", selectedUser.id);
+
           const res = await fetch(url);
 
           if (!res.ok) {
-            const errorMessage = `HTTP error! Status: ${res.status}`;
+            const errorData = await res.json().catch(() => null);
+            const errorMessage =
+              errorData?.message || `HTTP error! Status: ${res.status}`;
             throw new Error(errorMessage);
           }
 
           const data = await res.json();
+
           setMessages(data);
         } catch (error) {
           console.error("Failed to load messages:", error);
@@ -121,12 +101,6 @@ const Chat = () => {
     }
   }, [selectedUser, userId]);
 
-  // Scroll to bottom when messages update
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Send message and optimistically update UI
   const sendMessage = async () => {
     if (!userId || !selectedUser) {
       alert("Please select a user to chat with!");
@@ -138,34 +112,38 @@ const Chat = () => {
       return;
     }
 
+    let sender_name = "";
+    const sender = users.find((u) => u.id === parseInt(userId));
+    if (sender) sender_name = sender.name;
+
+
+    const tempMessageId = uuidv4(); // Generate a temporary ID
+    // console.log("Temporary ID:", tempMessageId);
+    // console.log("sender_id:", typeof userId);
+    // console.log("receiver_id:", typeof selectedUser.id);
+    // console.log("content:", typeof input);
+    // console.log("timestamp:", typeof Date.now());
+    // console.log("sender_name:", typeof sender_name);
+
     const message = {
-      sender_id: parseInt(userId),
-      receiver_id: selectedUser.id,
-      content: input,
-      timestamp: Date.now(),
-      read: false,
+        ID: tempMessageId, // Include the temporary ID
+        sender_id: parseInt(userId),
+        receiver_id: selectedUser.id,
+        content: input,
+        timestamp: Date.now(),
+        read: false,
+        sender_name: sender_name,
+
     };
 
-    // Optimistically update UI before sending
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { 
-        ...message, 
-        sender_name: "You", 
-        message_id: `temp-${Date.now()}`,
-        message_text: message.content, // Ensure message text is present
-      },
-    ]);
-
-    setInput("");
-    scrollToBottom();
-
+    
     try {
       if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
         console.error("WebSocket not ready.");
         return;
       }
       ws.current.send(JSON.stringify(message));
+      setInput("");
     } catch (e) {
       console.error("Error sending message:", e);
     }
@@ -184,6 +162,10 @@ const Chat = () => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <div className="flex h-screen">
@@ -218,26 +200,35 @@ const Chat = () => {
             </h2>
 
             <div className="h-96 overflow-y-auto border p-2 mb-3 bg-gray-100 rounded">
-              {messages.map((msg) => (
+                    {messages === null ? (
+            <div className="text-center text-gray-500">
+                Start a conversation with {selectedUser.name}!
+            </div>
+        ) : (
+            messages.map((msg) => (
                 <div
-                  key={msg.message_id || `${msg.sender_id}-${msg.timestamp}`}
-                  className={`my-1 mb-2`}
+                    key={msg.ID} // Use msg.ID as the key
+                    className={`my-1 mb-2`}
                 >
-                  <div
-                    className={`p-2 rounded-lg inline-block ${
-                      msg.sender_id !== selectedUser.id
-                        ? "bg-blue-200 text-right float-right mb-1"
-                        : "bg-gray-300 float-left mb-1"
-                    }`}
-                    style={{ clear: "both" }}
-                  >
-                    <strong>
-                      {msg.sender_id !== selectedUser.id ? "You" : msg.sender_name}
-                    </strong>
-                    : {msg.message_text}
-                  </div>
+                    <div
+                        className={`p-2 rounded-lg inline-block ${
+                            msg.sender_id === parseInt(userId)
+                                ? "bg-blue-200 text-right float-right mb-1"
+                                : "bg-gray-300 float-left mb-1"
+                        }`}
+                        style={{ clear: "both" }}
+                    >
+                        <strong>
+                            {msg.sender_id === parseInt(userId)
+                                ? "You"
+                                : msg.sender_name}
+                        </strong>
+                        : {msg.content}
+                    </div>
                 </div>
-              ))}
+            ))
+        )}
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -251,13 +242,18 @@ const Chat = () => {
                 className="flex-1 border p-2 rounded"
                 placeholder="Type a message..."
               />
-              <button onClick={sendMessage} className="bg-blue-500 text-white p-2 rounded">
+              <button
+                onClick={sendMessage}
+                className="bg-blue-500 text-white p-2 rounded"
+              >
                 Send
               </button>
             </div>
           </div>
         ) : (
-          <p className="text-center text-gray-500">Select a user to chat with</p>
+          <p className="text-center text-gray-500">
+            Select a user to chat with
+          </p>
         )}
       </div>
     </div>

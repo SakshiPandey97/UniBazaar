@@ -9,6 +9,8 @@ import (
 	"messaging/models"
 	"messaging/repository"
 
+	"github.com/google/uuid"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -62,11 +64,6 @@ func (ws *WebSocketManager) Run() {
 			ws.mu.Unlock()
 
 		case msg := <-ws.Broadcast:
-			err := ws.Repo.SaveMessage(msg)
-			if err != nil {
-				log.Println("Error saving message:", err)
-			}
-
 			ws.mu.RLock()
 			receiverClient, receiverExists := ws.Clients[msg.ReceiverID]
 			senderClient, senderExists := ws.Clients[msg.SenderID]
@@ -111,11 +108,19 @@ func (c *Client) ReadPump() {
 			}
 			break
 		}
+		// Generate a new UUID if one doesn't exist
+		if msg.ID == "" {
+			msg.ID = uuid.New().String()
+		}
 
 		msg.SenderID = c.UserID
 		msg.Timestamp = time.Now().Unix()
 		msg.Read = false
 
+		if err := c.Manager.Repo.SaveMessage(msg); err != nil {
+			log.Println("Failed to save message(websocket):", err)
+			continue
+		}
 		c.Manager.Broadcast <- msg
 	}
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"messaging/repository"
 	ws "messaging/websocket"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -38,6 +40,7 @@ func (h *MessageHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request)
 	userIDStr := r.URL.Query().Get("user_id")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
+		log.Println("Invalid user_id:", err)
 		conn.Close()
 		return
 	}
@@ -67,6 +70,13 @@ func (h *MessageHandler) HandleSendMessage(w http.ResponseWriter, r *http.Reques
 
 	msg.Timestamp = time.Now().Unix()
 	msg.Read = false
+	msg.ID = uuid.New().String()
+	// msg.ID = msg.MessageID
+	// Save the message to the database
+	if err := h.repo.SaveMessage(msg); err != nil {
+		http.Error(w, "Failed to save message", http.StatusInternalServerError)
+		return
+	}
 
 	h.ws.Broadcast <- msg
 
@@ -74,39 +84,6 @@ func (h *MessageHandler) HandleSendMessage(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(map[string]string{"status": "message sent"})
 }
 
-// func (h *MessageHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
-// 	senderIDStr := r.URL.Query().Get("sender_id")
-// 	receiverIDStr := r.URL.Query().Get("receiver_id")
-
-// 	if senderIDStr == "" || receiverIDStr == "" {
-// 		http.Error(w, "sender_id and receiver_id are required", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	senderID, err := strconv.Atoi(senderIDStr)
-// 	if err != nil {
-// 		http.Error(w, "Invalid sender_id", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	if err != nil {
-// 		http.Error(w, "Invalid receiver_id", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	messages, err := h.repo.GetConversation(uint(senderID))
-// 	if err != nil {
-// 		fmt.Println("Database error:", err)
-// 		http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
-// 		return
-// 	}
-
-//		w.Header().Set("Content-Type", "application/json")
-//		w.WriteHeader(http.StatusOK)
-//		if err := json.NewEncoder(w).Encode(messages); err != nil {
-//			http.Error(w, "Error encoding response", http.StatusInternalServerError)
-//		}
-//	}
 func (h *MessageHandler) GetConversationHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user1IDStr := vars["user1ID"]

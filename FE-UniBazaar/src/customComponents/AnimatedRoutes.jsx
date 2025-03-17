@@ -46,7 +46,7 @@ function AnimatedRoutes() {
           path="/about"
           element={
             <PageWrapper direction="right">
-              <Messaging />
+              <AboutUsPage />
             </PageWrapper>
           }
         />
