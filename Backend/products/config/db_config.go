@@ -12,8 +12,7 @@ import (
 
 var DB *mongo.Client
 
-func ConnectDB() *mongo.Client {
-
+func ConnectDB() (*mongo.Client, error) {
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		mongoURI = "mongodb://localhost:27017"
@@ -24,24 +23,28 @@ func ConnectDB() *mongo.Client {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
-		log.Printf("MongoDB connection error: %v", err)
+		return nil, err
 	}
 
 	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.Printf("MongoDB ping error: %v", err)
+		return nil, err
 	}
 
 	log.Println("Connected to MongoDB successfully!")
 	DB = client
-	return client
+	return client, nil
 }
 
-func GetCollection(collectionName string) *mongo.Collection {
+func GetCollection(collectionName string) (*mongo.Collection, error) {
 	if DB == nil {
-		client := ConnectDB()
+		client, err := ConnectDB()
+		if err != nil {
+			return nil, err
+		}
 		DB = client
 	}
 
-	return DB.Database("unibazaar").Collection(collectionName)
+	collection := DB.Database("unibazaar").Collection(collectionName)
+	return collection, nil
 }

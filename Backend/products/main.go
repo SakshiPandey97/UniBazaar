@@ -2,8 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"web-service/config"
 	"web-service/handler"
@@ -25,23 +30,65 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found, using default settings")
+		log.Printf("Error loading .env file: %v, using default settings", err)
 	}
 
-	mongoDBClient := config.ConnectDB()
-	defer mongoDBClient.Disconnect(context.Background())
+	mongoDBClient, err := config.ConnectDB()
+	if err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
+	defer func() {
+		if err := mongoDBClient.Disconnect(context.Background()); err != nil {
+			log.Printf("Error disconnecting from MongoDB: %v", err)
+		}
+	}()
 
-	repo := repository.NewMongoProductRepository()
+	repo, err := repository.NewMongoProductRepository()
+	if err != nil {
+		log.Fatalf("Failed to create product repository: %v", err)
+	}
 	s3 := repository.NewS3ImageRepository()
-	handler := handler.NewProductHandler(repo, s3)
+	productHandler := handler.NewProductHandler(repo, s3)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Health OK"))
-	}).Methods(http.MethodGet)
+	router.HandleFunc("/health", healthCheck).Methods(http.MethodGet)
+	routes.RegisterProductRoutes(router, productHandler)
 
-	routes.RegisterProductRoutes(router, handler)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
-	log.Println("Server running on port 8080")
-	http.ListenAndServe(":8080", routes.SetupCORS(router))
+	serverAddr := fmt.Sprintf(":%s", port)
+	log.Printf("Server running on port %s", port)
+
+	server := &http.Server{
+		Addr:    serverAddr,
+		Handler: routes.SetupCORS(router),
+	}
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server shutdown failed: %v", err)
+	}
+
+	log.Println("Server gracefully stopped")
+
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Health OK"))
 }

@@ -22,20 +22,33 @@ func NewS3ImageRepository() *S3ImageRepository {
 	return &S3ImageRepository{}
 }
 
+func (r *S3ImageRepository) getS3Client() (*s3.Client, error) {
+	client, err := config.GetAWSClientInstance(context.TODO(), config.DefaultLoader{})
+	if err != nil {
+		return nil, customerrors.NewS3Error("failed to get AWS Client", err)
+	}
+	return client, nil
+}
+
 func (r *S3ImageRepository) UploadImage(productId string, userId string, fileData []byte, filetype string) (string, error) {
 	start := time.Now()
 
-	awsClientObj := config.GetAWSClientInstance()
-	uploader := manager.NewUploader(awsClientObj)
+	client, err := r.getS3Client()
+	if err != nil {
+		return "", err
+	}
+
+	uploader := manager.NewUploader(client)
 
 	objectKey := fmt.Sprintf("products/%s/%s.%s", userId, productId, filetype)
 	log.Println("Uploading to S3 with key:", objectKey)
 
-	_, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
+	_, err = uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String("unibazaar-bucket"),
 		Key:    aws.String(objectKey),
 		Body:   bytes.NewReader(fileData),
 	})
+
 	if err != nil {
 		log.Printf("Error uploading to Amazon S3: %v\n", err)
 		return "", customerrors.NewS3Error("Failed to upload image to S3", err)
@@ -47,9 +60,12 @@ func (r *S3ImageRepository) UploadImage(productId string, userId string, fileDat
 }
 
 func (r *S3ImageRepository) DeleteImage(objectKey string) error {
-	client := config.GetAWSClientInstance()
+	client, err := r.getS3Client()
+	if err != nil {
+		return err
+	}
 
-	_, err := client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+	_, err = client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 		Bucket: aws.String("unibazaar-bucket"),
 		Key:    aws.String(objectKey),
 	})
@@ -62,7 +78,11 @@ func (r *S3ImageRepository) DeleteImage(objectKey string) error {
 }
 
 func (r *S3ImageRepository) GeneratePresignedURL(objectKey string) (string, error) {
-	client := config.GetAWSClientInstance()
+	client, err := r.getS3Client()
+	if err != nil {
+		return "", err
+	}
+
 	log.Printf("Pre Key %s", objectKey)
 	psClient := s3.NewPresignClient(client)
 	req, err := psClient.PresignGetObject(context.TODO(), &s3.GetObjectInput{

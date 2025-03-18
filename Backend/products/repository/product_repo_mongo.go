@@ -19,10 +19,14 @@ type MongoProductRepository struct {
 	collection *mongo.Collection
 }
 
-func NewMongoProductRepository() *MongoProductRepository {
-	return &MongoProductRepository{
-		collection: config.GetCollection("products"),
+func NewMongoProductRepository() (*MongoProductRepository, error) {
+	collection, err := config.GetCollection("products")
+	if err != nil {
+		return nil, err
 	}
+	return &MongoProductRepository{
+		collection: collection,
+	}, nil
 }
 
 func (repo *MongoProductRepository) getContextWithTimeout() (context.Context, context.CancelFunc) {
