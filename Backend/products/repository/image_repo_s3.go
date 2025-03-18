@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 	"web-service/config"
-	"web-service/errors"
+	customerrors "web-service/errors"
 	"web-service/model"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -22,23 +22,36 @@ func NewS3ImageRepository() *S3ImageRepository {
 	return &S3ImageRepository{}
 }
 
+func (r *S3ImageRepository) getS3Client() (*s3.Client, error) {
+	client, err := config.GetAWSClientInstance(context.TODO(), config.DefaultLoader{})
+	if err != nil {
+		return nil, customerrors.NewS3Error("failed to get AWS Client", err)
+	}
+	return client, nil
+}
+
 func (r *S3ImageRepository) UploadImage(productId string, userId string, fileData []byte, filetype string) (string, error) {
 	start := time.Now()
 
-	awsClientObj := config.GetAWSClientInstance()
-	uploader := manager.NewUploader(awsClientObj)
+	client, err := r.getS3Client()
+	if err != nil {
+		return "", err
+	}
+
+	uploader := manager.NewUploader(client)
 
 	objectKey := fmt.Sprintf("products/%s/%s.%s", userId, productId, filetype)
 	log.Println("Uploading to S3 with key:", objectKey)
 
-	_, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
+	_, err = uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String("unibazaar-bucket"),
 		Key:    aws.String(objectKey),
 		Body:   bytes.NewReader(fileData),
 	})
+
 	if err != nil {
 		log.Printf("Error uploading to Amazon S3: %v\n", err)
-		return "", errors.NewS3Error("Failed to upload image to S3", err)
+		return "", customerrors.NewS3Error("Failed to upload image to S3", err)
 	}
 	duration := time.Since(start)
 	log.Printf("UploadToS3Bucket took %s\n", duration)
@@ -47,14 +60,17 @@ func (r *S3ImageRepository) UploadImage(productId string, userId string, fileDat
 }
 
 func (r *S3ImageRepository) DeleteImage(objectKey string) error {
-	client := config.GetAWSClientInstance()
+	client, err := r.getS3Client()
+	if err != nil {
+		return err
+	}
 
-	_, err := client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+	_, err = client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 		Bucket: aws.String("unibazaar-bucket"),
 		Key:    aws.String(objectKey),
 	})
 	if err != nil {
-		return errors.NewS3Error(fmt.Sprintf("failed to delete object %s from S3", objectKey), err)
+		return customerrors.NewS3Error(fmt.Sprintf("failed to delete object %s from S3", objectKey), err)
 	}
 
 	log.Printf("Successfully deleted object %s from S3", objectKey)
@@ -62,7 +78,11 @@ func (r *S3ImageRepository) DeleteImage(objectKey string) error {
 }
 
 func (r *S3ImageRepository) GeneratePresignedURL(objectKey string) (string, error) {
-	client := config.GetAWSClientInstance()
+	client, err := r.getS3Client()
+	if err != nil {
+		return "", err
+	}
+
 	log.Printf("Pre Key %s", objectKey)
 	psClient := s3.NewPresignClient(client)
 	req, err := psClient.PresignGetObject(context.TODO(), &s3.GetObjectInput{
@@ -73,7 +93,7 @@ func (r *S3ImageRepository) GeneratePresignedURL(objectKey string) (string, erro
 	}) // URL expires in 15 min
 
 	if err != nil {
-		return "", errors.NewS3Error(fmt.Sprintf("failed to generate pre-signed URL for %s", objectKey), err)
+		return "", customerrors.NewS3Error(fmt.Sprintf("failed to generate pre-signed URL for %s", objectKey), err)
 	}
 	return req.URL, nil
 }

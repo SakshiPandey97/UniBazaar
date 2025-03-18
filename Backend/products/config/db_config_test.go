@@ -2,114 +2,95 @@ package config
 
 import (
 	"context"
-	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConnectDB_Success(t *testing.T) {
 	os.Setenv("MONGO_URI", "mongodb://localhost:27017")
 	defer os.Unsetenv("MONGO_URI")
 
-	client := ConnectDB()
-	if client == nil {
-		t.Errorf("Expected a non-nil client, got nil")
-	}
+	client, err := ConnectDB()
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := client.Ping(ctx, nil)
-	if err != nil {
-		t.Errorf("Ping failed: %v", err)
-	}
+	err = client.Ping(ctx, nil)
+	assert.NoError(t, err)
 
 	err = client.Disconnect(ctx)
-	if err != nil {
-		log.Printf("Failed to disconnect during test cleanup: %v", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestConnectDB_DefaultURI(t *testing.T) {
 	os.Unsetenv("MONGO_URI")
 
-	client := ConnectDB()
-	if client == nil {
-		t.Errorf("Expected a non-nil client, got nil")
-	}
+	client, err := ConnectDB()
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := client.Ping(ctx, nil)
-	if err != nil {
-		t.Errorf("Ping failed: %v", err)
-	}
+	err = client.Ping(ctx, nil)
+	assert.NoError(t, err)
 
 	err = client.Disconnect(ctx)
-	if err != nil {
-		log.Printf("Failed to disconnect during test cleanup: %v", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestGetCollection_Success(t *testing.T) {
-	os.Setenv("MONGO_URI", "mongodb://localhost:27017")
-	defer os.Unsetenv("MONGO_URI")
+	t.Run("isolated test", func(t *testing.T) {
+		os.Setenv("MONGO_URI", "mongodb://localhost:27017")
+		defer os.Unsetenv("MONGO_URI")
 
-	collectionName := "testCollection"
-	collection := GetCollection(collectionName)
+		DB = nil
 
-	if collection == nil {
-		t.Errorf("Expected a non-nil collection, got nil")
-	}
+		collectionName := "testCollection"
+		collection, err := GetCollection(collectionName)
+		assert.NoError(t, err)
+		assert.NotNil(t, collection)
 
-	if collection.Name() != collectionName {
-		t.Errorf("Expected collection name '%s', got '%s'", collectionName, collection.Name())
-	}
+		assert.Equal(t, collectionName, collection.Name())
+		assert.Equal(t, "unibazaar", collection.Database().Name())
 
-	if collection.Database().Name() != "unibazaar" {
-		t.Errorf("Expected database name 'unibazaar', got '%s'", collection.Database().Name())
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
-	err := DB.Disconnect(ctx)
-	if err != nil {
-		log.Printf("Failed to disconnect during test cleanup: %v", err)
-	}
-	DB = nil
+		if DB != nil {
+			err = DB.Disconnect(ctx)
+			assert.NoError(t, err)
+			DB = nil
+		}
+	})
 }
 
 func TestGetCollection_DBNotNil(t *testing.T) {
 	os.Setenv("MONGO_URI", "mongodb://localhost:27017")
 	defer os.Unsetenv("MONGO_URI")
 
-	client := ConnectDB()
+	client, err := ConnectDB()
+	assert.NoError(t, err)
 	DB = client
 
 	collectionName := "testCollection2"
-	collection := GetCollection(collectionName)
+	collection, err := GetCollection(collectionName)
+	assert.NoError(t, err)
+	assert.NotNil(t, collection)
 
-	if collection == nil {
-		t.Errorf("Expected a non-nil collection, got nil")
-	}
-
-	if collection.Name() != collectionName {
-		t.Errorf("Expected collection name '%s', got '%s'", collectionName, collection.Name())
-	}
-
-	if collection.Database().Name() != "unibazaar" {
-		t.Errorf("Expected database name 'unibazaar', got '%s'", collection.Database().Name())
-	}
+	assert.Equal(t, collectionName, collection.Name())
+	assert.Equal(t, "unibazaar", collection.Database().Name())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := DB.Disconnect(ctx)
-	if err != nil {
-		log.Printf("Failed to disconnect during test cleanup: %v", err)
-	}
+	err = DB.Disconnect(ctx)
+	assert.NoError(t, err)
 	DB = nil
 }
 
@@ -117,26 +98,18 @@ func TestConnectDB_ConnectionFailure(t *testing.T) {
 	os.Setenv("MONGO_URI", "mongodb://invalid-uri:27017")
 	defer os.Unsetenv("MONGO_URI")
 
-	client := ConnectDB()
+	client, err := ConnectDB()
+	assert.Error(t, err)
+	assert.Nil(t, client)
+}
 
-	if client == nil {
-		t.Errorf("Expected a non-nil client, but got nil")
-	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
+func TestGetCollection_ConnectDBFailure(t *testing.T) {
+	os.Setenv("MONGO_URI", "mongodb://invalid-uri:27017")
+	defer os.Unsetenv("MONGO_URI")
 
-		err := client.Ping(ctx, nil)
-		if err == nil {
-			t.Errorf("Expected ping to fail, but it succeeded")
-		}
+	collectionName := "testCollection"
+	collection, err := GetCollection(collectionName)
 
-		ctxDisconnect, cancelDisconnect := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancelDisconnect()
-
-		err = client.Disconnect(ctxDisconnect)
-		if err != nil {
-			log.Printf("Failed to disconnect during test cleanup: %v", err)
-		}
-
-	}
+	assert.Error(t, err)
+	assert.Nil(t, collection)
 }

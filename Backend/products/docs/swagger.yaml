@@ -277,7 +277,7 @@ paths:
       summary: Update a product by user ID and product ID
       tags:
       - Products
-  /products/search:
+  /search/products:
     get:
       description: Searches products based on a query and optional limit.
       parameters:

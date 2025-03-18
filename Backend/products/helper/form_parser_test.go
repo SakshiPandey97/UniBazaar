@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"web-service/errors"
+	customerrors "web-service/errors"
 	"web-service/model"
 )
 
@@ -29,7 +29,7 @@ func TestGetUserID_InvalidInput(t *testing.T) {
 			if err == nil {
 				t.Errorf("Expected error for input '%s', but got nil", input)
 			}
-			if _, ok := err.(*errors.BadRequestError); !ok {
+			if _, ok := err.(*customerrors.BadRequestError); !ok {
 				t.Errorf("Expected BadRequestError for input '%s', but got %T", input, err)
 			}
 		})
@@ -107,7 +107,7 @@ func TestParseFormAndCreateProduct_MissingOrInvalidData(t *testing.T) {
 			if err == nil {
 				t.Errorf("Expected error for case '%s', but got nil", tt.name)
 			}
-			if _, ok := err.(*errors.BadRequestError); !ok {
+			if _, ok := err.(*customerrors.BadRequestError); !ok {
 				t.Errorf("Expected BadRequestError for input '%s', but got %T", tt.name, err)
 			}
 		})
@@ -198,7 +198,7 @@ func TestCheckParam_Empty(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error for empty param, but got nil")
 	}
-	if _, ok := err.(*errors.BadRequestError); !ok {
+	if _, ok := err.(*customerrors.BadRequestError); !ok {
 		t.Errorf("Expected BadRequestError, got %T", err)
 	}
 }
