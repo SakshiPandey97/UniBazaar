@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllUsersAPI } from "../api/axios";
+import { getAllUsersAPI } from "../api/messagingAxios";
 
 const useFetchUsers = (userId) => {
   const [users, setUsers] = useState([]);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllProductsAPI } from "../api/axios";  
+import { getAllProductsAPI } from "../api/productAxios";  
 import Product from "../modal/product";
 
 const useProducts = () => {
