@@ -34,8 +34,8 @@ const Navbar = ({ toggleLoginModal }) => {
             { path: "/", label: "Home" },
             {
               path: "#",
-              label: "Buy",
-              onClick: () => handleNavigation("/buy"),
+              label: "Messaging",
+              onClick: () => handleNavigation("/messaging"),
             },
             {
               path: "#",
@@ -114,8 +114,8 @@ const Navbar = ({ toggleLoginModal }) => {
             {[
               {
                 path: "#",
-                label: "Buy",
-                onClick: () => handleNavigation("/buy"),
+                label: "Messaging",
+                onClick: () => handleNavigation("/messaging"),
               },
               {
                 path: "#",

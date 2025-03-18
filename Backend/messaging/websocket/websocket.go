@@ -9,6 +9,8 @@ import (
 	"messaging/models"
 	"messaging/repository"
 
+	"github.com/google/uuid"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -62,20 +64,23 @@ func (ws *WebSocketManager) Run() {
 			ws.mu.Unlock()
 
 		case msg := <-ws.Broadcast:
-			err := ws.Repo.SaveMessage(msg)
-			if err != nil {
-				log.Println("Error saving message:", err)
-			}
-
 			ws.mu.RLock()
-			receiverClient, exists := ws.Clients[msg.ReceiverID]
+			receiverClient, receiverExists := ws.Clients[msg.ReceiverID]
+			senderClient, senderExists := ws.Clients[msg.SenderID]
 			ws.mu.RUnlock()
 
-			if exists {
+			if receiverExists {
 				select {
 				case receiverClient.SendChan <- msg:
 				default:
 					ws.Unregister <- receiverClient
+				}
+			}
+			if senderExists {
+				select {
+				case senderClient.SendChan <- msg:
+				default:
+					ws.Unregister <- senderClient
 				}
 			}
 		}
@@ -103,11 +108,19 @@ func (c *Client) ReadPump() {
 			}
 			break
 		}
+		// Generate a new UUID if one doesn't exist
+		if msg.ID == "" {
+			msg.ID = uuid.New().String()
+		}
 
 		msg.SenderID = c.UserID
 		msg.Timestamp = time.Now().Unix()
 		msg.Read = false
 
+		if err := c.Manager.Repo.SaveMessage(msg); err != nil {
+			log.Println("Failed to save message(websocket):", err)
+			continue
+		}
 		c.Manager.Broadcast <- msg
 	}
 }
@@ -144,9 +157,10 @@ func (c *Client) WritePump() {
 }
 
 func (ws *WebSocketManager) SendOfflineMessages(userID uint) {
-	chatHistory, err := ws.Repo.GetConversation(userID)
+	// Get unread messages for the user.
+	unreadMessages, err := ws.Repo.GetUnreadMessages(userID)
 	if err != nil {
-		log.Println("Error fetching chat history:", err)
+		log.Println("Error fetching unread messages:", err)
 		return
 	}
 
@@ -155,8 +169,19 @@ func (ws *WebSocketManager) SendOfflineMessages(userID uint) {
 	ws.mu.RUnlock()
 
 	if exists {
-		for _, msg := range chatHistory {
-			client.SendChan <- msg
+		// Send each unread message to the client.
+		for _, msg := range unreadMessages {
+			select {
+			case client.SendChan <- msg:
+				//Mark the messages as read
+				err := ws.Repo.MarkMessageAsRead(msg.ID)
+				if err != nil {
+					log.Println("Error marking message as read:", err)
+				}
+			case <-time.After(1 * time.Second):
+				log.Println("Timeout sending offline message")
+				return
+			}
 		}
 	}
 }
