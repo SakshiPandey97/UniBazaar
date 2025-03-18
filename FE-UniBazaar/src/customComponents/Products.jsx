@@ -9,18 +9,9 @@ import {
 import Spinner from "./Spinner";
 import useProducts from "../hooks/useProducts";
 import ProductCard from "./ProductCard";
-import Modal from "@/customComponents/Modal"
-import useModal from "@/hooks/useModal";
 
 const Products = () => {
   const { products, loading, error } = useProducts();
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const { isModalOpen, toggleModal } = useModal();
-  
-  const closeModal = () => {
-    toggleModal();
-    setSelectedProductId(null);
-  };
   if (loading) return <Spinner />;
   if (error) return <div>{error}</div>;
 
@@ -53,10 +44,6 @@ const Products = () => {
 
         </Carousel>
       </div>
-
-      <Modal isOpen={isModalOpen} toggleModal={closeModal}>
-        {selectedProduct && <ProductDetailCard product={selectedProduct} />}
-      </Modal>{" "}
     </div>
   );
 };

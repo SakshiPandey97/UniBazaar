@@ -13,7 +13,7 @@ function InputField({
     <div className="flex flex-col mb-4 relative">
       <div className="flex justify-center">
         <Field
-          data_testid={data_testid}
+          data-testid={data_testid}  // ✅ Use the correct attribute
           placeholder={placeholder}
           type={type}
           id={name}

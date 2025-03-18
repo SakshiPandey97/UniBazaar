@@ -13,6 +13,7 @@ function UserLoginForm({ handleLoginFormSubmission }) {
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
+      role="form"
     >
       {({ isSubmitting, handleChange }) => (
         <Form className="w-full">
@@ -36,7 +37,7 @@ function UserLoginForm({ handleLoginFormSubmission }) {
 
           <div className="flex justify-center">
             <button
-              data_testid="submitLoginBtn"
+              data-testid="submitLoginBtn"
               type="submit"
               disabled={isSubmitting}
               className="w-1/3 hover:border-[#F58B00] border-2 p-2 bg-[#F58B00] hover:bg-[#FFC67D] text-balck font-bold py-2 px-4 rounded-md transition disabled:bg-gray-400"

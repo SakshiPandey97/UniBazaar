@@ -1,10 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import TeamMemberCard from "@/customComponents/TeamMemberCard";
-import SAKSHI_ICON from"@/assets/imgs/sakshi_icon.png"
-import SHUBHAM_ICON from"@/assets/imgs/shubham_icon.jpg"
-import AVANEESH_ICON from"@/assets/imgs/avaneesh_icon.webp"
-import TANMAY_ICON from"@/assets/imgs/tanmay_icon.webp"
+import SAKSHI_ICON from "@/assets/imgs/sakshi_icon.png";
+import SHUBHAM_ICON from "@/assets/imgs/shubham_icon.jpg";
+import AVANEESH_ICON from "@/assets/imgs/avaneesh_icon.webp";
+import TANMAY_ICON from "@/assets/imgs/tanmay_icon.webp";
 
 const AboutUsPage = () => {
   return (
@@ -20,7 +20,10 @@ const AboutUsPage = () => {
           About Us
         </motion.h1>
         <p className="mt-4 text-lg max-w-2xl mx-auto">
-          Empowering businesses with innovative solutions and cutting-edge technology.
+          UniBazaar is a hyper-localized online marketplace exclusively for
+          university students. We provide a platform for students to buy, sell,
+          and trade second-hand items within their campus communities, fostering
+          a trusted and sustainable exchange of goods.
         </p>
       </section>
 
@@ -35,8 +38,12 @@ const AboutUsPage = () => {
           Our Mission
         </motion.h2>
         <p className="mt-4 text-lg max-w-3xl mx-auto text-gray-600">
-          We aim to revolutionize the industry by providing top-notch services that drive success
-          and bring efficiency to businesses worldwide.
+          Our mission is to revolutionize the way university students access
+          affordable goods. We strive to provide a top-notch platform that
+          drives sustainability, reduces waste, and fosters a stronger sense of
+          community within universities worldwide. Through innovative features
+          and a user-centric approach, we aim to empower students to connect,
+          exchange, and thrive.
         </p>
       </section>
 
@@ -44,27 +51,25 @@ const AboutUsPage = () => {
       <section className="py-16 bg-gray-100">
         <div className="text-center">
           <h2 className="text-4xl font-bold text-gray-800">Meet Our Team</h2>
-          <p className="text-gray-600 mt-2">The talented individuals behind our success</p>
+          <p className="text-gray-600 mt-2">
+            The talented individuals behind our success
+          </p>
         </div>
         <div className="flex flex-wrap justify-center mt-10 gap-6">
           <TeamMemberCard
             name="Sakshi Pandey"
-            position="CEO & Founder"
             image={SAKSHI_ICON}
           />
           <TeamMemberCard
             name="Avaneesh Khandekar"
-            position="Head of Engineering"
             image={AVANEESH_ICON}
           />
           <TeamMemberCard
             name="Tanmay Saxena"
-            position="Marketing Director"
             image={TANMAY_ICON}
           />
           <TeamMemberCard
             name="Shubham Singh"
-            position="Lead Designer"
             image={SHUBHAM_ICON}
           />
         </div>

@@ -27,8 +27,6 @@ dist-ssr
 node_modules/
 
 # Ignore dependency lock files
-package-lock.json
-pnpm-lock.yaml
 yarn.lock
 
 # Ignore IDE files

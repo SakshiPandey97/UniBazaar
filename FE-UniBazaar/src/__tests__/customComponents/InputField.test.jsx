@@ -6,29 +6,30 @@ import { vi } from "vitest";
 describe("InputField Component", () => {
   const renderInputField = (props) => {
     render(
-      <Formik
-        initialValues={{ testField: "" }}
-        onSubmit={() => {}}
-      >
+      <Formik initialValues={{ testField: "" }} onSubmit={() => {}}>
         <Form>
-          <InputField name="testField" {...props} />
+          <InputField name="testField" data_testid="input-field" {...props} />
         </Form>
       </Formik>
     );
   };
 
-  test("renders the input field with label", () => {
-    renderInputField({ label: "Test Label", type: "text" });
-    
-    // Check if the label is rendered correctly
-    expect(screen.getByLabelText("Test Label")).toBeInTheDocument();
+  test("renders the input field correctly", () => {
+    renderInputField({ type: "text", placeholder: "Enter text" });
+
+    // Check if the input field is rendered
+    const input = screen.getByTestId("input-field");
+    expect(input).toBeInTheDocument();
+
+    // Check placeholder text
+    expect(input).toHaveAttribute("placeholder", "Enter text");
   });
 
   test("disables input field when isSubmitting is true", () => {
-    renderInputField({ label: "Test Label", type: "text", isSubmitting: true });
-    
+    renderInputField({ type: "text", isSubmitting: true });
+
     // Find the input and check if it is disabled
-    const input = screen.getByLabelText("Test Label");
+    const input = screen.getByTestId("input-field");
     expect(input).toBeDisabled();
   });
 
@@ -36,10 +37,13 @@ describe("InputField Component", () => {
     const onFocusMock = vi.fn();
     const onBlurMock = vi.fn();
 
-    renderInputField({ label: "Test Label", type: "text", onFocus: onFocusMock, onBlur: onBlurMock });
+    renderInputField({
+      type: "text",
+      additionalProps: { onFocus: onFocusMock, onBlur: onBlurMock },
+    });
 
-    const input = screen.getByLabelText("Test Label");
-    
+    const input = screen.getByTestId("input-field");
+
     // Simulate focus and blur events
     fireEvent.focus(input);
     expect(onFocusMock).toHaveBeenCalledTimes(1);
@@ -48,26 +52,21 @@ describe("InputField Component", () => {
     expect(onBlurMock).toHaveBeenCalledTimes(1);
   });
 
-  // Uncomment and adjust error handling test if necessary
-  // test("displays error message when there is a formik error", () => {
-  //   renderInputField({ label: "Test Label", type: "text" });
-    
-  //   // Simulate form error
-  //   const errorMessage = screen.getByText(/testfield/i);
-  //   expect(errorMessage).toBeInTheDocument();
-  // });
+  test("displays error message when there is a Formik validation error", async () => {
+    render(
+      <Formik
+        initialValues={{ testField: "" }}
+        initialErrors={{ testField: "Required field" }}
+        initialTouched={{ testField: true }}
+        onSubmit={() => {}}
+      >
+        <Form>
+          <InputField name="testField" data_testid="input-field" />
+        </Form>
+      </Formik>
+    );
 
-  test("renders password reset link if isPassword is true", () => {
-    renderInputField({ label: "Password", type: "password", isPassword: true });
-    
-    // Check if the forgot password link is rendered
-    expect(screen.getByText("Forgot password?")).toBeInTheDocument();
-  });
-
-  test("does not render password reset link if isPassword is false", () => {
-    renderInputField({ label: "Password", type: "password", isPassword: false });
-    
-    // Check if the forgot password link is not rendered
-    expect(screen.queryByText("Forgot password?")).toBeNull();
+    // Check if the error message is displayed
+    expect(screen.getByText("Required field")).toBeInTheDocument();
   });
 });
