@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"web-service/config"
-	"web-service/errors"
+	customerrors "web-service/errors"
 	"web-service/model"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -37,7 +37,7 @@ func (repo *MongoProductRepository) CreateProduct(product model.Product) error {
 
 	_, err := repo.collection.InsertOne(ctx, product)
 	if err != nil {
-		return errors.NewDatabaseError("Error inserting product", err)
+		return customerrors.NewDatabaseError("Error inserting product", err)
 	}
 
 	log.Printf("Product inserted successfully for UserId: %d, ProductId: %s\n", product.UserID, product.ProductID)
@@ -58,18 +58,18 @@ func (repo *MongoProductRepository) getProducts(filter bson.M, limit int) ([]mod
 
 	cursor, err := repo.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, errors.NewDatabaseError("Error fetching products using aggregation", err)
+		return nil, customerrors.NewDatabaseError("Error fetching products using aggregation", err)
 	}
 
 	defer cursor.Close(ctx)
 
 	var products []model.Product
 	if err := cursor.All(ctx, &products); err != nil {
-		return nil, errors.NewDatabaseError("Error decoding products", err)
+		return nil, customerrors.NewDatabaseError("Error decoding products", err)
 	}
 
 	if len(products) == 0 {
-		return nil, errors.NewNotFoundError("No products found", nil)
+		return nil, customerrors.NewNotFoundError("No products found", nil)
 	}
 
 	return products, nil
@@ -127,7 +127,7 @@ func (repo *MongoProductRepository) UpdateProduct(userID int, productID string, 
 
 	_, err := repo.collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
-		return errors.NewDatabaseError("Error updating product", err)
+		return customerrors.NewDatabaseError("Error updating product", err)
 	}
 
 	log.Printf("Product updated successfully for UserId: %d and ProductId: %s\n", userID, productID)
@@ -145,11 +145,11 @@ func (repo *MongoProductRepository) DeleteProduct(userID int, productID string) 
 
 	result, err := repo.collection.DeleteOne(context.Background(), filter)
 	if err != nil {
-		return errors.NewDatabaseError("Error deleting product", err)
+		return customerrors.NewDatabaseError("Error deleting product", err)
 	}
 
 	if result.DeletedCount == 0 {
-		return errors.NewNotFoundError("Product not found or already deleted", nil)
+		return customerrors.NewNotFoundError("Product not found or already deleted", nil)
 	}
 
 	log.Printf("Successfully deleted product with ProductID: %s for UserID: %d\n", productID, userID)
@@ -171,9 +171,9 @@ func (repo *MongoProductRepository) FindProductByUserAndId(userID int, productID
 	err := repo.collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.NewNotFoundError(fmt.Sprintf("Product not found for UserId: %d and ProductId: %s", userID, productID), nil)
+			return nil, customerrors.NewNotFoundError(fmt.Sprintf("Product not found for UserId: %d and ProductId: %s", userID, productID), nil)
 		}
-		return nil, errors.NewDatabaseError("Error fetching product", err)
+		return nil, customerrors.NewDatabaseError("Error fetching product", err)
 	}
 
 	return &result, nil
@@ -200,17 +200,17 @@ func (repo *MongoProductRepository) SearchProducts(query string, limit int) ([]m
 
 	cursor, err := repo.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, errors.NewDatabaseError("Error executing search", err)
+		return nil, customerrors.NewDatabaseError("Error executing search", err)
 	}
 	defer cursor.Close(ctx)
 
 	var products []model.Product
 	if err := cursor.All(ctx, &products); err != nil {
-		return nil, errors.NewDatabaseError("Error parsing search results", err)
+		return nil, customerrors.NewDatabaseError("Error parsing search results", err)
 	}
 
 	if len(products) == 0 {
-		return nil, errors.NewNotFoundError(fmt.Sprintf("No products found for query: %s", query), nil)
+		return nil, customerrors.NewNotFoundError(fmt.Sprintf("No products found for query: %s", query), nil)
 	}
 
 	return products, nil

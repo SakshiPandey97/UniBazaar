@@ -1,9 +1,16 @@
-package errors
+package customerrors
 
 import (
 	"fmt"
 	"net/http"
 )
+
+type CustomErrorInterface interface {
+	Error() string
+	GetStatusCode() int
+	GetMessage() string
+	GetCause() error
+}
 
 type CustomError struct {
 	Message    string
@@ -11,7 +18,7 @@ type CustomError struct {
 	Cause      error
 }
 
-func NewCusotmError(message string, statusCode int, cause error) *CustomError {
+func NewCustomError(message string, statusCode int, cause error) *CustomError {
 	return &CustomError{
 		Message:    message,
 		StatusCode: statusCode,
@@ -21,6 +28,18 @@ func NewCusotmError(message string, statusCode int, cause error) *CustomError {
 
 func (e *CustomError) Error() string {
 	return fmt.Sprintf("Error: %s, Cause: %v", e.Message, e.Cause)
+}
+
+func (e *CustomError) GetStatusCode() int {
+	return e.StatusCode
+}
+
+func (e *CustomError) GetMessage() string {
+	return e.Message
+}
+
+func (e *CustomError) GetCause() error {
+	return e.Cause
 }
 
 type NotFoundError struct {

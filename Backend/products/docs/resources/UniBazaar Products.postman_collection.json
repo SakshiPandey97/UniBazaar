@@ -296,13 +296,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/products/search?query=gun&limit=5",
+					"raw": "{{base_url}}/search/products?query=gun&limit=5",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"products",
-						"search"
+						"search",
+						"products"
 					],
 					"query": [
 						{

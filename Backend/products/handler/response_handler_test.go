@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"web-service/errors"
+	customerrors "web-service/errors"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,28 +20,28 @@ func TestHandleError(t *testing.T) {
 	}{
 		{
 			name:       "DatabaseError",
-			err:        errors.NewDatabaseError("DB error", nil),
+			err:        customerrors.NewDatabaseError("DB error", nil),
 			message:    "Test message",
 			wantStatus: http.StatusInternalServerError,
 			wantBody:   `{"error":"DB error","details":"Error: DB error, Cause: <nil>"}`,
 		},
 		{
 			name:       "NotFoundError",
-			err:        errors.NewNotFoundError("Not found", nil),
+			err:        customerrors.NewNotFoundError("Not found", nil),
 			message:    "Test message",
 			wantStatus: http.StatusNotFound,
 			wantBody:   `{"error":"Not found","details":"Error: Not found, Cause: <nil>"}`,
 		},
 		{
 			name:       "S3Error",
-			err:        errors.NewS3Error("S3 error", nil),
+			err:        customerrors.NewS3Error("S3 error", nil),
 			message:    "Test message",
 			wantStatus: http.StatusInternalServerError,
 			wantBody:   `{"error":"S3 error","details":"Error: S3 error, Cause: <nil>"}`,
 		},
 		{
 			name:       "BadRequestError",
-			err:        errors.NewBadRequestError("Bad request", nil),
+			err:        customerrors.NewBadRequestError("Bad request", nil),
 			message:    "Test message",
 			wantStatus: http.StatusBadRequest,
 			wantBody:   `{"error":"Bad request","details":"Error: Bad request, Cause: <nil>"}`,

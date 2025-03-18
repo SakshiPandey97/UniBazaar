@@ -290,7 +290,7 @@ func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Req
 // @Failure 400 {object} model.ErrorResponse "Invalid request or missing query parameter"
 // @Failure 404 {object} model.ErrorResponse "No products found for the given query"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /products/search [get]
+// @Router /search/products [get]
 func (h *ProductHandler) SearchProductsHandler(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 
@@ -316,7 +316,7 @@ func (h *ProductHandler) SearchProductsHandler(w http.ResponseWriter, r *http.Re
 func (h *ProductHandler) handleProductImageUpload(w http.ResponseWriter, r *http.Request, product *model.Product) (string, error) {
 	imageData, format, err := helper.ParseProductImage(r)
 	if err != nil {
-		handleErrorResponse(w, "Error reading image", err, http.StatusBadRequest)
+		HandleError(w, err, "Error reading image")
 		return "", err
 	}
 
