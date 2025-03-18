@@ -9,7 +9,10 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "Avaneesh Khandekar",
+            "email": "avaneesh.khandekar@gmail.com"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -28,6 +31,20 @@ const docTemplate = `{
                     "Products"
                 ],
                 "summary": "Get all products in the system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the last product to fetch",
+                        "name": "lastId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of products to fetch (default is 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "List of all products",
@@ -136,7 +153,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/products/{UserId}": {
+        "/products/{userId}": {
             "get": {
                 "description": "Fetch all products listed by a user, identified by their user ID. If no products are found, an error is returned.",
                 "consumes": [
@@ -153,9 +170,21 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "UserId",
+                        "name": "userId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of the last product to fetch",
+                        "name": "lastID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of products to fetch (default is 10)",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -189,7 +218,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/products/{UserId}/{ProductId}": {
+        "/products/{userId}/{productId}": {
             "put": {
                 "description": "Update a product's details based on the user ID and product ID. The product image is also updated if provided.",
                 "consumes": [
@@ -206,14 +235,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "UserId",
+                        "name": "userId",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Product ID",
-                        "name": "ProductId",
+                        "name": "productId",
                         "in": "path",
                         "required": true
                     },
@@ -264,14 +293,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "UserId",
+                        "name": "userId",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Product ID",
-                        "name": "ProductId",
+                        "name": "productId",
                         "in": "path",
                         "required": true
                     }
@@ -300,6 +329,59 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/search/products": {
+            "get": {
+                "description": "Searches products based on a query and optional limit.",
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Search products",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit the number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of products matching the search query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Product"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or missing query parameter",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No products found for the given query",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -310,12 +392,12 @@ const docTemplate = `{
                 "details": {
                     "description": "Detailed error message with multiple examples",
                     "type": "string",
-                    "example": "ProductPrice: cannot be empty or zero, Product not found"
+                    "example": "Product not found"
                 },
                 "error": {
                     "description": "Error message with example value",
                     "type": "string",
-                    "example": "Error updaing product"
+                    "example": "Error fetching product"
                 }
             }
         },
@@ -349,7 +431,7 @@ const docTemplate = `{
                     "example": "University of Florida"
                 },
                 "productPostDate": {
-                    "description": "Product post date (MM-DD-YYYY)",
+                    "description": "Product post date (time.Time)",
                     "type": "string",
                     "example": "02-20-2025"
                 },
@@ -376,9 +458,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "unibazaar-products.azurewebsites.net",
 	BasePath:         "/",
-	Schemes:          []string{},
+	Schemes:          []string{"https"},
 	Title:            "UniBazaar Products API",
 	Description:      "API for managing products in the UniBazaar marketplace for university students.",
 	InfoInstanceName: "swagger",

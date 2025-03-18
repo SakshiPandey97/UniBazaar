@@ -1,0 +1,68 @@
+name: Go CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Backend/products/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'Backend/products/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - name: Verify Go Modules
+      run: |
+        cd Backend/products
+        ls -la  # Debugging to check if go.mod and go.sum exist
+      shell: bash
+
+    - name: Ensure Dependencies are Installed
+      run: |
+        cd Backend/products
+        go mod tidy
+        go mod download
+      shell: bash
+
+    - name: Build Products Service
+      run: |
+        cd Backend/products
+        go build -v .
+      shell: bash
+
+    - name: Run Tests with Coverage
+      run: |
+        cd Backend/products
+        go test -v -coverprofile=coverage.out ./...
+      shell: bash
+
+    - name: Show Coverage Report
+      run: |
+        cd Backend/products
+        go tool cover -func=coverage.out
+      shell: bash
+
+    - name: Check Coverage Percentage (Optional)
+      run: |
+        cd Backend/products
+        coverage=$(go tool cover -func=coverage.out | awk 'NR>1 {sum+=$3} END {print sum/NR}')
+        echo "Coverage Percentage: $coverage"
+        if (( $(echo "$coverage < 80" | bc -l) )); then
+          echo "Coverage is below 80%. Failing build."
+          exit 1
+        fi
+      shell: bash

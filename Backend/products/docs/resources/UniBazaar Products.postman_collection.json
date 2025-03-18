@@ -19,50 +19,50 @@
 					"formdata": [
 						{
 							"key": "userId",
-							"value": "456",
+							"value": "1234",
 							"type": "text"
 						},
 						{
 							"key": "productTitle",
-							"value": "asd",
+							"value": "Surface Planer",
 							"type": "text"
 						},
 						{
 							"key": "productDescription",
-							"value": "Fast",
+							"value": "Smooth finish, easy adjustments",
 							"type": "text"
 						},
 						{
 							"key": "productPrice",
-							"value": "999",
+							"value": "140",
 							"type": "text"
 						},
 						{
 							"key": "productCondition",
-							"value": "1",
+							"value": "4",
 							"type": "text"
 						},
 						{
 							"key": "productLocation",
-							"value": "GNV",
+							"value": "Tallahassee",
 							"type": "text"
 						},
 						{
 							"key": "productPostDate",
-							"value": "12-02-2025",
+							"value": "01-02-2005",
 							"type": "text"
 						},
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/FCB 3.jpg"
+							"src": []
 						}
 					]
 				},
 				"url": {
-					"raw": "{{local_url}}/products",
+					"raw": "{{base_url}}/products",
 					"host": [
-						"{{local_url}}"
+						"{{base_url}}"
 					],
 					"path": [
 						"products"
@@ -106,7 +106,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/products?limit=5&lastId=",
+					"raw": "{{base_url}}/products?limit=100&lastId=ee0ee539-4f2c-4ecd-8f58-cf59183d4eb7",
 					"host": [
 						"{{base_url}}"
 					],
@@ -116,11 +116,11 @@
 					"query": [
 						{
 							"key": "limit",
-							"value": "5"
+							"value": "100"
 						},
 						{
 							"key": "lastId",
-							"value": ""
+							"value": "ee0ee539-4f2c-4ecd-8f58-cf59183d4eb7"
 						}
 					]
 				}
@@ -145,7 +145,7 @@
 						},
 						{
 							"key": "productId",
-							"value": "42003787-c02c-4363-bc51-7564076daabc",
+							"value": "1917324f-4947-4a77-9e15-a9419054876e",
 							"type": "text"
 						},
 						{
@@ -181,19 +181,19 @@
 						{
 							"key": "productImage",
 							"type": "file",
-							"src": "/C:/Users/avane/Pictures/Wallpapers/AC 8.jpg"
+							"src": []
 						}
 					]
 				},
 				"url": {
-					"raw": "{{local_url}}/products/456/42003787-c02c-4363-bc51-7564076daabc",
+					"raw": "{{base_url}}/products/456/1917324f-4947-4a77-9e15-a9419054876ea",
 					"host": [
-						"{{local_url}}"
+						"{{base_url}}"
 					],
 					"path": [
 						"products",
 						"456",
-						"42003787-c02c-4363-bc51-7564076daabc"
+						"1917324f-4947-4a77-9e15-a9419054876ea"
 					]
 				}
 			},
@@ -265,7 +265,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/products/456?limit=2&lastID=",
+					"raw": "{{base_url}}/products/456?limit=30&lastId=ee0ee539-4f2c-4ecd-8f58-cf59183d4eb7",
 					"host": [
 						"{{base_url}}"
 					],
@@ -276,11 +276,42 @@
 					"query": [
 						{
 							"key": "limit",
-							"value": "2"
+							"value": "30"
 						},
 						{
-							"key": "lastID",
-							"value": ""
+							"key": "lastId",
+							"value": "ee0ee539-4f2c-4ecd-8f58-cf59183d4eb7"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search Products",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/search/products?query=gun&limit=5",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"search",
+						"products"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "gun"
+						},
+						{
+							"key": "limit",
+							"value": "5"
 						}
 					]
 				}

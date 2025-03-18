@@ -5,11 +5,11 @@ definitions:
     properties:
       details:
         description: Detailed error message with multiple examples
-        example: 'ProductPrice: cannot be empty or zero, Product not found'
+        example: Product not found
         type: string
       error:
         description: Error message with example value
-        example: Error updaing product
+        example: Error fetching product
         type: string
     type: object
   model.Product:
@@ -36,7 +36,7 @@ definitions:
         example: University of Florida
         type: string
       productPostDate:
-        description: Product post date (MM-DD-YYYY)
+        description: Product post date (time.Time)
         example: 02-20-2025
         type: string
       productPrice:
@@ -52,9 +52,11 @@ definitions:
         example: 123
         type: integer
     type: object
-host: localhost:8080
+host: unibazaar-products.azurewebsites.net
 info:
-  contact: {}
+  contact:
+    email: avaneesh.khandekar@gmail.com
+    name: Avaneesh Khandekar
   description: API for managing products in the UniBazaar marketplace for university
     students.
   title: UniBazaar Products API
@@ -66,6 +68,15 @@ paths:
       - application/json
       description: Fetch all products from the system, regardless of the user ID.
         If no products are found, an error is returned.
+      parameters:
+      - description: ID of the last product to fetch
+        in: query
+        name: lastId
+        type: string
+      - description: Number of products to fetch (default is 10)
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
@@ -145,7 +156,7 @@ paths:
       summary: Create a new product
       tags:
       - Products
-  /products/{UserId}:
+  /products/{userId}:
     get:
       consumes:
       - application/json
@@ -154,8 +165,16 @@ paths:
       parameters:
       - description: User ID
         in: path
-        name: UserId
+        name: userId
         required: true
+        type: integer
+      - description: ID of the last product to fetch
+        in: query
+        name: lastID
+        type: string
+      - description: Number of products to fetch (default is 10)
+        in: query
+        name: limit
         type: integer
       produces:
       - application/json
@@ -181,19 +200,19 @@ paths:
       summary: Get all products for a specific user by user ID
       tags:
       - Products
-  /products/{UserId}/{ProductId}:
+  /products/{userId}/{productId}:
     delete:
       description: Delete a product from the system based on the user ID and product
         ID. This also removes the associated image from S3 if available.
       parameters:
       - description: User ID
         in: path
-        name: UserId
+        name: userId
         required: true
         type: integer
       - description: Product ID
         in: path
-        name: ProductId
+        name: productId
         required: true
         type: string
       responses:
@@ -222,12 +241,12 @@ paths:
       parameters:
       - description: User ID
         in: path
-        name: UserId
+        name: userId
         required: true
         type: integer
       - description: Product ID
         in: path
-        name: ProductId
+        name: productId
         required: true
         type: string
       - description: Product Details
@@ -258,4 +277,41 @@ paths:
       summary: Update a product by user ID and product ID
       tags:
       - Products
+  /search/products:
+    get:
+      description: Searches products based on a query and optional limit.
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - description: Limit the number of results
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: List of products matching the search query
+          schema:
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
+        "400":
+          description: Invalid request or missing query parameter
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: No products found for the given query
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Search products
+      tags:
+      - Products
+schemes:
+- https
 swagger: "2.0"

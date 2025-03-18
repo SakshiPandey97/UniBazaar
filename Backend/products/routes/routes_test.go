@@ -25,6 +25,11 @@ func (m *MockProductRepository) GetAllProducts(lastID string, limit int) ([]mode
 	return args.Get(0).([]model.Product), args.Error(1)
 }
 
+func (m *MockProductRepository) SearchProducts(query string, limit int) ([]model.Product, error) {
+	args := m.Called(query, limit)
+	return args.Get(0).([]model.Product), args.Error(1)
+}
+
 func (m *MockProductRepository) GetProductsByUserID(userID int, lastID string, limit int) ([]model.Product, error) {
 	args := m.Called(userID, lastID, limit)
 	return args.Get(0).([]model.Product), args.Error(1)

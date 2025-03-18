@@ -9,4 +9,5 @@ type ProductRepository interface {
 	UpdateProduct(userID int, productID string, product model.Product) error
 	DeleteProduct(userID int, productID string) error
 	FindProductByUserAndId(userID int, productID string) (*model.Product, error)
+	SearchProducts(query string, limit int) ([]model.Product, error)
 }

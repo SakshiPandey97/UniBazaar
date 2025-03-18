@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+	customerrors "web-service/errors"
 	"web-service/model"
 )
 
@@ -27,6 +28,9 @@ func TestGetUserID_InvalidInput(t *testing.T) {
 			_, err := GetUserID(input)
 			if err == nil {
 				t.Errorf("Expected error for input '%s', but got nil", input)
+			}
+			if _, ok := err.(*customerrors.BadRequestError); !ok {
+				t.Errorf("Expected BadRequestError for input '%s', but got %T", input, err)
 			}
 		})
 	}
@@ -65,6 +69,22 @@ func TestParseFormAndCreateProduct_ValidData(t *testing.T) {
 	if product.ProductTitle != "Sample Product" {
 		t.Errorf("Expected title: 'Sample Product', got: '%s'", product.ProductTitle)
 	}
+
+	if product.ProductID == "" {
+		t.Errorf("ProductID should not be empty, got: %v", product.ProductID)
+	}
+
+	if product.ProductPostDate.Format("01-02-2006") != "03-03-2025" {
+		t.Errorf("Expected post date: 03-03-2025, got: %v", product.ProductPostDate.Format("01-02-2006"))
+	}
+
+	if product.ProductCondition != 1 {
+		t.Errorf("Expected condition: 1, got: %d", product.ProductCondition)
+	}
+
+	if product.ProductPrice != 99.99 {
+		t.Errorf("Expected price: 99.99, got: %f", product.ProductPrice)
+	}
 }
 
 func TestParseFormAndCreateProduct_MissingOrInvalidData(t *testing.T) {
@@ -72,9 +92,11 @@ func TestParseFormAndCreateProduct_MissingOrInvalidData(t *testing.T) {
 		name     string
 		formData url.Values
 	}{
-		{"Missing Product Title", url.Values{"productDescription": {"A great product"}}},
-		{"Invalid Product Condition", url.Values{"productCondition": {"not_a_number"}}},
-		{"Invalid Product Price", url.Values{"productPrice": {"not_a_number"}}},
+		{"Missing Product Title", url.Values{"productDescription": {"A great product"}, "productPostDate": {"03-03-2025"}}},
+		{"Invalid Product Condition", url.Values{"productCondition": {"not_a_number"}, "productPostDate": {"03-03-2025"}}},
+		{"Invalid Product Price", url.Values{"productPrice": {"not_a_number"}, "productPostDate": {"03-03-2025"}}},
+		{"Missing Product Post Date", url.Values{"productTitle": {"title"}}},
+		{"Invalid Product Post Date", url.Values{"productPostDate": {"33-33-3333"}}},
 	}
 
 	for _, tt := range tests {
@@ -84,6 +106,9 @@ func TestParseFormAndCreateProduct_MissingOrInvalidData(t *testing.T) {
 
 			if err == nil {
 				t.Errorf("Expected error for case '%s', but got nil", tt.name)
+			}
+			if _, ok := err.(*customerrors.BadRequestError); !ok {
+				t.Errorf("Expected BadRequestError for input '%s', but got %T", tt.name, err)
 			}
 		})
 	}
@@ -154,5 +179,26 @@ func TestParseLimit(t *testing.T) {
 				t.Errorf("For input '%s', expected %d, but got %d", tt.limitStr, tt.expected, result)
 			}
 		})
+	}
+}
+
+func TestCheckParam_Valid(t *testing.T) {
+	param := "validParam"
+	result, err := CheckParam(param)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if result != param {
+		t.Errorf("Expected '%s', got '%s'", param, result)
+	}
+}
+
+func TestCheckParam_Empty(t *testing.T) {
+	_, err := CheckParam("")
+	if err == nil {
+		t.Errorf("Expected error for empty param, but got nil")
+	}
+	if _, ok := err.(*customerrors.BadRequestError); !ok {
+		t.Errorf("Expected BadRequestError, got %T", err)
 	}
 }
