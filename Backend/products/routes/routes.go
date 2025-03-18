@@ -14,7 +14,7 @@ func RegisterProductRoutes(router *mux.Router, productHandler *handler.ProductHa
 	router.HandleFunc("/products/{UserId}", productHandler.GetAllProductsByUserIDHandler).Methods("GET")
 	router.HandleFunc("/products/{UserId}/{ProductId}", productHandler.UpdateProductHandler).Methods("PUT")
 	router.HandleFunc("/products/{UserId}/{ProductId}", productHandler.DeleteProductHandler).Methods("DELETE")
-	router.HandleFunc("/search/products", productHandler.SearchProductsHandler).Methods("GET")
+	router.HandleFunc("/products/search", productHandler.SearchProductsHandler).Methods("GET")
 }
 
 func SetupCORS(router *mux.Router) http.Handler {

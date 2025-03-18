@@ -17,8 +17,11 @@ import (
 // @title UniBazaar Products API
 // @version 1.0
 // @description API for managing products in the UniBazaar marketplace for university students.
-// @host localhost:8080
+// @host unibazaar-products.azurewebsites.net
+// @schemes https
 // @BasePath /
+// @contact.name Avaneesh Khandekar
+// @contact.email avaneesh.khandekar@gmail.com
 func main() {
 	err := godotenv.Load()
 	if err != nil {

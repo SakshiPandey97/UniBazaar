@@ -106,14 +106,14 @@ func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Re
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param UserId path int true "User ID"
+// @Param userId path int true "User ID"
 // @Param lastID query string false "ID of the last product to fetch" required=false
 // @Param limit query int false "Number of products to fetch (default is 10)" required=false
 // @Success 200 {array} model.Product "List of products"
 // @Failure 400 {object} model.ErrorResponse "Invalid user ID"
 // @Failure 404 {object} model.ErrorResponse "No products found for the given user ID"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /products/{UserId} [get]
+// @Router /products/{userId} [get]
 func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
@@ -146,14 +146,14 @@ func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r 
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param UserId path int true "User ID"
-// @Param ProductId path string true "Product ID"
+// @Param userId path int true "User ID"
+// @Param productId path string true "Product ID"
 // @Param product body model.Product true "Product Details"
 // @Success 200 {object} model.Product "Updated product"
 // @Failure 400 {object} model.ErrorResponse "Invalid request"
 // @Failure 404 {object} model.ErrorResponse "Product not found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /products/{UserId}/{ProductId} [put]
+// @Router /products/{userId}/{productId} [put]
 func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
@@ -221,13 +221,13 @@ func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Req
 // @Summary Delete a product by user ID and product ID
 // @Description Delete a product from the system based on the user ID and product ID. This also removes the associated image from S3 if available.
 // @Tags Products
-// @Param UserId path int true "User ID"
-// @Param ProductId path string true "Product ID"
+// @Param userId path int true "User ID"
+// @Param productId path string true "Product ID"
 // @Success 204 "Product deleted"
 // @Failure 400 {object} model.ErrorResponse "Invalid request"
 // @Failure 404 {object} model.ErrorResponse "Product not found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /products/{UserId}/{ProductId} [delete]
+// @Router /products/{userId}/{productId} [delete]
 func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
@@ -281,17 +281,16 @@ func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Search for products based on a query
-// @Description Search for products in the system based on the query string. Returns a list of products matching the search criteria, with a limit on the number of results.
+// @Summary Search products
+// @Description Searches products based on a query and optional limit.
 // @Tags Products
-// @Accept json
-// @Produce json
-// @Param query query string true "Search query for products"
-// @Param limit query int false "Number of products to fetch (default is 10)" required=false
-// @Success 200 {array} model.Product "List of products matching the search query"
-// @Failure 400 {object} model.ErrorResponse "Search query is required"
+// @Param query query string true "Search query"
+// @Param limit query int false "Limit the number of results"
+// @Success 200 {object} []model.Product "List of products matching the search query"
+// @Failure 400 {object} model.ErrorResponse "Invalid request or missing query parameter"
+// @Failure 404 {object} model.ErrorResponse "No products found for the given query"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /search/products [get]
+// @Router /products/search [get]
 func (h *ProductHandler) SearchProductsHandler(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 
