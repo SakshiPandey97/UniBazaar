@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { userVerificationAPI } from "@/api/axios";
+import { userVerificationAPI } from "@/api/userAxios";
 
 export function useOtpHandler(email) {
   const [otp, setOtp] = useState("");

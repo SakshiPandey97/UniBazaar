@@ -1,4 +1,4 @@
-import { userLoginAPI, userRegisterAPI } from "@/api/axios";
+import { userLoginAPI, userRegisterAPI } from "@/api/userAxios";
 import { useUserAuth } from "@/hooks/useUserAuth";
 import { useState } from "react";
 

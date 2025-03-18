@@ -1,7 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi } from "vitest";
 import useProducts from "../../hooks/useProducts";
-import { getAllProductsAPI } from "../../api/axios";
+import { getAllProductsAPI } from "../../api/userAxios";
 
 vi.mock("../../api/axios", () => ({
   getAllProductsAPI: vi.fn(() => Promise.resolve([
