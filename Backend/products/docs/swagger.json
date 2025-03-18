@@ -22,6 +22,20 @@
                     "Products"
                 ],
                 "summary": "Get all products in the system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the last product to fetch",
+                        "name": "lastId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of products to fetch (default is 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "List of all products",
@@ -150,6 +164,18 @@
                         "name": "UserId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of the last product to fetch",
+                        "name": "lastID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of products to fetch (default is 10)",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -294,6 +320,59 @@
                     }
                 }
             }
+        },
+        "/search/products": {
+            "get": {
+                "description": "Search for products in the system based on the query string. Returns a list of products matching the search criteria, with a limit on the number of results.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Search for products based on a query",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query for products",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of products to fetch (default is 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of products matching the search query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Product"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Search query is required",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -343,7 +422,7 @@
                     "example": "University of Florida"
                 },
                 "productPostDate": {
-                    "description": "Product post date (MM-DD-YYYY)",
+                    "description": "Product post date (time.Time)",
                     "type": "string",
                     "example": "02-20-2025"
                 },

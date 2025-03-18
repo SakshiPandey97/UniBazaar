@@ -16,6 +16,8 @@ const useProducts = () => {
         const data = await getAllProductsAPI(limit, lastId); 
         
         const mappedProducts = data.map((item) => new Product(item));
+        console.log("LOGGING HERE")
+        console.log(mappedProducts.userId)
         const sortedProducts = mappedProducts.sort(
           (a, b) => new Date(b.productPostDate) - new Date(a.productPostDate)
         );

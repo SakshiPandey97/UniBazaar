@@ -2,12 +2,12 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"web-service/config"
+	"web-service/errors"
 	"web-service/model"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,11 +29,6 @@ func (repo *MongoProductRepository) getContextWithTimeout() (context.Context, co
 	return context.WithTimeout(context.Background(), 5*time.Second)
 }
 
-func (repo *MongoProductRepository) handleRepoError(err error, context string) error {
-	log.Printf("%s: %v\n", context, err)
-	return fmt.Errorf("%s: %w", context, err)
-}
-
 func (repo *MongoProductRepository) CreateProduct(product model.Product) error {
 	log.Printf("Attempting to insert product for UserId: %d\n", product.UserID)
 
@@ -42,7 +37,7 @@ func (repo *MongoProductRepository) CreateProduct(product model.Product) error {
 
 	_, err := repo.collection.InsertOne(ctx, product)
 	if err != nil {
-		return repo.handleRepoError(err, "Error inserting product")
+		return errors.NewDatabaseError("Error inserting product", err)
 	}
 
 	log.Printf("Product inserted successfully for UserId: %d, ProductId: %s\n", product.UserID, product.ProductID)
@@ -63,17 +58,18 @@ func (repo *MongoProductRepository) getProducts(filter bson.M, limit int) ([]mod
 
 	cursor, err := repo.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, repo.handleRepoError(err, "Error fetching products using aggregation")
+		return nil, errors.NewDatabaseError("Error fetching products using aggregation", err)
 	}
+
 	defer cursor.Close(ctx)
 
 	var products []model.Product
 	if err := cursor.All(ctx, &products); err != nil {
-		return nil, repo.handleRepoError(err, "Error decoding products")
+		return nil, errors.NewDatabaseError("Error decoding products", err)
 	}
 
 	if len(products) == 0 {
-		return nil, repo.handleRepoError(errors.New("no products found"), fmt.Sprintf("Error fetching products"))
+		return nil, errors.NewNotFoundError("No products found", nil)
 	}
 
 	return products, nil
@@ -129,16 +125,12 @@ func (repo *MongoProductRepository) UpdateProduct(userID int, productID string, 
 
 	opts := options.Update().SetUpsert(true)
 
-	result, err := repo.collection.UpdateOne(ctx, filter, update, opts)
+	_, err := repo.collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
-		return repo.handleRepoError(err, "Error updating product")
+		return errors.NewDatabaseError("Error updating product", err)
 	}
 
-	if result.MatchedCount == 0 && result.UpsertedCount > 0 {
-		log.Printf("Product inserted for UserId: %d and ProductId: %s\n", userID, productID)
-	} else {
-		log.Printf("Product updated successfully for UserId: %d and ProductId: %s\n", userID, productID)
-	}
+	log.Printf("Product updated successfully for UserId: %d and ProductId: %s\n", userID, productID)
 
 	return nil
 }
@@ -153,11 +145,11 @@ func (repo *MongoProductRepository) DeleteProduct(userID int, productID string) 
 
 	result, err := repo.collection.DeleteOne(context.Background(), filter)
 	if err != nil {
-		return repo.handleRepoError(err, "Error deleting product")
+		return errors.NewDatabaseError("Error deleting product", err)
 	}
 
 	if result.DeletedCount == 0 {
-		return errors.New("product not found or already deleted")
+		return errors.NewNotFoundError("Product not found or already deleted", nil)
 	}
 
 	log.Printf("Successfully deleted product with ProductID: %s for UserID: %d\n", productID, userID)
@@ -179,10 +171,47 @@ func (repo *MongoProductRepository) FindProductByUserAndId(userID int, productID
 	err := repo.collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, repo.handleRepoError(errors.New("no products found"), fmt.Sprintf("Product not found for UserId: %d and ProductId: %s", userID, productID))
+			return nil, errors.NewNotFoundError(fmt.Sprintf("Product not found for UserId: %d and ProductId: %s", userID, productID), nil)
 		}
-		return nil, repo.handleRepoError(err, "Error fetching product")
+		return nil, errors.NewDatabaseError("Error fetching product", err)
 	}
 
 	return &result, nil
+}
+
+func (repo *MongoProductRepository) SearchProducts(query string, limit int) ([]model.Product, error) {
+	ctx, cancel := repo.getContextWithTimeout()
+	defer cancel()
+
+	pipeline := mongo.Pipeline{
+		bson.D{
+			bson.E{Key: "$search", Value: bson.D{
+				bson.E{Key: "index", Value: "Products"},
+				bson.E{Key: "text", Value: bson.D{
+					bson.E{Key: "query", Value: query},
+					bson.E{Key: "path", Value: []string{"ProductTitle", "ProductDescription"}},
+				}},
+			}},
+		},
+		bson.D{
+			bson.E{Key: "$limit", Value: limit},
+		},
+	}
+
+	cursor, err := repo.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, errors.NewDatabaseError("Error executing search", err)
+	}
+	defer cursor.Close(ctx)
+
+	var products []model.Product
+	if err := cursor.All(ctx, &products); err != nil {
+		return nil, errors.NewDatabaseError("Error parsing search results", err)
+	}
+
+	if len(products) == 0 {
+		return nil, errors.NewNotFoundError(fmt.Sprintf("No products found for query: %s", query), nil)
+	}
+
+	return products, nil
 }

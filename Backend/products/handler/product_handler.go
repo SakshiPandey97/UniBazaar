@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -47,30 +45,30 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 
 	userID, err := helper.GetUserID(r.FormValue("userId"))
 	if err != nil {
-		handleErrorResponse(w, "Invalid userId", err, http.StatusBadRequest)
+		HandleError(w, err, "Invalid userId")
 		return
 	}
 
 	product, err := helper.ParseFormAndCreateProduct(r, userID)
 	if err != nil {
-		handleErrorResponse(w, "Error creating product", err, http.StatusBadRequest)
+		HandleError(w, err, "Error creating product")
 		return
 	}
-
 	product.UserID = userID
 
 	s3ImageKey, err := h.handleProductImageUpload(w, r, &product)
 	if err != nil {
 		return
 	}
+
 	product.ProductImage = s3ImageKey
 
 	if err := h.ProductRepo.CreateProduct(product); err != nil {
-		handleErrorResponse(w, "Error creating product in database", err, http.StatusInternalServerError)
+		HandleError(w, err, "Error creating product")
 		return
 	}
 
-	handleSuccessResponse(w, http.StatusCreated, product)
+	HandleSuccessResponse(w, http.StatusCreated, product)
 }
 
 // @Summary Get all products in the system
@@ -94,13 +92,13 @@ func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Re
 
 	products, err := h.ProductRepo.GetAllProducts(lastID, limit)
 	if err != nil {
-		handleErrorResponse(w, "Error fetching products", err, http.StatusInternalServerError)
+		HandleError(w, err, "Error fetching products")
 		return
 	}
 
 	products = h.ImageRepo.GetPreSignedURLs(products)
 
-	handleSuccessResponse(w, http.StatusOK, products)
+	HandleSuccessResponse(w, http.StatusOK, products)
 }
 
 // @Summary Get all products for a specific user by user ID
@@ -119,7 +117,7 @@ func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Re
 func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
-		handleErrorResponse(w, "Invalid userId", err, http.StatusBadRequest)
+		HandleError(w, err, "Invalid userId")
 		return
 	}
 
@@ -132,7 +130,7 @@ func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r 
 
 	products, err := h.ProductRepo.GetProductsByUserID(userID, lastID, limit)
 	if err != nil {
-		handleErrorResponse(w, "Error fetching products for user", err, http.StatusNotFound)
+		HandleError(w, err, "Error fetching products")
 		return
 	}
 
@@ -140,7 +138,7 @@ func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r 
 
 	log.Printf("Found %d products for user ID %d\n", len(products), userID)
 
-	handleSuccessResponse(w, http.StatusOK, products)
+	HandleSuccessResponse(w, http.StatusOK, products)
 }
 
 // @Summary Update a product by user ID and product ID
@@ -159,25 +157,25 @@ func (h *ProductHandler) GetAllProductsByUserIDHandler(w http.ResponseWriter, r 
 func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
-		handleErrorResponse(w, "Invalid or missing userId", err, http.StatusBadRequest)
+		HandleError(w, err, "Invalid userId")
 		return
 	}
 
-	productId := mux.Vars(r)["ProductId"]
-	if productId == "" {
-		handleErrorResponse(w, "Missing productId in URL parameters", nil, http.StatusBadRequest)
+	productId, err := helper.CheckParam(mux.Vars(r)["ProductId"])
+	if err != nil {
+		HandleError(w, err, "Error checking product ID")
 		return
 	}
 
 	existingProduct, err := h.ProductRepo.FindProductByUserAndId(userId, productId)
 	if err != nil {
-		handleErrorResponse(w, "Error fetching product", err, http.StatusNotFound)
+		HandleError(w, err, "Error updating product")
 		return
 	}
 
 	updatedProduct, err := helper.ParseFormAndCreateProduct(r, userId)
 	if err != nil {
-		handleErrorResponse(w, "Error parsing form data", err, http.StatusBadRequest)
+		HandleError(w, err, "Invalid userId")
 		return
 	}
 
@@ -205,7 +203,7 @@ func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	if imageUploadErr != nil {
-		handleErrorResponse(w, "Error uploading new image", imageUploadErr, http.StatusInternalServerError)
+		HandleError(w, imageUploadErr, "Error uploading image")
 		return
 	}
 
@@ -213,11 +211,11 @@ func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Req
 
 	err = h.ProductRepo.UpdateProduct(userId, productId, updatedProduct)
 	if err != nil {
-		handleErrorResponse(w, "Error updating product", err, http.StatusInternalServerError)
+		HandleError(w, err, "Error updating product")
 		return
 	}
 
-	handleSuccessResponse(w, http.StatusOK, updatedProduct)
+	HandleSuccessResponse(w, http.StatusOK, updatedProduct)
 }
 
 // @Summary Delete a product by user ID and product ID
@@ -233,13 +231,13 @@ func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Req
 func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := helper.GetUserID(mux.Vars(r)["UserId"])
 	if err != nil {
-		handleErrorResponse(w, "Invalid or missing userId", err, http.StatusBadRequest)
+		HandleError(w, err, "Invalid userId")
 		return
 	}
 
-	productId := mux.Vars(r)["ProductId"]
-	if productId == "" {
-		handleErrorResponse(w, "Missing productId in path parameters", errors.New("productId is required"), http.StatusBadRequest)
+	productId, err := helper.CheckParam(mux.Vars(r)["ProductId"])
+	if err != nil {
+		HandleError(w, err, "Error checking product ID")
 		return
 	}
 
@@ -247,7 +245,7 @@ func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Req
 
 	product, err := h.ProductRepo.FindProductByUserAndId(userId, productId)
 	if err != nil {
-		handleErrorResponse(w, "Error fetching product", err, http.StatusNotFound)
+		HandleError(w, err, "Error updating product")
 		return
 	}
 
@@ -270,16 +268,50 @@ func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Req
 	wg.Wait()
 
 	if imageDeleteErr != nil {
-		log.Printf("Error deleting image from S3: %v\n", imageDeleteErr)
+		HandleError(w, imageDeleteErr, "Error deleting image")
+		return
 	}
 
 	if dbDeleteErr != nil {
-		handleErrorResponse(w, "Error deleting product", dbDeleteErr, http.StatusInternalServerError)
+		HandleError(w, dbDeleteErr, "Error deleting product")
 		return
 	}
 
 	log.Printf("Product with ID %s deleted successfully.\n", productId)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary Search for products based on a query
+// @Description Search for products in the system based on the query string. Returns a list of products matching the search criteria, with a limit on the number of results.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param query query string true "Search query for products"
+// @Param limit query int false "Number of products to fetch (default is 10)" required=false
+// @Success 200 {array} model.Product "List of products matching the search query"
+// @Failure 400 {object} model.ErrorResponse "Search query is required"
+// @Failure 500 {object} model.ErrorResponse "Internal Server Error"
+// @Router /search/products [get]
+func (h *ProductHandler) SearchProductsHandler(w http.ResponseWriter, r *http.Request) {
+	limitStr := r.URL.Query().Get("limit")
+
+	limit := helper.ParseLimit(limitStr)
+
+	query, err := helper.CheckParam(r.URL.Query().Get("query"))
+	if err != nil {
+		HandleError(w, err, "Missing search query parameter")
+		return
+	}
+
+	products, err := h.ProductRepo.SearchProducts(query, limit)
+	if err != nil {
+		HandleError(w, err, "Error fetching search results")
+		return
+	}
+
+	products = h.ImageRepo.GetPreSignedURLs(products)
+
+	HandleSuccessResponse(w, http.StatusOK, products)
 }
 
 func (h *ProductHandler) handleProductImageUpload(w http.ResponseWriter, r *http.Request, product *model.Product) (string, error) {
@@ -291,42 +323,8 @@ func (h *ProductHandler) handleProductImageUpload(w http.ResponseWriter, r *http
 
 	s3ImageKey, err := h.ImageRepo.UploadImage(product.ProductID, r.FormValue("userId"), imageData.Bytes(), format)
 	if err != nil {
-		handleErrorResponse(w, "Error uploading image to S3", err, http.StatusInternalServerError)
+		HandleError(w, err, "Error uploading image to S3")
 		return "", err
 	}
 	return s3ImageKey, nil
-}
-
-func handleErrorResponse(w http.ResponseWriter, message string, err error, statusCode int) {
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-
-	response := model.ErrorResponse{
-		Error:   message,
-		Details: "",
-	}
-
-	if err != nil {
-		response.Details = err.Error()
-	}
-
-	if encodeErr := json.NewEncoder(w).Encode(response); encodeErr != nil {
-		log.Printf("Error encoding JSON response: %v\n", encodeErr)
-	}
-
-	log.Printf("Error [%d]: %s - %v\n", statusCode, message, err)
-}
-
-func handleSuccessResponse(w http.ResponseWriter, statusCode int, data interface{}) {
-	log.Printf("Success [%d]: Response sent successfully\n", statusCode)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		handleErrorResponse(w, "Error encoding response", err, http.StatusInternalServerError)
-		return
-	}
-	log.Printf("Success [%d]: Response sent successfully\n", statusCode)
 }

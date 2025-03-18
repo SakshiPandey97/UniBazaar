@@ -1,12 +1,12 @@
 package helper
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+	"web-service/errors"
 	"web-service/model"
 
 	"github.com/google/uuid"
@@ -15,7 +15,7 @@ import (
 func GetUserID(userId string) (int, error) {
 	userID, err := strconv.Atoi(userId)
 	if err != nil {
-		return 0, errors.New("invalid userId, must be an integer")
+		return 0, errors.NewBadRequestError("invalid userId, must be an integer", err)
 	}
 	return userID, nil
 }
@@ -33,7 +33,7 @@ func ParseFormAndCreateProduct(r *http.Request, userId int) (model.Product, erro
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		log.Printf("Error parsing form data: %v", err)
-		return model.Product{}, fmt.Errorf("failed to parse form data: %w", err)
+		return model.Product{}, errors.NewBadRequestError("failed to parse form data", err)
 	}
 
 	product := model.Product{
@@ -48,11 +48,11 @@ func ParseFormAndCreateProduct(r *http.Request, userId int) (model.Product, erro
 	if productPostDate := r.FormValue("productPostDate"); productPostDate != "" {
 		parsedDate, err := time.Parse("01-02-2006", productPostDate)
 		if err != nil {
-			return model.Product{}, fmt.Errorf("invalid product post date format: %v", err)
+			return model.Product{}, errors.NewBadRequestError("invalid product post date format", err)
 		}
 		product.ProductPostDate = parsedDate
 	} else {
-		return model.Product{}, fmt.Errorf("product post date is required")
+		return model.Product{}, errors.NewBadRequestError("product post date is required", nil)
 	}
 
 	if product.ProductID == "" {
@@ -61,12 +61,12 @@ func ParseFormAndCreateProduct(r *http.Request, userId int) (model.Product, erro
 
 	if err := parseNumericalFormValues(r, &product); err != nil {
 		log.Printf("Error parsing numerical form values: %v", err)
-		return model.Product{}, err
+		return model.Product{}, errors.NewBadRequestError("failed to parse numerical form values", err)
 	}
 
 	if err := product.Validate(); err != nil {
 		log.Printf("Product validation failed: %v", err)
-		return model.Product{}, err
+		return model.Product{}, errors.NewBadRequestError("product validation failed", err)
 	}
 
 	return product, nil
@@ -86,4 +86,11 @@ func parseNumericalFormValues(r *http.Request, product *model.Product) error {
 	}
 
 	return nil
+}
+
+func CheckParam(param string) (string, error) {
+	if param == "" {
+		return "", errors.NewBadRequestError("Missing param in URL parameters", nil)
+	}
+	return param, nil
 }

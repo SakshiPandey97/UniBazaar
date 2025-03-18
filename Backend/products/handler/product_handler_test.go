@@ -49,6 +49,11 @@ func (m *MockProductRepository) DeleteProduct(userID int, productID string) erro
 	return args.Error(0)
 }
 
+func (m *MockProductRepository) SearchProducts(query string, limit int) ([]model.Product, error) {
+	args := m.Called(query, limit)
+	return args.Get(0).([]model.Product), args.Error(1)
+}
+
 func (m *MockProductRepository) FindProductByUserAndId(userID int, productID string) (*model.Product, error) {
 	args := m.Called(userID, productID)
 	return args.Get(0).(*model.Product), args.Error(1)
@@ -164,7 +169,7 @@ func TestGetAllProductsHandler(t *testing.T) {
 		{UserID: 2, ProductTitle: "Product 2", ProductID: "product2"},
 	}
 
-	lastID := "product1"
+	lastID := ""
 	limit := 5
 
 	mockProductRepo.On("GetAllProducts", lastID, limit).Return(products, nil)
@@ -191,16 +196,21 @@ func TestGetAllProductsByUserIDHandler(t *testing.T) {
 		{UserID: userID, ProductTitle: "Product 2", ProductID: "product2"},
 	}
 
-	lastID := "product1"
+	lastID := ""
 	limit := 5
 
-	mockProductRepo.On("GetAllProducts", lastID, limit).Return(products, nil)
+	mockProductRepo.On("GetProductsByUserID", userID, lastID, limit).Return(products, nil)
 	mockImageRepo.On("GetPreSignedURLs", mock.Anything).Return(products)
 
-	req, _ := http.NewRequest("GET", "/products?lastID="+lastID+"&limit="+strconv.Itoa(limit), nil)
+	req, _ := http.NewRequest("GET", "/products/user/1?lastID="+lastID+"&limit="+strconv.Itoa(limit), nil)
 	rr := httptest.NewRecorder()
 
-	handler.GetAllProductsHandler(rr, req)
+	vars := map[string]string{
+		"UserId": "1",
+	}
+	req = mux.SetURLVars(req, vars)
+
+	handler.GetAllProductsByUserIDHandler(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	mockProductRepo.AssertExpectations(t)
@@ -226,7 +236,7 @@ func TestUpdateProductHandler(t *testing.T) {
 		ProductCondition:   4,
 		ProductPrice:       199.99,
 		ProductLocation:    "New Location",
-		ProductImage:       "new-image.png",
+		ProductImage:       "test-image-key",
 	}
 
 	file, err := CreateMockImage("jpeg")
@@ -269,7 +279,7 @@ func TestUpdateProductHandler(t *testing.T) {
 
 	mockProductRepo.On("FindProductByUserAndId", 1, "test-product-id").Return(product, nil)
 	mockProductRepo.On("UpdateProduct", 1, "test-product-id", mock.AnythingOfType("model.Product")).Return(nil)
-	mockImageRepo.On("DeleteImage", mock.Anything).Return(nil)
+	mockImageRepo.On("DeleteImage", "test-image-key").Return(nil)
 	mockImageRepo.On("UploadImage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("new-image-key", nil)
 
 	handler.UpdateProductHandler(rr, req)
@@ -308,6 +318,32 @@ func TestDeleteProductHandler(t *testing.T) {
 	handler.DeleteProductHandler(rr, req)
 
 	assert.Equal(t, http.StatusNoContent, rr.Code)
+	mockProductRepo.AssertExpectations(t)
+	mockImageRepo.AssertExpectations(t)
+}
+
+func TestSearchProductsHandler(t *testing.T) {
+	mockProductRepo := new(MockProductRepository)
+	mockImageRepo := new(MockImageRepository)
+	handler := NewProductHandler(mockProductRepo, mockImageRepo)
+
+	query := "test"
+	limit := 5
+
+	products := []model.Product{
+		{UserID: 1, ProductTitle: "Test Product 1", ProductID: "product1"},
+		{UserID: 2, ProductTitle: "Another Test Product", ProductID: "product2"},
+	}
+
+	mockProductRepo.On("SearchProducts", query, limit).Return(products, nil)
+	mockImageRepo.On("GetPreSignedURLs", products).Return(products)
+
+	req, _ := http.NewRequest("GET", "/products/search?query="+query+"&limit="+strconv.Itoa(limit), nil)
+	rr := httptest.NewRecorder()
+
+	handler.SearchProductsHandler(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
 	mockProductRepo.AssertExpectations(t)
 	mockImageRepo.AssertExpectations(t)
 }
