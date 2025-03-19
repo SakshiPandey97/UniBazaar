@@ -1,65 +1,70 @@
-import { render, screen } from '@testing-library/react';
-import ProductCard from '../../customComponents/ProductCard'; // Adjust the import according to your file structure
+import { render, screen, fireEvent } from '@testing-library/react';
+import ProductCard from '../../customComponents/ProductCard'; // Adjust import path
 import { generateStars } from '@/utils/generateStar';
 
-// Mock the generateStars function to simplify the test output
+// Mock the generateStars function
 vi.mock('@/utils/generateStar', () => ({
   generateStars: vi.fn(),
 }));
 
 describe('ProductCard', () => {
   const mockProps = {
-    title: 'Sample Product',
-    price: 99.99,
-    condition: 4,
-    image: 'https://via.placeholder.com/150',
-    description: 'A description of the product.',
+    product: {
+      productTitle: 'Sample Product',
+      productPrice: 99.99,
+      productCondition: 4,
+      productImage: 'https://via.placeholder.com/150',
+      productDescription: 'A sample product description.',
+    },
+    onClick: vi.fn(),
   };
 
   beforeEach(() => {
-    // Reset mocks before each test
     generateStars.mockClear();
   });
 
-  it('renders product title and description correctly', () => {
+  it('renders product title correctly', () => {
     render(<ProductCard {...mockProps} />);
 
-    // Check title is rendered
-    expect(screen.getByText('Sample Product')).toBeInTheDocument();
-    
-    // Check description is not directly rendered, as it's not part of the displayed JSX
-    // You can modify the component to display description if needed.
+    // Ensure the product title is displayed in the non-hover state
+    const [visibleTitle] = screen.getAllByText(mockProps.product.productTitle);
+    expect(visibleTitle).toBeInTheDocument();
   });
 
-  it('renders the correct image', () => {
+  it('renders the correct image with alt text', () => {
     render(<ProductCard {...mockProps} />);
     
     // Check if the image has the correct src and alt attributes
-    const img = screen.getByAltText('Sample Product');
-    expect(img).toHaveAttribute('src', 'https://via.placeholder.com/150');
+    const img = screen.getByAltText(mockProps.product.productTitle);
+    expect(img).toHaveAttribute('src', mockProps.product.productImage);
   });
 
   it('renders the stars based on condition', () => {
-    generateStars.mockReturnValue(<div>⭐⭐⭐⭐</div>); // Return a mock star representation
+    generateStars.mockReturnValue(<div>⭐⭐⭐⭐</div>); // Mock star representation
 
     render(<ProductCard {...mockProps} />);
 
-    // Check if the stars are rendered correctly
-    expect(generateStars).toHaveBeenCalledWith(mockProps.condition);
+    // Ensure the function is called with the correct condition
+    expect(generateStars).toHaveBeenCalledWith(mockProps.product.productCondition);
     expect(screen.getByText('⭐⭐⭐⭐')).toBeInTheDocument();
   });
 
   it('renders the price correctly', () => {
     render(<ProductCard {...mockProps} />);
 
-    // Check if the price is rendered
-    expect(screen.getByText('$99.99')).toBeInTheDocument();
+    // Check if the price is displayed correctly
+    expect(screen.getByText(`$${mockProps.product.productPrice}`)).toBeInTheDocument();
   });
 
-  it('renders the button with correct text', () => {
+  it('renders the Message button and handles click event', () => {
     render(<ProductCard {...mockProps} />);
-    
-    // Check if the button text is correct
-    expect(screen.getByText('Read More')).toBeInTheDocument();
+
+    // Check if the button is present
+    const messageButton = screen.getByText('Message');
+    expect(messageButton).toBeInTheDocument();
+
+    // Simulate click event
+    fireEvent.click(messageButton);
+    expect(mockProps.onClick).toHaveBeenCalled();
   });
 });
