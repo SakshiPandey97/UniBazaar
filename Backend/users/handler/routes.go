@@ -161,11 +161,13 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid JSON input", http.StatusBadRequest)
 		return
 	}
+
 	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusUnauthorized)
 		return
 	}
+
 	match, err := argon2id.ComparePasswordAndHash(input.Password, user.Password)
 	if err != nil {
 		http.Error(w, "error verifying password", http.StatusInternalServerError)
@@ -175,13 +177,26 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return
 	}
+
+	// Generate a JWT token with 2-day expiry
+	tokenString, err := utils.GenerateJWT(*user)
+	if err != nil {
+		http.Error(w, "failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
 	userID, err := app.Models.UserModel.GetUserIdByEmail(input.Email)
 	if err != nil {
 		http.Error(w, "failed to fetch user ID", http.StatusInternalServerError)
 		return
 	}
+
+	// Return userId and token to client
+	responseData := map[string]interface{}{
+		"userId": userID,
+		"token":  tokenString,
+	}
 	w.Header().Set("Content-Type", "application/json")
-	responseData := map[string]interface{}{"userId": userID}
 	json.NewEncoder(w).Encode(responseData)
 	w.WriteHeader(http.StatusOK)
 }
@@ -263,38 +278,45 @@ func (app *Application) VerifyJWTHandler(w http.ResponseWriter, r *http.Request)
 
 	jwtToken, err := utils.ParseJWT(authToken)
 	if err != nil {
-		fmt.Println("error occurred while parsing the provided JWT Token")
+		fmt.Println("error parsing the provided JWT Token:", err)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
+	// if jwtToken.Valid == false, the token is invalid or expired
+	if !jwtToken.Valid {
+		fmt.Println("token is invalid or expired")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// Access claims
 	claims, ok := jwtToken.Claims.(jwt.MapClaims)
-
 	if !ok {
-		fmt.Println("error occurred while retrieving claims")
+		fmt.Println("error retrieving claims")
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
+	// Extract "user" sub-claims
 	userMap, ok := claims["user"].(map[string]interface{})
-
 	if !ok {
-		fmt.Println("error while retrieving claims")
+		fmt.Println("error retrieving user claims")
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
+	// Reconstruct user struct if desired
 	userClaim := models.User{
-		Name:     userMap["Name"].(string),
-		Email:    userMap["Email"].(string),
-		Password: userMap["Phone"].(string),
+		Name:  fmt.Sprintf("%v", userMap["Name"]),
+		Email: fmt.Sprintf("%v", userMap["Email"]),
+		Phone: fmt.Sprintf("%v", userMap["Phone"]),
 	}
 
-	fmt.Printf("user: %v \n", userClaim)
-	if jwtToken.Valid {
-		fmt.Println("token provided are valid")
-		_, err = w.Write([]byte(fmt.Sprintf("%v", userClaim)))
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
+	fmt.Printf("JWT is valid. User from token: %#v\n", userClaim)
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(fmt.Sprintf("Token valid. User: %v", userClaim)))
 }
 
 func (app *Application) GetJWTHandler(w http.ResponseWriter, r *http.Request) {
@@ -309,51 +331,51 @@ func (app *Application) GetJWTHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := dec.Decode(&input)
 	if err != nil {
-		fmt.Println("error occureed while decoding input: " + err.Error())
+		fmt.Println("error occurred while decoding input:", err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
 	}
 	user := models.CreateUser(input.Name, input.Email, input.Phone)
 	authToken, err := utils.GenerateJWT(*user)
 	if err != nil {
 		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Authorization", "Bearer "+authToken)
-	_, err = w.Write([]byte("JWT generated succesfully!"))
-	if err != nil {
-		fmt.Println(err)
-	}
-
+	_, _ = w.Write([]byte("JWT generated successfully!"))
 }
 
 func (app *Application) enableCORS(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000") // Allow frontend
-        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-        // Handle preflight requests
-        if r.Method == "OPTIONS" {
-            w.WriteHeader(http.StatusOK)
-            return
-        }
-        next.ServeHTTP(w, r)
-    })
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (app *Application) Routes() http.Handler {
-
 	router := httprouter.New()
-	router.HandlerFunc("POST", "/signup", app.SignUpHandler) //new
-	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler) //new
-	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler) //new
-	router.HandlerFunc("POST", "/updatePassword", app.UpdatePasswordHandler) //new
+
+	router.HandlerFunc("POST", "/signup", app.SignUpHandler)
+	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler)
+	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler)
+	router.HandlerFunc("POST", "/updatePassword", app.UpdatePasswordHandler)
 	router.HandlerFunc("POST", "/deleteUser", app.DeleteUserHandler)
 	router.HandlerFunc("POST", "/displayUser", app.DisplayUserHandler)
 	router.HandlerFunc("POST", "/login", app.LoginHandler)
-	router.HandlerFunc("POST", "/updateName", app.UpdateNameHandler) //new
-	router.HandlerFunc("POST", "/updatePhone", app.UpdatePhoneHandler) //new
-	router.HandlerFunc(http.MethodPost, "/getjwt", app.GetJWTHandler) //new
-	router.HandlerFunc(http.MethodGet, "/verifyjwt", app.VerifyJWTHandler) //new
+	router.HandlerFunc("POST", "/updateName", app.UpdateNameHandler)
+	router.HandlerFunc("POST", "/updatePhone", app.UpdatePhoneHandler)
+
+	// JWT demos
+	router.HandlerFunc(http.MethodPost, "/getjwt", app.GetJWTHandler)
+	router.HandlerFunc(http.MethodGet, "/verifyjwt", app.VerifyJWTHandler)
 
 	return app.enableCORS(router)
 }
