@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 export const useFetchMessages = (userId, selectedUser, setMessages) => { 
     useEffect(() => {
-        if (!selectedUser || !userId) return;
+        if (!selectedUser || !userId) return; // Ensure both IDs are available before making the request
 
         const fetchMessages = async () => {
             try {
@@ -17,9 +17,16 @@ export const useFetchMessages = (userId, selectedUser, setMessages) => {
                 }
 
                 const data = await res.json();
-                setMessages(data);
+
+                // Ensure the response is an array, even if it's empty
+                if (Array.isArray(data)) {
+                    setMessages(data.length > 0 ? data : []); // Set an empty array if no messages exist
+                } else {
+                    setMessages([]); // Default to empty array if unexpected response
+                }
             } catch (error) {
                 console.error("Failed to load messages:", error);
+                setMessages([]); // Ensure the UI doesn't break if fetching fails
             }
         };
 
