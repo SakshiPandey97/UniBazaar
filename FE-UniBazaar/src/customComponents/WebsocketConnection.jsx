@@ -6,7 +6,7 @@ const useWebSocket = (userId, onMessageReceived) => {
     useEffect(() => {
       if (!userId) return;
   
-      const newWs = new WebSocket(`ws://localhost:8080/ws?user_id=${userId}`);
+      const newWs = new WebSocket(`ws://44.211.190.101:8080/ws?user_id=${userId}`);
       ws.current = newWs;
   
       newWs.onopen = () => {

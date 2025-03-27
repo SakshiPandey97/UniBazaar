@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 
 export const useFetchMessages = (userId, selectedUser, setMessages) => { 
     useEffect(() => {
-        if (!selectedUser || !userId) return; // Ensure both IDs are available before making the request
+        if (!selectedUser || !userId) return; 
 
         const fetchMessages = async () => {
             try {
-                const url = `http://localhost:8080/api/conversation/${userId}/${selectedUser.id}`;
+                const url = `http://44.211.190.101:8080/api/conversation/${userId}/${selectedUser.id}`;
                 console.log("Fetching messages from:", url);
                 const res = await fetch(url);
 
@@ -18,15 +18,14 @@ export const useFetchMessages = (userId, selectedUser, setMessages) => {
 
                 const data = await res.json();
 
-                // Ensure the response is an array, even if it's empty
                 if (Array.isArray(data)) {
-                    setMessages(data.length > 0 ? data : []); // Set an empty array if no messages exist
+                    setMessages(data.length > 0 ? data : []); 
                 } else {
-                    setMessages([]); // Default to empty array if unexpected response
+                    setMessages([]); 
                 }
             } catch (error) {
                 console.error("Failed to load messages:", error);
-                setMessages([]); // Ensure the UI doesn't break if fetching fails
+                setMessages([]); 
             }
         };
 
