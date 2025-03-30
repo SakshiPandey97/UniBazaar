@@ -34,8 +34,8 @@ func GenerateJWT(user models.User) (string, error) {
 
 	claims := jwt.MapClaims{
 		"user": userMap,
-		"exp":  expirationTime,       // standard expiration claim
-		"iat":  time.Now().Unix(),    // issued at
+		"exp":  expirationTime,    // standard expiration claim
+		"iat":  time.Now().Unix(), // issued at
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
