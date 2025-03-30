@@ -10,8 +10,8 @@ During **Sprint 3**, our primary focus was on enhancing user management, strengt
 | Issue                                                                                       | Status   | Type                 |
 | ------------------------------------------------------------------------------------------- | -------- | -------------------- |
 | Pagination support for GET endpoints in products services                                   | ✅ Closed | Backend, Sprint v3   |
-| Add a Search API tp support full text search over products                                  | ✅ Closed | Backend, Sprint v3   |
-| Custom Error Handlign in produtcs API to return approrpiate status and messages efficiently | ✅ Closed | Backend, Sprint v3   |
+| Add a Search API to support full text search over products                                  | ✅ Closed | Backend, Sprint v3   |
+| Custom Error Handling in produtcs API to return appropriate status and messages efficiently | ✅ Closed | Backend, Sprint v3   |
 | Create products page and load paginated results into the UI                                 | ✅ Closed | Frontend, Sprint v3 |
 
 ---
