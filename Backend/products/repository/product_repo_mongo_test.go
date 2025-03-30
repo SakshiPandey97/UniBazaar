@@ -19,8 +19,8 @@ func (m *MockProductRepository) CreateProduct(product model.Product) error {
 	return args.Error(0)
 }
 
-func (m *MockProductRepository) GetAllProducts() ([]model.Product, error) {
-	args := m.Called()
+func (m *MockProductRepository) GetAllProducts(lastID string, limit int) ([]model.Product, error) {
+	args := m.Called(lastID, limit)
 	return args.Get(0).([]model.Product), args.Error(1)
 }
 
@@ -42,6 +42,11 @@ func (m *MockProductRepository) DeleteProduct(userID int, productID string) erro
 func (m *MockProductRepository) FindProductByUserAndId(userID int, productID string) (*model.Product, error) {
 	args := m.Called(userID, productID)
 	return args.Get(0).(*model.Product), args.Error(1)
+}
+
+func (m *MockProductRepository) SearchProducts(query string, limit int) ([]model.Product, error) {
+	args := m.Called(query, limit)
+	return args.Get(0).([]model.Product), args.Error(1)
 }
 
 func TestCreateProduct(t *testing.T) {
@@ -73,12 +78,15 @@ func TestCreateProduct_Error(t *testing.T) {
 func TestGetAllProducts(t *testing.T) {
 	mockRepo := new(MockProductRepository)
 
-	mockRepo.On("GetAllProducts").Return([]model.Product{
+	lastID := "prod100"
+	limit := 2
+
+	mockRepo.On("GetAllProducts", lastID, limit).Return([]model.Product{
 		{UserID: 1, ProductID: "prod123"},
 		{UserID: 2, ProductID: "prod456"},
 	}, nil)
 
-	products, err := mockRepo.GetAllProducts()
+	products, err := mockRepo.GetAllProducts(lastID, limit)
 
 	assert.NoError(t, err)
 	assert.Len(t, products, 2)
@@ -148,5 +156,109 @@ func TestFindProductByUserAndId(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, product)
 	assert.Equal(t, productID, product.ProductID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestSearchProducts_Success(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+	query := "laptop"
+	limit := 2
+
+	expectedProducts := []model.Product{
+		{UserID: 1, ProductID: "prod123", ProductTitle: "Laptop X1"},
+		{UserID: 2, ProductID: "prod456", ProductTitle: "Gaming Laptop"},
+	}
+
+	mockRepo.On("SearchProducts", query, limit).Return(expectedProducts, nil)
+
+	products, err := mockRepo.SearchProducts(query, limit)
+
+	assert.NoError(t, err)
+	assert.Len(t, products, 2)
+	assert.Equal(t, "Laptop X1", products[0].ProductTitle)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestSearchProducts_NoResults(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+	query := "laptop"
+	limit := 2
+
+	mockRepo.On("SearchProducts", query, limit).Return([]model.Product{}, errors.New("no products found"))
+
+	products, err := mockRepo.SearchProducts(query, limit)
+
+	assert.Error(t, err)
+	assert.Equal(t, "no products found", err.Error())
+	assert.Len(t, products, 0)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestSearchProducts_DatabaseError(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+	query := "laptop"
+	limit := 2
+
+	mockRepo.On("SearchProducts", query, limit).Return([]model.Product{}, errors.New("database error"))
+
+	products, err := mockRepo.SearchProducts(query, limit)
+
+	assert.Error(t, err)
+	assert.Equal(t, "database error", err.Error())
+	assert.Len(t, products, 0)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetAllProducts_Pagination_Success(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+
+	lastID := "prod100"
+	limit := 2
+
+	mockRepo.On("GetAllProducts", lastID, limit).Return([]model.Product{
+		{UserID: 1, ProductID: "prod123"},
+		{UserID: 2, ProductID: "prod456"},
+	}, nil)
+
+	products, err := mockRepo.GetAllProducts(lastID, limit)
+
+	assert.NoError(t, err)
+	assert.Len(t, products, 2)
+	assert.Equal(t, "prod123", products[0].ProductID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetAllProducts_Pagination_NoLastID_Success(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+
+	lastID := ""
+	limit := 3
+
+	mockRepo.On("GetAllProducts", lastID, limit).Return([]model.Product{
+		{UserID: 1, ProductID: "prod123"},
+		{UserID: 2, ProductID: "prod456"},
+		{UserID: 3, ProductID: "prod789"},
+	}, nil)
+
+	products, err := mockRepo.GetAllProducts(lastID, limit)
+
+	assert.NoError(t, err)
+	assert.Len(t, products, 3)
+	assert.Equal(t, "prod123", products[0].ProductID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetAllProducts_Pagination_EmptyResults(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+
+	lastID := "prod999"
+	limit := 2
+
+	mockRepo.On("GetAllProducts", lastID, limit).Return([]model.Product{}, nil)
+
+	products, err := mockRepo.GetAllProducts(lastID, limit)
+
+	assert.NoError(t, err)
+	assert.Len(t, products, 0)
 	mockRepo.AssertExpectations(t)
 }
