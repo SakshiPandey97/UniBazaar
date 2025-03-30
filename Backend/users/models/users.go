@@ -263,7 +263,6 @@ func (e UserModel) InitiatePasswordReset(email string) error {
 	return nil
 }
 
-
 func (e UserModel) VerifyResetCodeAndSetNewPassword(email, code, newPassword string) error {
 	user, err := e.Read(email)
 	if err != nil {
@@ -297,7 +296,6 @@ func (e UserModel) VerifyResetCodeAndSetNewPassword(email, code, newPassword str
 	return nil
 }
 
-
 func sendOTPEmail(toEmail, code, subject string) error {
 	from := sgmail.NewEmail("UniBazaar Support", "unibazaar.marketplace@gmail.com")
 	to := sgmail.NewEmail("User", toEmail)
@@ -316,8 +314,8 @@ func sendOTPEmail(toEmail, code, subject string) error {
 }
 
 func CreateUser(name string, email string, phone string) *User {
-	user := User {
-		Name: name,
+	user := User{
+		Name:  name,
 		Email: email,
 		Phone: phone,
 	}
