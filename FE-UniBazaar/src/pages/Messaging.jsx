@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { getCurrentUserId } from "../utils/getUserId";
 import useWebSocket from "@/customComponents/WebsocketConnection";
 import { useFetchMessages } from "@/hooks/useFetchMessages";
@@ -12,18 +12,19 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
-  const [typing, setTyping] = useState(false);
 
   const { users, loadingUsers } = useFetchUsers(userId);
 
   const handleMessageReceived = useCallback((message) => {
-    setMessages((prevMessages) => [...prevMessages, message]);
+    setMessages((prevMessages) => {
+        return [...prevMessages, message];
+    });
   }, []);
 
   const ws = useWebSocket(userId, handleMessageReceived);
   useFetchMessages(userId, selectedUser, setMessages);
 
-  const handleTyping = useRef(useTypingIndicator(setInput, setTyping)).current;
+  const handleTyping = useTypingIndicator(setInput);
 
   const sendMessage = useSendMessage(userId, selectedUser, users, ws, input, setInput);
 
@@ -64,8 +65,6 @@ const Chat = () => {
               userId={userId}
               selectedUser={selectedUser}
             />
-
-            {typing && <p className="text-sm text-gray-500">Typing...</p>}
 
             <div className="flex gap-2">
               <input

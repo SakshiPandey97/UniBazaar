@@ -1,7 +1,10 @@
 package main
 
 import (
+	"database/sql"
+	"errors"
 	"messaging/models"
+	"messaging/repository"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,6 +13,14 @@ import (
 
 type MockMessageRepository struct {
 	mock.Mock
+}
+
+type MockDB struct {
+	mock.Mock
+}
+
+func (m *MockDB) Close() error {
+	return m.Called().Error(0)
 }
 
 func (m *MockMessageRepository) SaveMessage(msg models.Message) error {
@@ -46,6 +57,18 @@ func (m *MockMessageRepository) GetConversation(user1ID, user2ID uint) ([]models
 	return nil, args.Error(1)
 }
 
+type MockUserRepository struct {
+	mock.Mock
+}
+
+func (m *MockUserRepository) GetAllUsers() ([]models.User, error) {
+	args := m.Called()
+	if args.Get(0) != nil {
+		return args.Get(0).([]models.User), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func TestSaveMessage(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
 	msg := models.Message{
@@ -56,6 +79,20 @@ func TestSaveMessage(t *testing.T) {
 	mockRepo.On("SaveMessage", msg).Return(nil)
 	err := mockRepo.SaveMessage(msg)
 	assert.Nil(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestSaveMessageError(t *testing.T) {
+	mockRepo := new(MockMessageRepository)
+	msg := models.Message{
+		SenderID:   1,
+		ReceiverID: 2,
+		Content:    "Hello, World!",
+	}
+	expectedError := errors.New("database error")
+	mockRepo.On("SaveMessage", msg).Return(expectedError)
+	err := mockRepo.SaveMessage(msg)
+	assert.Equal(t, expectedError, err)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -72,11 +109,30 @@ func TestGetLatestMessages(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func TestGetLatestMessagesError(t *testing.T) {
+	mockRepo := new(MockMessageRepository)
+	expectedError := errors.New("database error")
+	mockRepo.On("GetLatestMessages", 10).Return(nil, expectedError)
+	messages, err := mockRepo.GetLatestMessages(10)
+	assert.Equal(t, expectedError, err)
+	assert.Nil(t, messages)
+	mockRepo.AssertExpectations(t)
+}
+
 func TestMarkMessageAsRead(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
 	mockRepo.On("MarkMessageAsRead", "1").Return(nil)
 	err := mockRepo.MarkMessageAsRead("1")
 	assert.Nil(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestMarkMessageAsReadError(t *testing.T) {
+	mockRepo := new(MockMessageRepository)
+	expectedError := errors.New("database error")
+	mockRepo.On("MarkMessageAsRead", "1").Return(expectedError)
+	err := mockRepo.MarkMessageAsRead("1")
+	assert.Equal(t, expectedError, err)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -92,6 +148,16 @@ func TestGetUnreadMessages(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func TestGetUnreadMessagesError(t *testing.T) {
+	mockRepo := new(MockMessageRepository)
+	expectedError := errors.New("database error")
+	mockRepo.On("GetUnreadMessages", uint(2)).Return(nil, expectedError)
+	messages, err := mockRepo.GetUnreadMessages(2)
+	assert.Equal(t, expectedError, err)
+	assert.Nil(t, messages)
+	mockRepo.AssertExpectations(t)
+}
+
 func TestGetConversation(t *testing.T) {
 	mockRepo := new(MockMessageRepository)
 	expectedMessages := []models.Message{
@@ -103,4 +169,57 @@ func TestGetConversation(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, expectedMessages, messages)
 	mockRepo.AssertExpectations(t)
+}
+
+func TestGetConversationError(t *testing.T) {
+	mockRepo := new(MockMessageRepository)
+	expectedError := errors.New("database error")
+	mockRepo.On("GetConversation", uint(1), uint(2)).Return(nil, expectedError)
+	messages, err := mockRepo.GetConversation(1, 2)
+	assert.Equal(t, expectedError, err)
+	assert.Nil(t, messages)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetAllUsers(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	expectedUsers := []models.User{
+		{ID: 1, Name: "User 1", Email: "user1@example.com"},
+		{ID: 2, Name: "User 2", Email: "user2@example.com"},
+	}
+	mockRepo.On("GetAllUsers").Return(expectedUsers, nil)
+	users, err := mockRepo.GetAllUsers()
+	assert.Nil(t, err)
+	assert.Equal(t, expectedUsers, users)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetAllUsersError(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	expectedError := errors.New("database error")
+	mockRepo.On("GetAllUsers").Return(nil, expectedError)
+	users, err := mockRepo.GetAllUsers()
+	assert.Equal(t, expectedError, err)
+	assert.Nil(t, users)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestNewUserRepository(t *testing.T) {
+	db := &sql.DB{}
+
+	userRepo := repository.NewUserRepository(db)
+
+	assert.NotNil(t, userRepo)
+
+	assert.Equal(t, db, userRepo.DB)
+}
+
+func TestNewMessageRepository(t *testing.T) {
+	db := &sql.DB{}
+
+	messageRepo := repository.NewMessageRepository(db)
+
+	assert.NotNil(t, messageRepo)
+
+	assert.Equal(t, db, messageRepo.DB)
 }
