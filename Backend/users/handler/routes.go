@@ -283,7 +283,6 @@ func (app *Application) VerifyJWTHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// if jwtToken.Valid == false, the token is invalid or expired
 	if !jwtToken.Valid {
 		fmt.Println("token is invalid or expired")
 		w.WriteHeader(http.StatusUnauthorized)

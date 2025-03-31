@@ -10,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// StructToMap converts a struct's fields into a map[string]interface{}
+// StructToMap converts a struct's fields into a map
 func StructToMap(data interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	val := reflect.ValueOf(data)
@@ -27,15 +27,12 @@ func StructToMap(data interface{}) map[string]interface{} {
 // GenerateJWT creates a JWT token valid for 2 days
 func GenerateJWT(user models.User) (string, error) {
 	userMap := StructToMap(user)
-
-	// We must store "exp" as a numeric timestamp.
-	// 2 days = 48 hours
 	expirationTime := time.Now().Add(48 * time.Hour).Unix()
 
 	claims := jwt.MapClaims{
 		"user": userMap,
-		"exp":  expirationTime,    // standard expiration claim
-		"iat":  time.Now().Unix(), // issued at
+		"exp":  expirationTime,
+		"iat":  time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -51,10 +48,9 @@ func GenerateJWT(user models.User) (string, error) {
 	return tokenString, nil
 }
 
-// ParseJWT verifies the token signature, checks expiry, etc.
+// ParseJWT verifies the token
 func ParseJWT(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Ensure we only accept HMAC signing
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -66,6 +62,5 @@ func ParseJWT(tokenString string) (*jwt.Token, error) {
 		return nil, err
 	}
 
-	// token.Valid will be false if the token is expired or the signature is invalid
 	return token, nil
 }
