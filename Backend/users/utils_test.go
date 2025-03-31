@@ -19,9 +19,9 @@ func TestGenerateJWT(t *testing.T) {
 
 	user := models.User{
 		UserID: 42,
-		Name:   "John Doe",
-		Email:  "john@ufl.edu",
-		Phone:  "5551234567",
+		Name:   "Jason Bourne",
+		Email:  "jason@ufl.edu",
+		Phone:  "5551994567",
 	}
 
 	tokenString, err := utils.GenerateJWT(user)
@@ -37,9 +37,9 @@ func TestParseJWTValidToken(t *testing.T) {
 
 	user := models.User{
 		UserID: 42,
-		Name:   "John Doe",
-		Email:  "john@ufl.edu",
-		Phone:  "5551234567",
+		Name:   "Jason Bourne",
+		Email:  "jason@ufl.edu",
+		Phone:  "5551994567",
 	}
 
 	// Generate a token
@@ -56,8 +56,8 @@ func TestParseJWTValidToken(t *testing.T) {
 	assert.True(t, ok, "Expected 'user' key in claims")
 
 	assert.Equal(t, float64(42), userMap["UserID"], "UserID should match")
-	assert.Equal(t, "John Doe", userMap["Name"], "Name should match")
-	assert.Equal(t, "john@ufl.edu", userMap["Email"], "Email should match")
+	assert.Equal(t, "Jason Bourne", userMap["Name"], "Name should match")
+	assert.Equal(t, "jason@ufl.edu", userMap["Email"], "Email should match")
 }
 
 // TestParseJWTInvalidToken checks that an invalid token fails
