@@ -1428,7 +1428,6 @@ These unit tests help ensure the reliability of the backend user management func
 
 ---
 
-
 # Messaging System API Documentation
 
 ## Table of Contents
@@ -1440,24 +1439,25 @@ These unit tests help ensure the reliability of the backend user management func
 6. [User Handling](#4-user-handling)
 7. [Data Models](#5-data-models)
 8. [Repository Functions](#6-repository-functions)
-9. [Conclusion](#conclusion)
+9. [AWS Migration](#8-aws-migration)
+10. [Conclusion](#conclusion)
 
 ---
 
 ## Overview
-The Messaging System API provides functionality for real-time messaging between users. It supports WebSocket connections for live message transmission, REST endpoints for fetching messages, and user management operations. The system also includes chat history persistence, ensuring messages remain accessible even if a user gets disconnected.
+The Messaging System API provides functionality for real-time messaging between users. It supports WebSocket connections for live message transmission, REST endpoints for fetching messages, and user management operations. The system ensures chat history persistence, allowing users to retrieve messages even after disconnections. With updates in Sprint 3, offline message retrieval and user connection management have been enhanced for a more robust real-time experience.
 
 ---
 
 ## Endpoints Overview
 Below is a summary of the available endpoints in this API:
 
-| **Method** | **Endpoint**                                                | **Description**                                 | **Usage**                                 |
-| ---------- | ----------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------- |
-| `GET`      | `/ws?user_id={user_id}`                                     | WebSocket connection for real-time messaging.   | Establishes WebSocket connection.         |
-| `POST`     | `/send`                                                     | Sends a message from one user to another.       | Accepts a JSON payload to send a message. |
-| `GET`      | `/messages?sender_id={sender_id}&receiver_id={receiver_id}` | Retrieves messages exchanged between two users. | Fetches messages by sender and receiver.  |
-| `GET`      | `/users`                                                    | Retrieves all registered users in the system.   | Fetches a list of all users.              |
+| **Method** | **Endpoint**                                                | **Description**                                           | **Usage**                                 |
+| ---------- | ----------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------- |
+| `GET`      | `/ws?user_id={user_id}`                                     | WebSocket connection for real-time messaging.             | Establishes WebSocket connection.         |
+| `POST`     | `/messages`                                                 | Sends a message from one user to another.                 | Accepts a JSON payload to send a message. |
+| `GET`      | `/api/conversation/{user1ID}/{user2ID}`                     | Retrieves messages exchanged between two users.           | Fetches the conversation between two users.|
+| `GET`      | `/users`                                                    | Retrieves all registered users in the system.             | Fetches a list of all users.              |
 
 ---
 
@@ -1482,6 +1482,7 @@ Below is a summary of the available endpoints in this API:
 - When a client connects, the system assigns a persistent session.
 - If a user gets disconnected, the system retains their chat history for seamless recovery upon reconnection.
 - Heartbeat signals ensure the connection remains active, and reconnections are handled automatically.
+- WebSocket message handling logic has been enhanced to account for new user connections and broadcast messages.
 
 ---
 
@@ -1489,14 +1490,14 @@ Below is a summary of the available endpoints in this API:
 
 ### `HandleSendMessage(w http.ResponseWriter, r *http.Request)`
 **Method:** `POST`  
-**Endpoint:** `/send`  
+**Endpoint:** `/messages`  
 **Description:** Accepts a JSON payload to send a message.  
 **Request Body:**
 ```json
 {
   "sender_id": 1,
   "receiver_id": 2,
-  "content": "Hello!"
+  "content": "Hello! How are you?"
 }
 ```
 **Response:**
@@ -1506,13 +1507,13 @@ Below is a summary of the available endpoints in this API:
 }
 ```
 
-### `HandleGetMessages(w http.ResponseWriter, r *http.Request)`
+### `HandleGetConversation(w http.ResponseWriter, r *http.Request)`
 **Method:** `GET`  
-**Endpoint:** `/messages?sender_id={sender_id}&receiver_id={receiver_id}`  
+**Endpoint:** `/api/conversation/{user1ID}/{user2ID}`  
 **Description:** Retrieves messages exchanged between two users.  
-**Query Parameters:**
-- `sender_id` (integer) - Sender user ID.
-- `receiver_id` (integer) - Receiver user ID.
+**Path Parameters:**
+- `user1ID` (integer) - The ID of the first user.
+- `user2ID` (integer) - The ID of the second user.
 
 **Response:** List of messages:
 ```json
@@ -1557,7 +1558,7 @@ Below is a summary of the available endpoints in this API:
   "id": 1,
   "sender_id": 1,
   "receiver_id": 2,
-  "content": "Hello!",
+  "content": "Hello! How are you?",
   "timestamp": 1700000000,
   "read": false
 }
@@ -1588,13 +1589,67 @@ Below is a summary of the available endpoints in this API:
 ### `GetUnreadMessages(userID uint) ([]models.Message, error)`
 - Fetches all unread messages for a user.
 
-### `GetConversation(userID uint) ([]models.Message, error)`
-- Retrieves all messages where the user is either the sender or receiver.
+### `GetConversation(user1ID uint, user2ID uint) ([]models.Message, error)`
+- Retrieves all messages where either user is the sender or receiver in the conversation.
 
 ---
 
-## Conclusion
-This API facilitates real-time and stored messaging functionalities through WebSockets and REST endpoints, enabling seamless communication between users. The system ensures chat history persistence, so conversations remain intact even if users experience connectivity issues. 
+## 7. Offline Message Handling
+
+- **Offline Messages**: When a user connects, all unread messages are sent to the client.
+- **Automatic Marking of Read Messages**: Once the user receives offline messages, they are automatically marked as read in the database.
+- **Improvement in Sprint 3**: The system has been optimized to handle both online and offline message sending more efficiently.
+
+---
+
+## 8. AWS Migration
+
+### Database Migration to AWS RDS
+The database for the messaging system was migrated from a local PostgreSQL instance to Amazon RDS for PostgreSQL. The migration process includes the following steps:
+
+1. **Setting Up RDS Instance**:
+   - Create an RDS PostgreSQL instance via the AWS Management Console.
+   - Configure the instance with appropriate settings, such as instance type, storage, and VPC configuration.
+
+2. **Database Configuration**:
+   - Adjust connection settings to connect to the AWS RDS instance, including the RDS endpoint, database name, username, and password.
+   - Update environment variables or configuration files to use the RDS database instance instead of the local database.
+
+3. **Data Migration**:
+   - Dump the local PostgreSQL database using `pg_dump` or a similar tool.
+   - Use `pg_restore` to import the data into the new RDS PostgreSQL instance.
+
+4. **Security Configuration**:
+   - Set up proper IAM roles and security groups to restrict access to the RDS instance.
+   - Ensure the application can connect to the RDS instance via secure channels (SSL/TLS) to protect data in transit.
+
+### WebSocket Deployment to AWS
+1. **Using AWS EC2**:
+   - Deploy the WebSocket server on an EC2 instance to handle real-time messaging.
+   - Choose an EC2 instance type appropriate for the expected traffic.
+   - Configure security groups to allow WebSocket connections on the necessary port.
+
+2. **Elastic Load Balancing (ELB)**:
+   - Set up an ELB in front of the WebSocket server to distribute traffic and handle failover in case of instance failure.
+   - Configure the WebSocket client to reconnect automatically if the connection drops or fails over to another instance.
+
+3. **Auto Scaling**:
+   - Set up Auto Scaling on the EC2 instances to handle varying loads of WebSocket connections dynamically.
+   - Adjust the scaling policies based on the number of active WebSocket connections or other metrics like CPU utilization.
+
+### S3 for File Storage (Optional)
+For storing media files or attachments sent in messages, AWS S3 can be used. Steps for integration:
+1. **Set Up S3 Bucket**:
+   - Create an S3 bucket with proper access permissions.
+   - Configure the system to upload attachments (e.g., images or documents) to S3.
+
+2. **File Handling**:
+   - Adjust the messaging API to include file upload functionality, storing files directly in S3 and referencing their URLs in message payloads.
+
+---
+
+## 9. Conclusion
+This API facilitates real-time and stored messaging functionalities through WebSockets and REST endpoints, enabling seamless communication between users. Sprint 3 improvements have enhanced the offline message management and WebSocket connection handling, making the system more resilient and efficient in real-world usage scenarios. The migration to AWS provides scalability, availability, and reliability for the system, ensuring high-performance messaging capabilities even under varying loads. Conversations are preserved even if users experience network disruptions, ensuring a smooth user experience across different states of connectivity.
 
 ---
 
@@ -1686,7 +1741,7 @@ A **MockMessageRepository** is created to simulate database interactions without
 ### **Running Tests**
 To execute the test suite, use:
 ```bash
-go test ./...
+go test -v
 ```
 
 ---
