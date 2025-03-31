@@ -19,9 +19,9 @@ func TestGenerateJWT(t *testing.T) {
 
 	user := models.User{
 		UserID: 42,
-		Name:   "John Doe",
-		Email:  "john@ufl.edu",
-		Phone:  "5551234567",
+		Name:   "Ellie Williams",
+		Email:  "ellie@ufl.edu",
+		Phone:  "5551029384",
 	}
 
 	tokenString, err := utils.GenerateJWT(user)
@@ -37,9 +37,9 @@ func TestParseJWTValidToken(t *testing.T) {
 
 	user := models.User{
 		UserID: 42,
-		Name:   "John Doe",
-		Email:  "john@ufl.edu",
-		Phone:  "5551234567",
+		Name:   "Joel Miller",
+		Email:  "joel@ufl.edu",
+		Phone:  "5559876543",
 	}
 
 	// Generate a token
@@ -56,8 +56,8 @@ func TestParseJWTValidToken(t *testing.T) {
 	assert.True(t, ok, "Expected 'user' key in claims")
 
 	assert.Equal(t, float64(42), userMap["UserID"], "UserID should match")
-	assert.Equal(t, "John Doe", userMap["Name"], "Name should match")
-	assert.Equal(t, "john@ufl.edu", userMap["Email"], "Email should match")
+	assert.Equal(t, "Joel Miller", userMap["Name"], "Name should match")
+	assert.Equal(t, "joel@ufl.edu", userMap["Email"], "Email should match")
 }
 
 // TestParseJWTInvalidToken checks that an invalid token fails
@@ -80,8 +80,8 @@ func TestExpiredToken(t *testing.T) {
 	claims := jwt.MapClaims{
 		"user": map[string]interface{}{
 			"UserID": 123,
-			"Name":   "Expired User",
-			"Email":  "expired@ufl.edu",
+			"Name":   "Abby Anderson",
+			"Email":  "abby@ufl.edu",
 		},
 		"exp": time.Now().Add(-1 * time.Hour).Unix(),
 		"iat": time.Now().Unix(),
