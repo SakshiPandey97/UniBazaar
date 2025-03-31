@@ -35,7 +35,7 @@ describe('useFetchMessages', () => {
 
     renderHook(() => useFetchMessages(userId, selectedUser, setMessages));
 
-    expect(global.fetch).toHaveBeenCalledWith('http://44.211.190.101:8080/api/conversation/1/2');
+    expect(global.fetch).toHaveBeenCalledWith('http://13.218.174.66:8080/api/conversation/1/2');
     await act(async () => {
       await vi.runAllTimersAsync();
     });
