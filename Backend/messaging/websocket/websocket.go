@@ -108,7 +108,6 @@ func (c *Client) ReadPump() {
 			}
 			break
 		}
-		// Generate a new UUID if one doesn't exist
 		if msg.ID == "" {
 			msg.ID = uuid.New().String()
 		}
@@ -157,7 +156,6 @@ func (c *Client) WritePump() {
 }
 
 func (ws *WebSocketManager) SendOfflineMessages(userID uint) {
-	// Get unread messages for the user.
 	unreadMessages, err := ws.Repo.GetUnreadMessages(userID)
 	if err != nil {
 		log.Println("Error fetching unread messages:", err)
@@ -169,11 +167,9 @@ func (ws *WebSocketManager) SendOfflineMessages(userID uint) {
 	ws.mu.RUnlock()
 
 	if exists {
-		// Send each unread message to the client.
 		for _, msg := range unreadMessages {
 			select {
 			case client.SendChan <- msg:
-				//Mark the messages as read
 				err := ws.Repo.MarkMessageAsRead(msg.ID)
 				if err != nil {
 					log.Println("Error marking message as read:", err)

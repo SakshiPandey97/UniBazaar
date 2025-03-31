@@ -9,10 +9,17 @@ During **Sprint 3**, our primary focus was on enhancing user management, strengt
 
 | Issue                                                                                       | Status   | Type                 |
 | ------------------------------------------------------------------------------------------- | -------- | -------------------- |
-| Pagination support for GET endpoints in products services                                   | ✅ Closed | Backend, Sprint v3   |
-| Add a Search API to support full text search over products                                  | ✅ Closed | Backend, Sprint v3   |
-| Custom Error Handling in produtcs API to return appropriate status and messages efficiently | ✅ Closed | Backend, Sprint v3   |
+| Pagination support for GET endpoints in products services                                   | ✅ Closed | Backend, Sprint v3  |
+| Add a Search API to support full text search over products                                  | ✅ Closed | Backend, Sprint v3  |
+| Custom Error Handling in produtcs API to return appropriate status and messages efficiently | ✅ Closed | Backend, Sprint v3  |
 | Create products page and load paginated results into the UI                                 | ✅ Closed | Frontend, Sprint v3 |
+| Implement frontend of messaging system                                                      | ✅ Closed | Frontend, Sprint v3 |
+| Refactor FE messaging to improve modularity                                                 | ✅ Closed | Frontend, Sprint v3 |
+| Chat application scrolling issue                                                            | ✅ Closed | Frontend, Sprint v3 |
+| Migrated messaging system to AWS                                                            | ✅ Closed | Backend, Sprint v3  | 
+| Add unit tests for frontend messaging system                                                | ✅ Closed | Frontend, Sprint v3 |
+| Add unit tests for backend messaging system                                                 | ✅ Closed | Backend, Sprint v3  |
+
 
 ---
 
@@ -450,6 +457,7 @@ With this API, UniBazaar can effectively manage its product offerings while ensu
     - Last product ID: `""` (empty), Limit: `3`.
     - Expected products:
         - `ProductID: "prod123"`, `UserID: 1`.
+
         - `ProductID: "prod456"`, `UserID: 2`.
         - `ProductID: "prod789"`, `UserID: 3`.
 
@@ -1590,7 +1598,7 @@ This module contains unit tests for the **messaging service**, ensuring correct 
 
 ### **Testing Framework**
 - **Go Testing Package (`testing`)** – Standard testing framework in Go.
-- **Testify (`github.com/stretchr/testify`):** 
+- **Testify (`github.com/stretchr/testify`)**:
   - `mock` – Used to create a mock message repository.
   - `assert` – Used for validating expected and actual outcomes.
 
@@ -1598,30 +1606,76 @@ This module contains unit tests for the **messaging service**, ensuring correct 
 A **MockMessageRepository** is created to simulate database interactions without an actual database.
 
 ### **Tested Functions**
+
 1. **`SaveMessage`**  
-   - **Test:** Ensures a message is successfully saved.
-   - **Mocked Call:** `SaveMessage(models.Message)`
-   - **Expected Behavior:** No errors returned.
+   - **Test:** Ensures a message is successfully saved.  
+   - **Mocked Call:** `SaveMessage(models.Message)`  
+   - **Expected Behavior:** No errors returned.  
 
-2. **`GetLatestMessages`**  
-   - **Test:** Retrieves the latest messages with a limit.
-   - **Mocked Call:** `GetLatestMessages(limit int)`
-   - **Expected Behavior:** Returns an expected list of messages.
+2. **`SaveMessageError`**  
+   - **Test:** Handles database error while saving a message.  
+   - **Mocked Call:** `SaveMessage(models.Message)`  
+   - **Expected Behavior:** Returns an expected error.  
 
-3. **`MarkMessageAsRead`**  
-   - **Test:** Marks a message as read by its ID.
-   - **Mocked Call:** `MarkMessageAsRead(messageID int)`
-   - **Expected Behavior:** No errors returned.
+3. **`GetLatestMessages`**  
+   - **Test:** Retrieves the latest messages with a limit.  
+   - **Mocked Call:** `GetLatestMessages(limit int)`  
+   - **Expected Behavior:** Returns an expected list of messages.  
 
-4. **`GetUnreadMessages`**  
-   - **Test:** Fetches unread messages for a user.
-   - **Mocked Call:** `GetUnreadMessages(userID uint)`
-   - **Expected Behavior:** Returns unread messages.
+4. **`GetLatestMessagesError`**  
+   - **Test:** Handles error while fetching latest messages.  
+   - **Mocked Call:** `GetLatestMessages(limit int)`  
+   - **Expected Behavior:** Returns an expected error.  
 
-5. **`GetConversation`**  
-   - **Test:** Retrieves conversation history for a user.
-   - **Mocked Call:** `GetConversation(userID uint)`
-   - **Expected Behavior:** Returns a list of exchanged messages.
+5. **`MarkMessageAsRead`**  
+   - **Test:** Marks a message as read by its ID.  
+   - **Mocked Call:** `MarkMessageAsRead(messageID string)`  
+   - **Expected Behavior:** No errors returned.  
+
+6. **`MarkMessageAsReadError`**  
+   - **Test:** Handles error while marking a message as read.  
+   - **Mocked Call:** `MarkMessageAsRead(messageID string)`  
+   - **Expected Behavior:** Returns an expected error.  
+
+7. **`GetUnreadMessages`**  
+   - **Test:** Fetches unread messages for a user.  
+   - **Mocked Call:** `GetUnreadMessages(userID uint)`  
+   - **Expected Behavior:** Returns unread messages.  
+
+8. **`GetUnreadMessagesError`**  
+   - **Test:** Handles error while retrieving unread messages.  
+   - **Mocked Call:** `GetUnreadMessages(userID uint)`  
+   - **Expected Behavior:** Returns an expected error.  
+
+9. **`GetConversation`**  
+   - **Test:** Retrieves conversation history for a user.  
+   - **Mocked Call:** `GetConversation(user1ID, user2ID uint)`  
+   - **Expected Behavior:** Returns a list of exchanged messages.  
+
+10. **`GetConversationError`**  
+    - **Test:** Handles error while fetching conversation history.  
+    - **Mocked Call:** `GetConversation(user1ID, user2ID uint)`  
+    - **Expected Behavior:** Returns an expected error.  
+
+11. **`GetAllUsers`**  
+    - **Test:** Retrieves a list of all users.  
+    - **Mocked Call:** `GetAllUsers()`  
+    - **Expected Behavior:** Returns a list of users.  
+
+12. **`GetAllUsersError`**  
+    - **Test:** Handles error while fetching user list.  
+    - **Mocked Call:** `GetAllUsers()`  
+    - **Expected Behavior:** Returns an expected error.  
+
+13. **`NewUserRepository`**  
+    - **Test:** Ensures a new UserRepository is instantiated correctly.  
+    - **Mocked Call:** `NewUserRepository(*sql.DB)`  
+    - **Expected Behavior:** Returns a valid repository instance.  
+
+14. **`NewMessageRepository`**  
+    - **Test:** Ensures a new MessageRepository is instantiated correctly.  
+    - **Mocked Call:** `NewMessageRepository(*sql.DB)`  
+    - **Expected Behavior:** Returns a valid repository instance.  
 
 ### **Running Tests**
 To execute the test suite, use:
@@ -1629,8 +1683,80 @@ To execute the test suite, use:
 go test ./...
 ```
 
-### *Work in Progress*
-There are a few functions that encountered issues during testing due to library or mocking constraints (I'm still not sure). I am actively working on resolving these challenges, and they are scheduled to be completed in the next sprint.
+---
+# Frontend Messaging System 
+---
+
+## Overview
+The Frontend Messaging System allows users to send and receive messages in real-time using WebSockets. The system supports user selection, message history fetching, live message updates, and a typing indicator.
+
+## Features
+| Feature                       | Function Name                                                       | Description                                           |
+|-------------------------------|---------------------------------------------------------------------|-------------------------------------------------------|
+| **User Selection**            | `useFetchUsers(userId)`                                             | Fetches the list of users for selection.              |
+| **Real-time Messaging**       | `useWebSocket(userId, handleMessageReceived)`                       | Manages WebSocket connection for live message updates.|
+| **Message History**           | `useFetchMessages(userId, selectedUser, setMessages)`               | Fetches previously exchanged messages.                |
+| **Typing Indicator**          | `useTypingIndicator(setInput)`                                      | Detects and notifies when a user is typing.           |
+| **Send Messages**             | `useSendMessage(userId, selectedUser, users, ws, input, setInput)`  | Sends messages via WebSocket.                         |
+| **Receive Messages**          | `handleMessageReceived(message)`                                    | Updates message state when a new message arrives.     |
+| **User Authentication**       | `getCurrentUserId()`                                                | Retrieves the logged-in user’s ID.                    |
+
+## Dependencies
+- React
+- Custom hooks:
+  - `useWebSocket`: Manages WebSocket connection.
+  - `useFetchMessages`: Fetches previous messages.
+  - `useTypingIndicator`: Detects typing activity.
+  - `useFetchUsers`: Fetches available users.
+  - `useSendMessage`: Handles sending messages.
+- Utility function:
+  - `getCurrentUserId`: Retrieves the logged-in user’s ID.
+- Custom Component:
+  - `MessageDisplay`: Displays chat messages.
+
+## Component Breakdown
+### **Chat Component**
+#### **State Variables:**
+- `messages`: Stores chat messages.
+- `input`: Tracks user input.
+- `selectedUser`: Stores the currently selected chat partner.
+
+#### **Hooks Used:**
+1. `getCurrentUserId()`: Retrieves the current user's ID.
+2. `useFetchUsers(userId)`: Fetches the list of users.
+3. `useWebSocket(userId, handleMessageReceived)`: Establishes a WebSocket connection.
+4. `useFetchMessages(userId, selectedUser, setMessages)`: Loads past messages.
+5. `useTypingIndicator(setInput)`: Detects when the user is typing.
+6. `useSendMessage(userId, selectedUser, users, ws, input, setInput)`: Sends messages over WebSockets.
+
+#### **Event Handlers:**
+- `handleMessageReceived(message)`: Updates message state when a new message arrives.
+- `handleTyping(event)`: Updates input and triggers typing indication.
+
+## Required Function Implementations
+To complete the system, provide implementations for:
+1. `useWebSocket(userId, handleMessageReceived)`: Manages WebSocket connection and listens for messages.
+2. `useFetchMessages(userId, selectedUser, setMessages)`: Fetches messages from the database.
+3. `useTypingIndicator(setInput)`: Detects when the user is typing and notifies the chat partner.
+4. `useFetchUsers(userId)`: Retrieves the list of available users.
+5. `useSendMessage(userId, selectedUser, users, ws, input, setInput)`: Handles sending messages via WebSocket.
+
+## UI Structure
+### **User List (Sidebar)**
+- Displays all available users.
+- Highlights the selected user.
+
+### **Chat Window**
+- Shows chat history.
+- Allows users to send messages.
+- Displays typing indicator when the chat partner is typing.
+
+## Future Enhancements
+- **Read Receipts:** Indicate when a message has been read.
+- **Message Timestamps:** Show when messages were sent.
+- **Group Chats:** Allow conversations with multiple users.
+
+
 
 ---
 # Frontend Unit Testing
@@ -1739,6 +1865,49 @@ The tests cover critical areas of the app, including UI rendering, state managem
 ### 16. **Navbar State**
 - **Test:** Should return initial menu and dropdown state
 - **Expected Behavior:** `isMenuOpen` and `isDropdownOpen` are both `false`.
+
+---
+
+### 17. **User Selection**
+- **Test:** Should fetch the list of users for selection.  
+- **Expected Behavior:** Calls `useFetchUsers(userId)` and returns a list of users.  
+
+---  
+
+### 18. **Real-time Messaging**  
+- **Test:** Should establish a WebSocket connection and receive live updates.  
+- **Expected Behavior:** Calls `useWebSocket(userId, handleMessageReceived)` and updates messages in real time.  
+
+---  
+
+### 19. **Message History**  
+- **Test:** Should fetch previously exchanged messages when a user is selected.  
+- **Expected Behavior:** Calls `useFetchMessages(userId, selectedUser, setMessages)` and retrieves message history.  
+
+---  
+
+### 20. **Typing Indicator**  
+- **Test:** Should detect and notify when a user is typing.  
+- **Expected Behavior:** Calls `useTypingIndicator(setInput)` and displays a typing indicator when a user types.  
+
+---  
+
+### 21. **Send Messages**  
+- **Test:** Should send messages via WebSocket.  
+- **Expected Behavior:** Calls `useSendMessage(userId, selectedUser, users, ws, input, setInput)` and updates the chat.  
+
+---  
+
+### 22. **Receive Messages**  
+- **Test:** Should update the message state when a new message arrives.  
+- **Expected Behavior:** Calls `handleMessageReceived(message)` and updates the UI.  
+
+---  
+
+### 23. **User Authentication**  
+- **Test:** Should retrieve the logged-in user’s ID.  
+- **Expected Behavior:** Calls `getCurrentUserId()` and returns a valid user ID.  
+
 
 ---
 
