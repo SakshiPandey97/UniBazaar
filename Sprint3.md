@@ -19,6 +19,12 @@ During **Sprint 3**, our primary focus was on enhancing user management, strengt
 | Migrated messaging system to AWS                                                            | ✅ Closed | Backend, Sprint v3  | 
 | Add unit tests for frontend messaging system                                                | ✅ Closed | Frontend, Sprint v3 |
 | Add unit tests for backend messaging system                                                 | ✅ Closed | Backend, Sprint v3  |
+| Migrated from npm to pnpm                                                                   | ✅ Closed | Frontend, Sprint v3  |
+| Implemented UI for Forgot Password                                                          | ✅ Closed | Frontend, Sprint v3  |
+| Implemented UI for OTP Validation                                                           | ✅ Closed | Frontend, Sprint v3  |
+| Implemented AboutUs Page                                                                    | ✅ Closed | Frontend, Sprint v3  |
+| ReDesigned UI for the Website                                                           | ✅ Closed | Frontend, Sprint v3  |
+| Added Dynamic views for all the webpages                                                           | ✅ Closed | Frontend, Sprint v3  |
 
 
 ---
