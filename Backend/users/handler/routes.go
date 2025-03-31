@@ -39,6 +39,8 @@ func (app *Application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := app.Models.UserModel.Insert(input.Id, input.Name, input.Email, input.Password, input.Phone)
 	if err != nil {
+		// Log server-side for debugging
+		fmt.Printf("SignUpHandler error: could not create user: %v\n", err)
 		http.Error(w, fmt.Sprintf("could not create user: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -57,24 +59,40 @@ func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Reques
 	}
 	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
+		fmt.Printf("VerifyEmailHandler error: user not found: %v\n", err)
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
+
+	// If the provided OTP code is incorrect
 	if user.OTPCode != input.Code {
 		user.FailedResetAttempts++
+
+		// If user fails OTP verification 5 times, delete user from DB
+		if user.FailedResetAttempts >= 5 {
+			fmt.Printf("VerifyEmailHandler: user %s reached 5 OTP failures, deleting account\n", user.Email)
+			_ = app.Models.UserModel.Delete(user.Email)
+			http.Error(w, "Too many OTP attempts. Your account has been removed. Please sign up again.", http.StatusUnauthorized)
+			return
+		}
+
+		// If 3 or more failures, send security alert email (existing logic)
 		if user.FailedResetAttempts >= 3 {
 			_ = app.Models.UserModel.SendSecurityAlert(user)
-			user.FailedResetAttempts = 0
 			user.OTPCode = ""
 		}
+
 		_ = app.Models.UserModel.SaveUser(user)
 		http.Error(w, "invalid OTP code", http.StatusUnauthorized)
 		return
 	}
+
+	// OTP is correct
 	user.Verified = true
 	user.FailedResetAttempts = 0
 	user.OTPCode = ""
 	if err := app.Models.UserModel.UpdateVerificationStatus(user); err != nil {
+		fmt.Printf("VerifyEmailHandler error: failed to update verification status: %v\n", err)
 		http.Error(w, "failed to update verification status", http.StatusInternalServerError)
 		return
 	}
@@ -92,6 +110,7 @@ func (app *Application) ForgotPasswordHandler(w http.ResponseWriter, r *http.Req
 	}
 	err := app.Models.UserModel.InitiatePasswordReset(input.Email)
 	if err != nil {
+		fmt.Printf("ForgotPasswordHandler error: failed to initiate reset: %v\n", err)
 		http.Error(w, fmt.Sprintf("failed to initiate reset: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -111,6 +130,7 @@ func (app *Application) UpdatePasswordHandler(w http.ResponseWriter, r *http.Req
 	}
 	err := app.Models.UserModel.VerifyResetCodeAndSetNewPassword(input.Email, input.OTPCode, input.NewPassword)
 	if err != nil {
+		fmt.Printf("UpdatePasswordHandler error: %v\n", err)
 		http.Error(w, fmt.Sprintf("update password failed: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -128,6 +148,7 @@ func (app *Application) DeleteUserHandler(w http.ResponseWriter, r *http.Request
 	}
 	err := app.Models.UserModel.Delete(input.Email)
 	if err != nil {
+		fmt.Printf("DeleteUserHandler error: delete failed: %v\n", err)
 		http.Error(w, fmt.Sprintf("delete failed: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -145,6 +166,7 @@ func (app *Application) DisplayUserHandler(w http.ResponseWriter, r *http.Reques
 	}
 	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
+		fmt.Printf("DisplayUserHandler error: user not found: %v\n", err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
@@ -164,12 +186,21 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
+		fmt.Printf("LoginHandler error: user not found: %v\n", err)
 		http.Error(w, "user not found", http.StatusUnauthorized)
+		return
+	}
+
+	// Additional check: user must be verified before login
+	if !user.Verified {
+		fmt.Printf("LoginHandler: user %s not verified\n", user.Email)
+		http.Error(w, "account not verified, please verify your email first", http.StatusUnauthorized)
 		return
 	}
 
 	match, err := argon2id.ComparePasswordAndHash(input.Password, user.Password)
 	if err != nil {
+		fmt.Printf("LoginHandler error verifying password: %v\n", err)
 		http.Error(w, "error verifying password", http.StatusInternalServerError)
 		return
 	}
@@ -178,20 +209,20 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate a JWT token with 2-day expiry
 	tokenString, err := utils.GenerateJWT(*user)
 	if err != nil {
+		fmt.Printf("LoginHandler error: failed to generate token: %v\n", err)
 		http.Error(w, "failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
 	userID, err := app.Models.UserModel.GetUserIdByEmail(input.Email)
 	if err != nil {
+		fmt.Printf("LoginHandler error: failed to fetch user ID: %v\n", err)
 		http.Error(w, "failed to fetch user ID", http.StatusInternalServerError)
 		return
 	}
 
-	// Return userId and token to client
 	responseData := map[string]interface{}{
 		"userId": userID,
 		"token":  tokenString,
@@ -213,11 +244,13 @@ func (app *Application) UpdateNameHandler(w http.ResponseWriter, r *http.Request
 	}
 	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
+		fmt.Printf("UpdateNameHandler error: user not found: %v\n", err)
 		http.Error(w, "user not found", http.StatusUnauthorized)
 		return
 	}
 	match, err := argon2id.ComparePasswordAndHash(input.Password, user.Password)
 	if err != nil {
+		fmt.Printf("UpdateNameHandler error verifying password: %v\n", err)
 		http.Error(w, "error verifying password", http.StatusInternalServerError)
 		return
 	}
@@ -226,6 +259,7 @@ func (app *Application) UpdateNameHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if err := app.Models.UserModel.UpdateName(input.Email, input.NewName); err != nil {
+		fmt.Printf("UpdateNameHandler error updating name: %v\n", err)
 		http.Error(w, fmt.Sprintf("update name failed: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -245,11 +279,13 @@ func (app *Application) UpdatePhoneHandler(w http.ResponseWriter, r *http.Reques
 	}
 	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
+		fmt.Printf("UpdatePhoneHandler error: user not found: %v\n", err)
 		http.Error(w, "user not found", http.StatusUnauthorized)
 		return
 	}
 	match, err := argon2id.ComparePasswordAndHash(input.Password, user.Password)
 	if err != nil {
+		fmt.Printf("UpdatePhoneHandler error verifying password: %v\n", err)
 		http.Error(w, "error verifying password", http.StatusInternalServerError)
 		return
 	}
@@ -258,6 +294,7 @@ func (app *Application) UpdatePhoneHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if err := app.Models.UserModel.UpdatePhone(input.Email, input.NewPhone); err != nil {
+		fmt.Printf("UpdatePhoneHandler error updating phone: %v\n", err)
 		http.Error(w, fmt.Sprintf("update phone failed: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -289,7 +326,6 @@ func (app *Application) VerifyJWTHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Access claims
 	claims, ok := jwtToken.Claims.(jwt.MapClaims)
 	if !ok {
 		fmt.Println("error retrieving claims")
@@ -297,7 +333,6 @@ func (app *Application) VerifyJWTHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Extract "user" sub-claims
 	userMap, ok := claims["user"].(map[string]interface{})
 	if !ok {
 		fmt.Println("error retrieving user claims")
@@ -305,7 +340,6 @@ func (app *Application) VerifyJWTHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Reconstruct user struct if desired
 	userClaim := models.User{
 		Name:  fmt.Sprintf("%v", userMap["Name"]),
 		Email: fmt.Sprintf("%v", userMap["Email"]),
@@ -337,7 +371,7 @@ func (app *Application) GetJWTHandler(w http.ResponseWriter, r *http.Request) {
 	user := models.CreateUser(input.Name, input.Email, input.Phone)
 	authToken, err := utils.GenerateJWT(*user)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("GetJWTHandler error generating token:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
