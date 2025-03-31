@@ -1,30 +1,33 @@
 # Sprint 3: User Stories and Implementation Plan
 
 ## Overview
-During **Sprint 3**, our primary focus was on enhancing user management, strengthening account security, improving backend performance, implementing messaging system in backend and refining product-related functionalities. Below is an overview of the issues we tackled, the tasks completed, and the corresponding backend API documentation for user operations.
+During **Sprint 3**, our primary focus was on enhancing user management, strengthening account security, improving backend performance, and refining product-related functionalities. We also introduced JWT-based authentication for secure user login and session management. Below is an overview of the issues we tackled, the tasks completed, and the corresponding documentation for both Products and Users services.
 
 ---
 
 ## Sprint 3: Completed Issues
 
-| Issue                                                                                       | Status   | Type                 |
-| ------------------------------------------------------------------------------------------- | -------- | -------------------- |
-| Pagination support for GET endpoints in products services                                   | ✅ Closed | Backend, Sprint v3  |
-| Add a Search API to support full text search over products                                  | ✅ Closed | Backend, Sprint v3  |
-| Custom Error Handling in produtcs API to return appropriate status and messages efficiently | ✅ Closed | Backend, Sprint v3  |
-| Create products page and load paginated results into the UI                                 | ✅ Closed | Frontend, Sprint v3 |
-| Implement frontend of messaging system                                                      | ✅ Closed | Frontend, Sprint v3 |
-| Refactor FE messaging to improve modularity                                                 | ✅ Closed | Frontend, Sprint v3 |
-| Chat application scrolling issue                                                            | ✅ Closed | Frontend, Sprint v3 |
-| Migrated messaging system to AWS                                                            | ✅ Closed | Backend, Sprint v3  | 
-| Add unit tests for frontend messaging system                                                | ✅ Closed | Frontend, Sprint v3 |
-| Add unit tests for backend messaging system                                                 | ✅ Closed | Backend, Sprint v3  |
-| Migrated from npm to pnpm                                                                   | ✅ Closed | Frontend, Sprint v3  |
-| Implemented UI for Forgot Password                                                          | ✅ Closed | Frontend, Sprint v3  |
-| Implemented UI for OTP Validation                                                           | ✅ Closed | Frontend, Sprint v3  |
-| Implemented AboutUs Page                                                                    | ✅ Closed | Frontend, Sprint v3  |
-| ReDesigned UI for the Website                                                           | ✅ Closed | Frontend, Sprint v3  |
-| Added Dynamic views for all the webpages                                                           | ✅ Closed | Frontend, Sprint v3  |
+| Issue                                                                                       | Status   | Type                             |
+| ------------------------------------------------------------------------------------------- | -------- | -------------------------------- |
+| Add Better Error Handling and Improve Login Workflow (#109)                                | ✅ Closed | Backend, Sprint v3               |
+| Add Unit Tests for Routes (#108)                                                            | ✅ Closed | Sprint v3                        |
+| Add Unit Tests for New Functionality in Users (#100)                                        | ✅ Closed | Sprint v3                        |
+| Migrated backend messaging system to AWS (#99)                                              | ✅ Closed | Backend, Sprint v3               |
+| Add unit tests for backend messaging system (#90)                                           | ✅ Closed | Backend, Sprint v3               |
+| Add unit tests for messaging system (#86)                                                   | ✅ Closed | Frontend, Sprint v3              |
+| Chat application scrolling issue (#97)                                                      | ✅ Closed | Frontend, Sprint v3              |
+| Create search API to query database with text (#88)                                         | ✅ Closed | Backend, Sprint v3               |
+| Refactor FE messaging to improve modularity (#86)                                           | ✅ Closed | Frontend, Sprint v3              |
+| Implement frontend of messaging system (#83)                                                | ✅ Closed | Frontend, Sprint v3              |
+| About Us Page (#80)                                                                         | ✅ Closed | Frontend, Sprint v3              |
+| Add Pagination support for Get Products and Get Products By ID (#79)                        | ✅ Closed | Backend, Enhancement, Sprint v3  |
+| CI/CD setup created using GitHub actions (#78)                                              | ✅ Closed | Sprint v3                        |
+| CI/CD for frontend using GitHub actions (#77)                                               | ✅ Closed | Frontend, Sprint v3              |
+| UI for OTP for Email Verification (#71)                                                     | ✅ Closed | Frontend, Sprint v3              |
+| Animations for Page Transitions and Modal (#70)                                             | ✅ Closed | Frontend, Sprint v3              |
+| UI Implementation for Forgot Password Functionality (#17)                                   | ✅ Closed | Frontend, Sprint v3              |
+| Design UI to display all products (#13)                                                     | ✅ Closed | Frontend, Sprint v3              |
+| Implement JWT for security to manage user login state (#11)                                 | ✅ Closed | Backend, Sprint v3               |
 
 
 ---
@@ -76,12 +79,631 @@ During **Sprint 3**, our primary focus was on enhancing user management, strengt
      - Used `useRef` to track already fetched products and stop requests when all products are loaded.
      - Used conditional logic to stop making requests once all products have been fetched, providing a smooth browsing experience for users.
 
+### 5. **JWT-Based Authentication**
+- **Enhanced Security Measures:**  
+  - Implemented robust JWT-based authentication for the backend.  
+  - Introduced secure endpoints for:  
+    - **User Login:** Issues access and refresh tokens upon successful authentication.  
+    - **Token Validation:** Validates JWTs on protected routes to ensure session integrity.  
+    - **Logout:** Revokes tokens and safely ends user sessions.  
+  - Ensures each session is securely managed using tokens with unique identifiers, allowing precise control over session validity and user state.
+
+### 6. **Enhanced Detailed Error Handling for Users**
+- **Improved User-Focused Error Feedback:**  
+  - Refined backend error handling to return more informative and actionable messages during user operations such as registration, login, and profile management.  
+  - These enhancements simplify debugging and improve the overall user experience.
+
+### 7. **Improved Login and Signup Workflow:**  
+  - Refined the overall flow for user authentication to make the signup and login experience smoother and more intuitive.  
+  - Handled edge cases more effectively to reduce potential errors and enhance reliability across various user scenarios.
+
+
 ---
 # UniBazaar User API Documentation
 
 This section of the document describes the UniBazaar backend API for user management. It covers the **design choices**, **request/response formats**, **error handling**, and **sample JSON** requests for each endpoint. 
 
 ---
+
+# Users: Backend API Documentation
+
+## Table of Contents
+1. [Design & Implementation Highlights](#design--implementation-highlights)
+2. [Endpoints Overview](#endpoints-overview)
+3. [Detailed Endpoint Documentation](#detailed-endpoint-documentation)
+   - [Sign Up (POST /signup)](#1-sign-up-post-signup)
+   - [Verify Email (POST /verifyEmail)](#2-verify-email-post-verifyemail)
+   - [Forgot Password (POST /forgotpassword)](#3-forgot-password-post-forgotpassword)
+   - [Verify Reset Code (POST /verifyresetcode)](#4-verify-reset-code-post-verifyresetcode)
+   - [Update Password (POST /updatepassword)](#5-update-password-post-updatepassword)
+   - [Delete User (POST /deleteuser)](#6-delete-user-post-deleteuser)
+   - [Display User (POST /displayuser)](#7-display-user-post-displayuser)
+   - [Login (POST /login)](#8-login-post-login)
+   - [Update Name (POST /updatename)](#9-update-name-post-updatename)
+   - [Update Phone (POST /updatephone)](#10-update-phone-post-updatephone)
+   - [Error Cases & Responses](#error-cases--responses)
+4. [Appendix: Security & Design Choices](#security-design-choices)
+
+---
+
+## Design & Implementation Highlights
+
+### 1. Password Hashing (Argon2id)
+- We use **Argon2id** (via [alexedwards/argon2id](https://github.com/alexedwards/argon2id)) for secure password storage.
+- Parameters:
+  - **Memory**: 128 MB
+  - **Iterations**: 4
+  - **Parallelism**: Number of CPU cores
+  - **SaltLength**: 16 bytes
+  - **KeyLength**: 32 bytes
+- **Why Argon2id?**  
+  Argon2id is recommended by OWASP for modern password hashing. It is resistant to GPU-cracking attacks and provides configurable memory hardness.
+
+### 2. Password Complexity
+- Minimum **60 bits of entropy** enforced via [go-password-validator](https://github.com/wagslane/go-password-validator).
+- If a password is too weak, the server returns an error indicating insufficient complexity.
+
+### 3. Email Validation
+- Only **.edu** domains from specific Florida universities are allowed to register (`ufl.edu`, `fsu.edu`, `ucf.edu`, etc.).
+- If the domain is not recognized, the request is rejected.
+
+### 4. Phone Validation
+- Regex is used to ensure a valid US number with 10 digits, optionally prefixed by `+1` is being used.
+
+### 5. One-Time Password (OTP) Verification for Email upon Registration
+- Upon user registration, a 6-digit OTP is generated and sent to the user's registered email via SendGrid.
+- The user must enter the correct OTP to complete the email verification process.
+- If the OTP is incorrect or expired, verification will fail, and the user must request a new OTP.
+
+### 6. One-Time Password (OTP) Verification for Forgot Password
+- When a user initiates a password reset, a 6-digit OTP is generated and sent to their registered email.
+- The user must enter the correct OTP to proceed with resetting their password.
+- If the user enters an incorrect OTP three or more times, a security alert email is triggered, notifying them of suspicious activity.
+
+### 7. Database (GORM)
+- GORM is used to interact with the database.
+- **User** model:
+  ```go
+  type User struct {
+      UserID              int    `gorm:"column:userid;primaryKey" json:"userid"`
+      Name                string `json:"name"`
+      Email               string `json:"email"`
+      Password            string `json:"-"`
+      OTPCode             string `json:"-"`
+      FailedResetAttempts int    `json:"-"`
+      Verified            bool   `json:"-"`
+      Phone               string `json:"phone"`
+  }
+
+## Endpoints Overview
+
+Below is a quick reference to all of the endpoints, including the new additions:
+
+| Endpoint        | Method | Description                                                                 |
+|-----------------|--------|-----------------------------------------------------------------------------|
+| `/signup`       | POST   | Create a new user and send an OTP to verify email.                          |
+| `/verifyEmail`  | POST   | Verify user email with OTP.                                                 |
+| `/forgotPassword` | POST | Generate a password-reset OTP.                                              |
+| `/updatePassword` | POST | Verify OTP & update user’s password.                                        |
+| `/deleteUser`   | POST   | Remove user from the system.                                                |
+| `/displayUser`  | POST   | Fetch user details by email.                                                |
+| `/login`        | POST   | Log in with email/password & get JWT.                                       |
+| `/updateName`   | POST   | Update user’s name (requires valid credentials).                            |
+| `/updatePhone`  | POST   | Update user’s phone (requires valid credentials).                           |
+| `/getjwt`       | POST   | Generate a JWT for a given user payload (sample/test endpoint).             |
+| `/verifyjwt`    | GET    | Validate a provided JWT; checks if revoked or expired.                      |
+| `/logout`       | POST   | Revoke the current JWT token.                                               |
+
+---
+
+# Detailed Endpoint Documentation
+
+## 1. Sign Up (POST `/signup`)
+### Description
+Creates a new user, stores a hashed password, and emails an OTP code for verification.
+
+### Request Body (JSON)
+```json
+{
+  "name": "Jinx Silco",
+  "email": "getjinxed@ufl.edu",
+  "password": "MonkeyBomb#5567",
+  "phone": "+15551234567"
+}
+```
+
+### Behavior
+- Validates email domain (must be recognized .edu).
+- Validates password strength (≥ 60 bits).
+- Validates USA phone number format.
+- Hashes password using Argon2id.
+- Saves user to the database.
+- Generates a 6-digit OTP code, saves it, and sends it via email (through SendGrid's API).
+
+### Success Response (JSON)
+```json
+{
+  "message": "User created successfully. Please check your email for the OTP code."
+}
+```
+
+### Error Cases
+- **400 Bad Request**: Invalid email, weak password, or incorrect phone format.
+- **409 Conflict**: User already exists.
+- **500 Internal Server Error**: Database or email-sending issues.
+
+---
+
+## 2. Verify Email (POST `/verifyEmail`)
+### Description
+Verifies the user's email with the OTP code sent during sign-up.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu",
+  "code": "223466"
+}
+```
+
+### Behavior
+- Checks if OTP matches.
+- If valid, marks user as Verified.
+- If invalid, increments failure counter. After 3 failures, sends a security alert email.
+
+### Success Response (JSON)
+```json
+{
+  "message": "Email verified successfully!"
+}
+```
+
+### Error Cases
+- **400 Bad Request**: Invalid or expired OTP.
+- **404 Not Found**: User does not exist.
+- **500 Internal Server Error**: Database or email-sending issues.
+
+---
+
+## 3. Forgot Password (POST `/forgotPassword`)
+### Description
+Initiates a password reset by generating and emailing a reset OTP.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu"
+}
+```
+
+### Behavior
+- Ensures user exists.
+- Resets `FailedResetAttempts` to 0.
+- Generates a 6-digit OTP and emails it.
+- Stores OTP in the database.
+
+### Success Response (JSON)
+```json
+{
+  "message": "A reset code has been sent to your email."
+}
+```
+
+### Error Cases
+- **404 Not Found**: User does not exist.
+- **500 Internal Server Error**: Database or email issues.
+
+---
+
+## 4. Verify Reset Code (POST `/updatePassword`)
+### Description
+Verifies the OTP code sent for password reset, and if correct, sets the new password.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu",
+  "otp_code": "654321",
+  "new_password": "EkkoRew1nd!"
+}
+```
+
+### Behavior
+- Checks if OTP matches.
+- Validates new password strength.
+- Hashes new password and updates user record.
+- Resets `FailedResetAttempts` to 0 and clears OTP.
+- After 3 failed attempts, sends a security alert email.
+
+### Success Response (JSON)
+```json
+{
+  "message": "Password has been reset successfully."
+}
+```
+
+### Error Cases
+- **400 Bad Request**: Invalid OTP or weak password.
+- **404 Not Found**: User does not exist.
+- **500 Internal Server Error**: Database or hashing issues.
+
+---
+
+## 6. Delete User (POST `/deleteUser`)
+### Description
+Deletes a user from the database.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu"
+}
+```
+
+### Behavior
+- Finds and deletes user record.
+
+### Success Response (JSON)
+```json
+{
+  "message": "User has been deleted."
+}
+```
+
+### Error Cases
+- **404 Not Found**: User does not exist.
+- **500 Internal Server Error**: Database operation failure.
+
+---
+
+## 7. Display User (POST `/displayUser`)
+### Description
+Fetches user details by email.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu"
+}
+```
+
+### Success Response (JSON)
+```json
+{
+  "userid": 101,
+  "name": "Jinx Silco",
+  "email": "getjinxed@ufl.edu",
+  "phone": "+15551234567"
+}
+```
+
+### Error Cases
+- **404 Not Found**: User does not exist.
+- **500 Internal Server Error**: Database issues.
+
+---
+## 8. Login (POST `/login`)
+### Description
+Authenticates the user using email and password. Returns a JWT valid for 48 hours and the user's ID if credentials are valid and the account is verified.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu",
+  "password": "EkkoRew1nd!"
+}
+```
+
+### Success Response (JSON)
+```json
+{
+  "userId": 101,
+  "token": "<JWT_TOKEN_STRING>"
+}
+```
+
+### Error Cases
+- **401 Unauthorized**: Invalid credentials or unverified account.
+- **500 Internal Server Error**: Error during hashing or validation.
+
+---
+
+## 9. Get JWT (POST `/getjwt`)
+### Description
+Generates a JWT for a given user payload. Intended for sample/test purposes—does not authenticate from the database.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu",
+  "password": "EkkoRew1nd!"
+}
+{
+  "name": "Jinx Silco",
+  "email": "getjinxed@ufl.edu",
+  "phone": "+15551234567"
+}
+```
+
+### Success Response
+- **200 OK**: JWT returned in `Authorization` header.
+
+### Error Cases
+- **500 Internal Server Error**: Token generation failure.
+
+---
+
+## 10. Verify JWT (GET `/verifyjwt`)
+### Description
+Validates a provided JWT to ensure it is not expired or revoked.
+
+### Header
+```
+Authorization: Bearer <token>
+```
+
+### Success Response
+- **200 OK**: Token is valid. Returns partial user info.
+
+### Error Cases
+- **400/401**: Missing or invalid token, or token is expired or revoked.
+
+---
+
+## 11. Logout (POST `/logout`)
+### Description
+Revokes the current JWT by storing its JWT ID (`jti`) in an in-memory map to prevent further usage.
+
+### Header
+```
+Authorization: Bearer <token>
+```
+
+### Success Response (JSON)
+```json
+{
+  "message": "Logout successful, token revoked."
+}
+```
+
+### Error Cases
+- **400 Bad Request**: Malformed Authorization header.
+- **401 Unauthorized**: Invalid or missing token.
+
+---
+
+### Common Error Codes
+| Status Code | Meaning |
+|-------------|---------|
+| 400 Bad Request | Malformed/missing input data |
+| 401 Unauthorized | Invalid credentials or token |
+| 404 Not Found | User record not found |
+| 500 Internal Server Error | DB/hash/OTP/email issues |
+
+
+# Appendix: Security & Design Choices
+
+This section explains key security and design decisions behind the UniBazaar user authentication system.
+
+## 1. Why Use SendGrid for Email Notifications?
+SendGrid was chosen as the email provider for sending OTP codes and security alerts because:
+- **Reliability:** SendGrid offers a scalable and highly available cloud-based email service.
+- **Security:** It supports **DKIM, SPF, and TLS encryption**, ensuring secure email transmission.
+- **Rate Limits & Throttling:** SendGrid provides rate limiting to prevent abuse (e.g., brute-force OTP requests).
+- **Easy API Integration:** The SendGrid API is well-documented and integrates smoothly with Go-based backend services.
+- **Monitoring & Analytics:** Logs and analytics help track email delivery rates and failures.
+
+### Alternative Considerations
+Other email services such as **AWS SES** and **Mailgun** were considered, but SendGrid was selected due to its **free tier for transactional emails** and superior developer tooling.
+
+---
+
+## 2. Why Use Argon2id for Password Hashing?
+**Argon2id** is the recommended password hashing algorithm by OWASP and is used in UniBazaar due to:
+
+- **Memory-Hardness:** Argon2id is resistant to GPU and ASIC-based brute force attacks due to its high memory requirements.
+- **Customizable Parameters:** It allows tuning of memory, iterations, and parallelism for optimal security.
+- **Resistance to Timing Attacks:** Unlike bcrypt, Argon2id provides protection against cache-timing attacks.
+
+---
+
+## 3. Password Entropy Enforcement (go-password-validator)
+
+To enforce strong password security, UniBazaar uses `go-password-validator` with a **minimum entropy requirement of 60 bits**. This ensures that passwords are not easily guessable by:
+
+- **Forcing Complexity:** Users must have a unique, hard to guess password.
+- **Mitigating Dictionary Attacks:** Prevents users from choosing common or easily cracked passwords.
+- **Providing Real-Time Feedback:** If a password is weak, the API returns a message guiding the user to create a stronger one.
+
+### Example of Password Entropy Validation
+```go
+const minEntropyBits = 60
+err := passwordvalidator.Validate(password, minEntropyBits)
+if err != nil {
+    return fmt.Errorf("password is too weak: %v", err)
+}
+```
+
+By enforcing **entropy-based validation**, UniBazaar prevents users from choosing weak passwords while maintaining usability.
+
+---
+
+## 4. OTP Generation & Security Measures
+To enhance authentication security, UniBazaar uses a **random 6-digit OTP** for email verification and password reset.
+
+- **Generated Using Cryptographic Randomness:** The OTP is created using Go's `crypto/rand` package to ensure unpredictability.
+- **Short Expiry Time:** OTP codes expire within a limited time window (e.g., 5 minutes) to reduce brute-force attempts.
+- **Failure Tracking & Lockout Mechanism:** If a user enters an incorrect OTP multiple times (3 or more failures), the system sends a **security alert email**.
+
+
+This ensures **OTP codes are unique, secure, and difficult to guess**, enhancing authentication security.
+
+---
+## 5. JWT-Based Authentication
+Sprint 3 introduced JWT endpoints to improve session management and stateless authentication:
+
+- **JWT Generation:** The GetJWTHandler endpoint creates a signed token embedding user data. Tokens are generated using a secret stored in an environment variable.
+
+- **JWT Verification:** The VerifyJWTHandler validates tokens and extracts user information. It checks that the token hasn’t been revoked via a global in-memory revocation map.
+
+- **Token Revocation (Logout):** The LogoutHandler revokes the current token by marking its unique identifier (jti) as invalid, ensuring that a logged-out token cannot be reused.
+
+- **Security Considerations:** JWT tokens are signed with HS256, and their expiry and issuance times (iat/exp) are enforced to prevent replay and timing attacks.
+---
+
+## Conclusion
+These security measures were carefully chosen to **protect user data, prevent unauthorized access, and ensure system integrity**. 
+- **Argon2id** provides robust password protection against brute force attacks.
+- **SendGrid** ensures reliable OTP delivery with built-in monitoring and security features.
+- **Password entropy validation** enforces strong credentials to mitigate password-based attacks.
+- **OTP generation and validation** mechanisms enhance security while ensuring user convenience.
+- **Error Handling** robust error handling and login/signup flow.
+- **JWT functionality** enhances session management by enabling secure token generation, validation, and revocation. This stateless approach reduces server load while maintaining strong security practices.
+
+
+By implementing these industry-standard best practices, UniBazaar ensures a **secure, scalable, and resilient** authentication system.
+
+## Users: Unit Tests
+The users unit tests are located in `unit_test.go` and cover the following functionalities:
+
+### 1. User Insertion
+- **Test:** `TestUserInsert`
+- **Description:** Verifies that a user can be inserted into the database.
+- **Expected Behavior:** The insertion function returns no error.
+
+### 2. User Retrieval
+- **Test:** `TestUserRead`
+- **Description:** Tests reading a user from the database.
+- **Expected Behavior:** The correct user object is returned without errors.
+
+### 3. Update User Name
+- **Test:** `TestUpdateUserName`
+- **Description:** Ensures that a user’s name can be updated successfully.
+- **Expected Behavior:** The update function completes without errors.
+
+### 4. Update User Phone
+- **Test:** `TestUpdateUserPhone`
+- **Description:** Validates the ability to update a user’s phone number.
+- **Expected Behavior:** The function executes successfully without errors.
+
+### 5. Delete User
+- **Test:** `TestDeleteUser`
+- **Description:** Tests the deletion of a user from the database.
+- **Expected Behavior:** The delete function completes without errors.
+
+### 6. Initiate Password Reset
+- **Test:** `TestPasswordReset`
+- **Description:** Ensures that a password reset request can be initiated.
+- **Expected Behavior:** The function returns no errors.
+
+### 7. Verify Reset Code and Set New Password
+- **Test:** `TestVerifyResetCodeAndSetNewPassword`
+- **Description:** Verifies that a reset code can be validated and a new password can be set.
+- **Expected Behavior:** The function returns no errors.
+
+### 8. Validate `.edu` Email Addresses
+- **Test:** `TestValidateEduEmail`
+- **Description:** Checks whether only `.edu` email addresses are accepted.
+- **Expected Behavior:** Valid `.edu` emails pass, while non-`.edu` emails return errors.
+
+### 9. Validate Password Strength
+- **Test:** `TestValidatePassword`
+- **Description:** Ensures that passwords meet security requirements.
+- **Expected Behavior:** Weak passwords return errors, strong passwords pass validation.
+
+### 10. Validate Phone Numbers
+- **Test:** `TestValidatePhone`
+- **Description:** Checks the format of phone numbers.
+- **Expected Behavior:** Valid numbers pass, invalid numbers return errors.
+
+## Unit Tests in utils_test.go
+The tests in `utils_test.go` focus on JWT functionality and the associated helper functions:
+
+### 1. TestGenerateJWT
+- **Description:** Validates that a JWT can be generated from a user struct without error.
+- **Expected Behavior:** A non-empty token string is returned.
+
+### 2. TestParseJWTValidToken
+- **Description:** Ensures that a generated JWT is parsed successfully and contains the correct user claims.
+- **Expected Behavior:** The token is valid, and user claims (UserID, Name, Email) match the input.
+
+### 3. TestParseJWTInvalidToken
+- **Description:** Verifies that an invalid token (malformed string) is rejected.
+- **Expected Behavior:** Parsing returns an error and a nil token.
+
+### 4. TestExpiredToken
+- **Description:** Checks that tokens with past expiration dates are rejected.
+- **Expected Behavior:** The token is not parsed, and an appropriate error is returned.
+
+## Unit Tests in handler_test.go
+These tests simulate HTTP requests to verify that the REST API endpoints behave as expected:
+
+### 1. SignUpHandler Test
+- **Description:** Simulates a sign-up request with valid user details, then checks that the user is created and an OTP is sent.
+- **Expected Behavior:** HTTP 200 is returned and the new user is persisted with `Verified` set to false.
+
+### 2. VerifyEmailHandler Test
+- **Description:** Tests email verification by submitting the correct OTP.
+- **Expected Behavior:** The user’s verification status is updated to true.
+
+### 3. ForgotPasswordHandler Test
+- **Description:** Validates that a password reset request generates a new OTP for an existing user.
+- **Expected Behavior:** HTTP 200 is returned and the user record is updated with a new OTP.
+
+### 4. UpdatePasswordHandler Test
+- **Description:** Ensures that a valid OTP and new password result in a successful password update.
+- **Expected Behavior:** The user's password is updated (and re-hashed), and the OTP is cleared.
+
+### 5. DisplayUserHandler Test
+- **Description:** Confirms that the user details can be retrieved via the display endpoint.
+- **Expected Behavior:** The correct user data is returned in JSON format.
+
+### 6. UpdateNameHandler Test
+- **Description:** Checks that the user’s name can be updated after password verification.
+- **Expected Behavior:** The user’s name is updated successfully.
+
+### 7. UpdatePhoneHandler Test
+- **Description:** Verifies that the phone number update works after validating the user’s password.
+- **Expected Behavior:** The phone number is updated without errors.
+
+### 8. DeleteUserHandler Test
+- **Description:** Tests that the user deletion endpoint removes the user record from the database.
+- **Expected Behavior:** The user is deleted and no longer retrievable.
+
+### 9. JWT Endpoints
+#### a. GetJWTHandler
+- **Description:** Generates a JWT for a user based on provided name, email, and phone.
+- **Expected Behavior:** A valid JWT is returned in the response header.
+
+#### b. VerifyJWTHandler
+- **Description:** Verifies that a provided JWT is valid, not expired, and not revoked.
+- **Expected Behavior:** The endpoint confirms the token’s validity and returns user data.
+
+#### c. LogoutHandler
+- **Description:** Revokes the active JWT token by adding its unique identifier to an in-memory revocation list.
+- **Expected Behavior:** The token is marked as revoked and subsequent requests using the same token are denied.
+
+## Running Tests
+To execute the unit tests, use the following command:
+```sh
+ go test -v ./...
+```
+This will run all test cases and display detailed output.
+
+## Dependencies
+The tests utilize the following dependencies:
+- `github.com/stretchr/testify/assert` for assertions
+- `github.com/stretchr/testify/mock` for mocking user model methods
+
+Ensure these dependencies are installed before running tests:
+```sh
+go mod tidy
+go get github.com/stretchr/testify
+```
+
+## Conclusion
+These unit tests help ensure the reliability of the backend user management functionalities by validating the core operations such as user creation, update, deletion, authentication, and validation processes.
+
 ---
 
 # Products: Backend API Documentation
@@ -984,449 +1606,6 @@ go get github.com/stretchr/testify
 These unit tests help ensure the reliability of the backend product management functionalities by validating core operations such as product creation, update, deletion, retrieval, and validation processes.
 
 ---
-# Users: Backend API Documentation
-
-## Table of Contents
-1. [Design & Implementation Highlights](#design--implementation-highlights)
-2. [Endpoints Overview](#endpoints-overview)
-3. [Detailed Endpoint Documentation](#detailed-endpoint-documentation)
-   - [Sign Up (POST /signup)](#1-sign-up-post-signup)
-   - [Verify Email (POST /verifyEmail)](#2-verify-email-post-verifyemail)
-   - [Forgot Password (POST /forgotpassword)](#3-forgot-password-post-forgotpassword)
-   - [Verify Reset Code (POST /verifyresetcode)](#4-verify-reset-code-post-verifyresetcode)
-   - [Update Password (POST /updatepassword)](#5-update-password-post-updatepassword)
-   - [Delete User (POST /deleteuser)](#6-delete-user-post-deleteuser)
-   - [Display User (POST /displayuser)](#7-display-user-post-displayuser)
-   - [Login (POST /login)](#8-login-post-login)
-   - [Update Name (POST /updatename)](#9-update-name-post-updatename)
-   - [Update Phone (POST /updatephone)](#10-update-phone-post-updatephone)
-   - [Error Cases & Responses](#error-cases--responses)
-4. [Appendix: Security & Design Choices](#security-design-choices)
-
----
-
-## Design & Implementation Highlights
-
-### 1. Password Hashing (Argon2id)
-- We use **Argon2id** (via [alexedwards/argon2id](https://github.com/alexedwards/argon2id)) for secure password storage.
-- Parameters:
-  - **Memory**: 128 MB
-  - **Iterations**: 4
-  - **Parallelism**: Number of CPU cores
-  - **SaltLength**: 16 bytes
-  - **KeyLength**: 32 bytes
-- **Why Argon2id?**  
-  Argon2id is recommended by OWASP for modern password hashing. It is resistant to GPU-cracking attacks and provides configurable memory hardness.
-
-### 2. Password Complexity
-- Minimum **60 bits of entropy** enforced via [go-password-validator](https://github.com/wagslane/go-password-validator).
-- If a password is too weak, the server returns an error indicating insufficient complexity.
-
-### 3. Email Validation
-- Only **.edu** domains from specific Florida universities are allowed to register (`ufl.edu`, `fsu.edu`, `ucf.edu`, etc.).
-- If the domain is not recognized, the request is rejected.
-
-### 4. Phone Validation
-- Regex is used to ensure a valid US number with 10 digits, optionally prefixed by `+1` is being used.
-
-### 5. One-Time Password (OTP) Verification for Email upon Registration
-- Upon user registration, a 6-digit OTP is generated and sent to the user's registered email via SendGrid.
-- The user must enter the correct OTP to complete the email verification process.
-- If the OTP is incorrect or expired, verification will fail, and the user must request a new OTP.
-
-### 6. One-Time Password (OTP) Verification for Forgot Password
-- When a user initiates a password reset, a 6-digit OTP is generated and sent to their registered email.
-- The user must enter the correct OTP to proceed with resetting their password.
-- If the user enters an incorrect OTP three or more times, a security alert email is triggered, notifying them of suspicious activity.
-
-### 7. Database (GORM)
-- GORM is used to interact with the database.
-- **User** model:
-  ```go
-  type User struct {
-      UserID              int    `gorm:"column:userid;primaryKey" json:"userid"`
-      Name                string `json:"name"`
-      Email               string `json:"email"`
-      Password            string `json:"-"`
-      OTPCode             string `json:"-"`
-      FailedResetAttempts int    `json:"-"`
-      Verified            bool   `json:"-"`
-      Phone               string `json:"phone"`
-  }
-
-## Endpoints Overview
-
-Below is a quick reference to each endpoint:
-
-| **Endpoint**      | **Method** | **Description**                                 |
-| ----------------- | ---------- | ----------------------------------------------- |
-| `/signup`         | POST       | Create a new user, send verification OTP email. |
-| `/verifyEmail`    | POST       | Verify user email with OTP code.                |
-| `/forgotPassword` | POST       | Initiate a password reset (send reset OTP).     |
-| `/updatePassword` | POST       | Update user password (OTP-based).               |
-| `/deleteUser`     | POST       | Remove user from the system.                    |
-| `/displayUser`    | POST       | Retrieve user information.                      |
-| `/login`          | POST       | Authenticate user with email & password.        |
-| `/updateName`     | POST       | Update user's display name.                     |
-| `/updatePhone`    | POST       | Update user's phone number.                     |
-
----
-
-# Detailed Endpoint Documentation
-
-## 1. Sign Up (POST `/signup`)
-### Description
-Creates a new user, stores a hashed password, and emails an OTP code for verification.
-
-### Request Body (JSON)
-```json
-{
-  "name": "Jinx Silco",
-  "email": "getjinxed@ufl.edu",
-  "password": "MonkeyBomb#5567",
-  "phone": "+15551234567"
-}
-```
-
-### Behavior
-- Validates email domain (must be recognized .edu).
-- Validates password strength (≥ 60 bits).
-- Validates USA phone number format.
-- Hashes password using Argon2id.
-- Saves user to the database.
-- Generates a 6-digit OTP code, saves it, and sends it via email (through SendGrid's API).
-
-### Success Response (JSON)
-```json
-{
-  "message": "User created successfully. Please check your email for the OTP code."
-}
-```
-
-### Error Cases
-- **400 Bad Request**: Invalid email, weak password, or incorrect phone format.
-- **409 Conflict**: User already exists.
-- **500 Internal Server Error**: Database or email-sending issues.
-
----
-
-## 2. Verify Email (POST `/verifyEmail`)
-### Description
-Verifies the user's email with the OTP code sent during sign-up.
-
-### Request Body (JSON)
-```json
-{
-  "email": "getjinxed@ufl.edu",
-  "code": "223466"
-}
-```
-
-### Behavior
-- Checks if OTP matches.
-- If valid, marks user as Verified.
-- If invalid, increments failure counter. After 3 failures, sends a security alert email.
-
-### Success Response (JSON)
-```json
-{
-  "message": "Email verified successfully!"
-}
-```
-
-### Error Cases
-- **400 Bad Request**: Invalid or expired OTP.
-- **404 Not Found**: User does not exist.
-- **500 Internal Server Error**: Database or email-sending issues.
-
----
-
-## 3. Forgot Password (POST `/forgotPassword`)
-### Description
-Initiates a password reset by generating and emailing a reset OTP.
-
-### Request Body (JSON)
-```json
-{
-  "email": "getjinxed@ufl.edu"
-}
-```
-
-### Behavior
-- Ensures user exists.
-- Resets `FailedResetAttempts` to 0.
-- Generates a 6-digit OTP and emails it.
-- Stores OTP in the database.
-
-### Success Response (JSON)
-```json
-{
-  "message": "A reset code has been sent to your email."
-}
-```
-
-### Error Cases
-- **404 Not Found**: User does not exist.
-- **500 Internal Server Error**: Database or email issues.
-
----
-
-## 4. Verify Reset Code (POST `/updatePassword`)
-### Description
-Verifies the OTP code sent for password reset, and if correct, sets the new password.
-
-### Request Body (JSON)
-```json
-{
-  "email": "getjinxed@ufl.edu",
-  "otp_code": "654321",
-  "new_password": "EkkoRew1nd!"
-}
-```
-
-### Behavior
-- Checks if OTP matches.
-- Validates new password strength.
-- Hashes new password and updates user record.
-- Resets `FailedResetAttempts` to 0 and clears OTP.
-- After 3 failed attempts, sends a security alert email.
-
-### Success Response (JSON)
-```json
-{
-  "message": "Password has been reset successfully."
-}
-```
-
-### Error Cases
-- **400 Bad Request**: Invalid OTP or weak password.
-- **404 Not Found**: User does not exist.
-- **500 Internal Server Error**: Database or hashing issues.
-
----
-
-## 6. Delete User (POST `/deleteUser`)
-### Description
-Deletes a user from the database.
-
-### Request Body (JSON)
-```json
-{
-  "email": "getjinxed@ufl.edu"
-}
-```
-
-### Behavior
-- Finds and deletes user record.
-
-### Success Response (JSON)
-```json
-{
-  "message": "User has been deleted."
-}
-```
-
-### Error Cases
-- **404 Not Found**: User does not exist.
-- **500 Internal Server Error**: Database operation failure.
-
----
-
-## 7. Display User (POST `/displayUser`)
-### Description
-Fetches user details by email.
-
-### Request Body (JSON)
-```json
-{
-  "email": "getjinxed@ufl.edu"
-}
-```
-
-### Success Response (JSON)
-```json
-{
-  "userid": 101,
-  "name": "Jinx Silco",
-  "email": "getjinxed@ufl.edu",
-  "phone": "+15551234567"
-}
-```
-
-### Error Cases
-- **404 Not Found**: User does not exist.
-- **500 Internal Server Error**: Database issues.
-
----
-
-## 8. Login (POST `/login`)
-### Description
-Authenticates the user with email and password.
-
-### Request Body (JSON)
-```json
-{
-  "email": "getjinxed@ufl.edu",
-  "password": "EkkoRew1nd!"
-}
-```
-
-### Success Response (JSON)
-```json
-{
-  "message": "Login successful."
-}
-```
-
-### Error Cases
-- **401 Unauthorized**: Incorrect password.
-- **404 Not Found**: User does not exist.
-- **500 Internal Server Error**: Database or hashing issues.
-
-# Appendix: Security & Design Choices
-
-This section explains key security and design decisions behind the UniBazaar user authentication system.
-
-## 1. Why Use SendGrid for Email Notifications?
-SendGrid was chosen as the email provider for sending OTP codes and security alerts because:
-- **Reliability:** SendGrid offers a scalable and highly available cloud-based email service.
-- **Security:** It supports **DKIM, SPF, and TLS encryption**, ensuring secure email transmission.
-- **Rate Limits & Throttling:** SendGrid provides rate limiting to prevent abuse (e.g., brute-force OTP requests).
-- **Easy API Integration:** The SendGrid API is well-documented and integrates smoothly with Go-based backend services.
-- **Monitoring & Analytics:** Logs and analytics help track email delivery rates and failures.
-
-### Alternative Considerations
-Other email services such as **AWS SES** and **Mailgun** were considered, but SendGrid was selected due to its **free tier for transactional emails** and superior developer tooling.
-
----
-
-## 2. Why Use Argon2id for Password Hashing?
-**Argon2id** is the recommended password hashing algorithm by OWASP and is used in UniBazaar due to:
-
-- **Memory-Hardness:** Argon2id is resistant to GPU and ASIC-based brute force attacks due to its high memory requirements.
-- **Customizable Parameters:** It allows tuning of memory, iterations, and parallelism for optimal security.
-- **Resistance to Timing Attacks:** Unlike bcrypt, Argon2id provides protection against cache-timing attacks.
-
----
-
-## 3. Password Entropy Enforcement (go-password-validator)
-
-To enforce strong password security, UniBazaar uses `go-password-validator` with a **minimum entropy requirement of 60 bits**. This ensures that passwords are not easily guessable by:
-
-- **Forcing Complexity:** Users must have a unique, hard to guess password.
-- **Mitigating Dictionary Attacks:** Prevents users from choosing common or easily cracked passwords.
-- **Providing Real-Time Feedback:** If a password is weak, the API returns a message guiding the user to create a stronger one.
-
-### Example of Password Entropy Validation
-```go
-const minEntropyBits = 60
-err := passwordvalidator.Validate(password, minEntropyBits)
-if err != nil {
-    return fmt.Errorf("password is too weak: %v", err)
-}
-```
-
-By enforcing **entropy-based validation**, UniBazaar prevents users from choosing weak passwords while maintaining usability.
-
----
-
-## 4. OTP Generation & Security Measures
-To enhance authentication security, UniBazaar uses a **random 6-digit OTP** for email verification and password reset.
-
-- **Generated Using Cryptographic Randomness:** The OTP is created using Go's `crypto/rand` package to ensure unpredictability.
-- **Short Expiry Time:** OTP codes expire within a limited time window (e.g., 5 minutes) to reduce brute-force attempts.
-- **Failure Tracking & Lockout Mechanism:** If a user enters an incorrect OTP multiple times (3 or more failures), the system sends a **security alert email**.
-
-
-This ensures **OTP codes are unique, secure, and difficult to guess**, enhancing authentication security.
-
----
-
-## Conclusion
-These security measures were carefully chosen to **protect user data, prevent unauthorized access, and ensure system integrity**. 
-- **Argon2id** provides robust password protection against brute force attacks.
-- **SendGrid** ensures reliable OTP delivery with built-in monitoring and security features.
-- **Password entropy validation** enforces strong credentials to mitigate password-based attacks.
-- **OTP generation and validation** mechanisms enhance security while ensuring user convenience.
-
-By implementing these industry-standard best practices, UniBazaar ensures a **secure, scalable, and resilient** authentication system.
-
-## Users: Unit Tests
-The unit tests are located in `unit_test.go` and cover the following functionalities:
-
-### 1. User Insertion
-- **Test:** `TestUserInsert`
-- **Description:** Verifies that a user can be inserted into the database.
-- **Expected Behavior:** The insertion function returns no error.
-
-### 2. User Retrieval
-- **Test:** `TestUserRead`
-- **Description:** Tests reading a user from the database.
-- **Expected Behavior:** The correct user object is returned without errors.
-
-### 3. Update User Name
-- **Test:** `TestUpdateUserName`
-- **Description:** Ensures that a user’s name can be updated successfully.
-- **Expected Behavior:** The update function completes without errors.
-
-### 4. Update User Phone
-- **Test:** `TestUpdateUserPhone`
-- **Description:** Validates the ability to update a user’s phone number.
-- **Expected Behavior:** The function executes successfully without errors.
-
-### 5. Delete User
-- **Test:** `TestDeleteUser`
-- **Description:** Tests the deletion of a user from the database.
-- **Expected Behavior:** The delete function completes without errors.
-
-### 6. Initiate Password Reset
-- **Test:** `TestPasswordReset`
-- **Description:** Ensures that a password reset request can be initiated.
-- **Expected Behavior:** The function returns no errors.
-
-### 7. Verify Reset Code and Set New Password
-- **Test:** `TestVerifyResetCodeAndSetNewPassword`
-- **Description:** Verifies that a reset code can be validated and a new password can be set.
-- **Expected Behavior:** The function returns no errors.
-
-### 8. Validate `.edu` Email Addresses
-- **Test:** `TestValidateEduEmail`
-- **Description:** Checks whether only `.edu` email addresses are accepted.
-- **Expected Behavior:** Valid `.edu` emails pass, while non-`.edu` emails return errors.
-
-### 9. Validate Password Strength
-- **Test:** `TestValidatePassword`
-- **Description:** Ensures that passwords meet security requirements.
-- **Expected Behavior:** Weak passwords return errors, strong passwords pass validation.
-
-### 10. Validate Phone Numbers
-- **Test:** `TestValidatePhone`
-- **Description:** Checks the format of phone numbers.
-- **Expected Behavior:** Valid numbers pass, invalid numbers return errors.
-
-## Running Tests
-To execute the unit tests, use the following command:
-```sh
- go test -v ./...
-```
-This will run all test cases and display detailed output.
-
-## Dependencies
-The tests utilize the following dependencies:
-- `github.com/stretchr/testify/assert` for assertions
-- `github.com/stretchr/testify/mock` for mocking user model methods
-
-Ensure these dependencies are installed before running tests:
-```sh
-go mod tidy
-go get github.com/stretchr/testify
-```
-
-## Conclusion
-These unit tests help ensure the reliability of the backend user management functionalities by validating the core operations such as user creation, update, deletion, authentication, and validation processes.
-
-
----
 
 # Messaging System API Documentation
 
@@ -1995,7 +2174,5 @@ npx cypress open
 ```
 ### **Video** 
 
-[https://youtu.be/zvNfPwMtuNg](https://youtu.be/zvNfPwMtuNg)
 
 ---
-
