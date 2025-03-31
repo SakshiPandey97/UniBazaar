@@ -42,7 +42,6 @@ var params = &argon2id.Params{
 
 const minEntropyBits = 60
 
-// Only US phone is allowed: 10 digits, optional +1 prefix
 var phoneRegex = regexp.MustCompile(`^\+?1?\d{10}$`)
 
 func ValidatePhone(phone string) error {
@@ -59,8 +58,7 @@ func ValidatePhone(phone string) error {
 }
 
 func ValidatePassword(password string) error {
-	err := passwordvalidator.Validate(password, minEntropyBits)
-	if err != nil {
+	if err := passwordvalidator.Validate(password, minEntropyBits); err != nil {
 		return fmt.Errorf("password is too weak: %v", err)
 	}
 	return nil
@@ -101,7 +99,6 @@ func HashPassword(password string) (string, error) {
 	return argon2id.CreateHash(password, params)
 }
 
-// User is our GORM model
 type User struct {
 	UserID              int    `gorm:"column:userid;primaryKey" json:"userid"`
 	Name                string `json:"name"`
@@ -113,14 +110,11 @@ type User struct {
 	Phone               string `json:"phone"`
 }
 
-// UserModel now exports the DB field
 type UserModel struct {
 	DB *gorm.DB
 }
 
-// Insert creates a new user
 func (e UserModel) Insert(id int, name, email, password, phone string) error {
-	// Validate
 	if err := ValidateEduEmail(email); err != nil {
 		return fmt.Errorf("Insert: %w", err)
 	}
@@ -130,12 +124,10 @@ func (e UserModel) Insert(id int, name, email, password, phone string) error {
 	if err := ValidatePhone(phone); err != nil {
 		return fmt.Errorf("Insert: %w", err)
 	}
-
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
 		return fmt.Errorf("Insert (hashing password): %w", err)
 	}
-
 	user := User{
 		UserID:   id,
 		Name:     name,
@@ -144,7 +136,6 @@ func (e UserModel) Insert(id int, name, email, password, phone string) error {
 		Verified: false,
 		Phone:    phone,
 	}
-
 	if err := e.DB.Create(&user).Error; err != nil {
 		return fmt.Errorf("Insert (creating user): %w", err)
 	}
@@ -161,7 +152,6 @@ func (e UserModel) Insert(id int, name, email, password, phone string) error {
 	return nil
 }
 
-// Update just the password
 func (e UserModel) Update(email, newPassword string) error {
 	hashedPassword, err := HashPassword(newPassword)
 	if err != nil {
@@ -174,7 +164,6 @@ func (e UserModel) Update(email, newPassword string) error {
 	return nil
 }
 
-// UpdateName changes the user's name
 func (e UserModel) UpdateName(email, newName string) error {
 	var user User
 	if err := e.DB.Where("email = ?", email).First(&user).Error; err != nil {
@@ -187,7 +176,6 @@ func (e UserModel) UpdateName(email, newName string) error {
 	return nil
 }
 
-// UpdatePhone changes the user's phone
 func (e UserModel) UpdatePhone(email, newPhone string) error {
 	var user User
 	if err := e.DB.Where("email = ?", email).First(&user).Error; err != nil {
@@ -203,7 +191,6 @@ func (e UserModel) UpdatePhone(email, newPhone string) error {
 	return nil
 }
 
-// Delete removes a user by email
 func (e UserModel) Delete(email string) error {
 	res := e.DB.Where("email = ?", email).Delete(&User{})
 	if res.Error != nil {
@@ -212,7 +199,6 @@ func (e UserModel) Delete(email string) error {
 	return nil
 }
 
-// Read fetches a user by email
 func (e UserModel) Read(email string) (*User, error) {
 	var user User
 	res := e.DB.Where("email = ?", email).First(&user)
@@ -222,7 +208,6 @@ func (e UserModel) Read(email string) (*User, error) {
 	return &user, nil
 }
 
-// UpdateVerificationStatus marks user verified
 func (e UserModel) UpdateVerificationStatus(user *User) error {
 	if err := e.DB.Model(user).Updates(map[string]interface{}{
 		"verified": user.Verified,
@@ -232,7 +217,6 @@ func (e UserModel) UpdateVerificationStatus(user *User) error {
 	return nil
 }
 
-// SaveUser saves an existing user
 func (e UserModel) SaveUser(user *User) error {
 	if err := e.DB.Save(user).Error; err != nil {
 		return fmt.Errorf("SaveUser: %w", err)
@@ -240,7 +224,6 @@ func (e UserModel) SaveUser(user *User) error {
 	return nil
 }
 
-// SendSecurityAlert example
 func (e UserModel) SendSecurityAlert(user *User) error {
 	if err := sendOTPEmail(user.Email, "Suspicious attempts detected", "UniBazaar Security Alert"); err != nil {
 		return fmt.Errorf("SendSecurityAlert: %w", err)
@@ -248,7 +231,6 @@ func (e UserModel) SendSecurityAlert(user *User) error {
 	return nil
 }
 
-// GetUserIdByEmail fetches userID
 func (e UserModel) GetUserIdByEmail(email string) (int, error) {
 	var user User
 	res := e.DB.Where("email = ?", email).First(&user)
@@ -258,7 +240,6 @@ func (e UserModel) GetUserIdByEmail(email string) (int, error) {
 	return user.UserID, nil
 }
 
-// InitiatePasswordReset sets an OTP for password reset
 func (e UserModel) InitiatePasswordReset(email string) error {
 	user, err := e.Read(email)
 	if err != nil {
@@ -312,7 +293,6 @@ func (e UserModel) VerifyResetCodeAndSetNewPassword(email, code, newPassword str
 	return nil
 }
 
-// Helper function that sends the OTP or alert email
 func sendOTPEmail(toEmail, code, subject string) error {
 	from := sgmail.NewEmail("UniBazaar Support", "unibazaar.marketplace@gmail.com")
 	to := sgmail.NewEmail("User", toEmail)
@@ -331,10 +311,9 @@ func sendOTPEmail(toEmail, code, subject string) error {
 }
 
 func CreateUser(name string, email string, phone string) *User {
-	user := User{
+	return &User{
 		Name:  name,
 		Email: email,
 		Phone: phone,
 	}
-	return &user
 }
