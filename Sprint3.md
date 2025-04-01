@@ -333,7 +333,7 @@ Verifies the OTP code sent for password reset, and if correct, sets the new pass
 
 ---
 
-## 6. Delete User (POST `/deleteUser`)
+## 5. Delete User (POST `/deleteUser`)
 ### Description
 Deletes a user from the database.
 
@@ -360,7 +360,7 @@ Deletes a user from the database.
 
 ---
 
-## 7. Display User (POST `/displayUser`)
+## 6. Display User (POST `/displayUser`)
 ### Description
 Fetches user details by email.
 
@@ -386,7 +386,7 @@ Fetches user details by email.
 - **500 Internal Server Error**: Database issues.
 
 ---
-## 8. Login (POST `/login`)
+## 7. Login (POST `/login`)
 ### Description
 Authenticates the user using email and password. Returns a JWT valid for 48 hours and the user's ID if credentials are valid and the account is verified.
 
@@ -412,7 +412,7 @@ Authenticates the user using email and password. Returns a JWT valid for 48 hour
 
 ---
 
-## 9. Get JWT (POST `/getjwt`)
+## 8. Get JWT (POST `/getjwt`)
 ### Description
 Generates a JWT for a given user payload. Intended for sample/test purposes—does not authenticate from the database.
 
@@ -437,7 +437,7 @@ Generates a JWT for a given user payload. Intended for sample/test purposes—do
 
 ---
 
-## 10. Verify JWT (GET `/verifyjwt`)
+## 9. Verify JWT (GET `/verifyjwt`)
 ### Description
 Validates a provided JWT to ensure it is not expired or revoked.
 
@@ -454,7 +454,7 @@ Authorization: Bearer <token>
 
 ---
 
-## 11. Logout (POST `/logout`)
+## 10. Logout (POST `/logout`)
 ### Description
 Revokes the current JWT by storing its JWT ID (`jti`) in an in-memory map to prevent further usage.
 
@@ -475,6 +475,68 @@ Authorization: Bearer <token>
 - **401 Unauthorized**: Invalid or missing token.
 
 ---
+
+## 11. Update Name (POST `/updateName`)
+### Description
+Updates the user's name after verifying the user's identity through email and password.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu",
+  "password": "EkkoRew1nd!",
+  "newName": "Jinx Silco Updated"
+}
+```
+
+### Behavior
+- Authenticates user by verifying email and password.
+- Updates user's name in the database.
+
+### Success Response (JSON)
+```json
+{
+  "message": "Name updated successfully."
+}
+```
+
+### Error Cases
+- **400 Bad Request**: Invalid JSON input or database update failure.
+- **401 Unauthorized**: User not found or invalid credentials.
+- **500 Internal Server Error**: Password hashing/verification issues.
+
+---
+
+## 12. Update Phone (POST `/updatePhone`)
+### Description
+Updates the user's phone number after verifying the user's identity through email and password.
+
+### Request Body (JSON)
+```json
+{
+  "email": "getjinxed@ufl.edu",
+  "password": "EkkoRew1nd!",
+  "newPhone": "+15559876543"
+}
+```
+
+### Behavior
+- Authenticates user by verifying email and password.
+- Updates user's phone number in the database.
+
+### Success Response (JSON)
+```json
+{
+  "message": "Phone updated successfully."
+}
+```
+
+### Error Cases
+- **400 Bad Request**: Invalid JSON input or database update failure.
+- **401 Unauthorized**: User not found or invalid credentials.
+- **500 Internal Server Error**: Password hashing/verification issues.
+
+
 
 ### Common Error Codes
 | Status Code | Meaning |
@@ -2178,6 +2240,6 @@ npx cypress open
 ```
 ### **Video** 
 
-[https://youtu.be/zrru2uBPdFo](https://youtu.be/zrru2uBPdFo)
+[https://youtu.be/IYlVsiClgOo](https://youtu.be/IYlVsiClgOo)
 
 ---
