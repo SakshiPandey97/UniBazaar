@@ -2178,5 +2178,6 @@ npx cypress open
 ```
 ### **Video** 
 
+[https://youtu.be/zrru2uBPdFo](https://youtu.be/zrru2uBPdFo)
 
 ---
