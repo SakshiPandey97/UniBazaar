@@ -9,25 +9,29 @@ During **Sprint 3**, our primary focus was on enhancing user management, strengt
 
 | Issue                                                                                       | Status   | Type                             |
 | ------------------------------------------------------------------------------------------- | -------- | -------------------------------- |
-| Add Better Error Handling and Improve Login Workflow (#109)                                | ✅ Closed | Backend, Sprint v3               |
-| Add Unit Tests for Routes (#108)                                                            | ✅ Closed | Sprint v3                        |
-| Add Unit Tests for New Functionality in Users (#100)                                        | ✅ Closed | Sprint v3                        |
-| Migrated backend messaging system to AWS (#99)                                              | ✅ Closed | Backend, Sprint v3               |
-| Add unit tests for backend messaging system (#90)                                           | ✅ Closed | Backend, Sprint v3               |
-| Add unit tests for messaging system (#86)                                                   | ✅ Closed | Frontend, Sprint v3              |
-| Chat application scrolling issue (#97)                                                      | ✅ Closed | Frontend, Sprint v3              |
-| Create search API to query database with text (#88)                                         | ✅ Closed | Backend, Sprint v3               |
-| Refactor FE messaging to improve modularity (#86)                                           | ✅ Closed | Frontend, Sprint v3              |
-| Implement frontend of messaging system (#83)                                                | ✅ Closed | Frontend, Sprint v3              |
-| About Us Page (#80)                                                                         | ✅ Closed | Frontend, Sprint v3              |
-| Add Pagination support for Get Products and Get Products By ID (#79)                        | ✅ Closed | Backend, Enhancement, Sprint v3  |
-| CI/CD setup created using GitHub actions (#78)                                              | ✅ Closed | Sprint v3                        |
-| CI/CD for frontend using GitHub actions (#77)                                               | ✅ Closed | Frontend, Sprint v3              |
-| UI for OTP for Email Verification (#71)                                                     | ✅ Closed | Frontend, Sprint v3              |
-| Animations for Page Transitions and Modal (#70)                                             | ✅ Closed | Frontend, Sprint v3              |
-| UI Implementation for Forgot Password Functionality (#17)                                   | ✅ Closed | Frontend, Sprint v3              |
-| Design UI to display all products (#13)                                                     | ✅ Closed | Frontend, Sprint v3              |
-| Implement JWT for security to manage user login state (#11)                                 | ✅ Closed | Backend, Sprint v3               |
+| Pagination support for GET endpoints in products services                                   | ✅ Closed | Backend, Sprint v3               |
+| Add a Search API to support full text search over products                                  | ✅ Closed | Backend, Sprint v3               |
+| Custom Error Handling in products API to return appropriate status and messages efficiently | ✅ Closed | Backend, Sprint v3               |
+| Create products page and load paginated results into the UI                                 | ✅ Closed | Frontend, Sprint v3              |
+| Add Better Error Handling and Improve Login Workflow                                         | ✅ Closed | Backend, Sprint v3               |
+| Add Unit Tests for Routes                                                                    | ✅ Closed | Sprint v3                        |
+| Add Unit Tests for New Functionality in Users                                                | ✅ Closed | Sprint v3                        |
+| Migrated backend messaging system to AWS                                                     | ✅ Closed | Backend, Sprint v3               |
+| Add unit tests for backend messaging system                                                  | ✅ Closed | Backend, Sprint v3               |
+| Add unit tests for messaging system                                                          | ✅ Closed | Frontend, Sprint v3              |
+| Chat application scrolling issue                                                             | ✅ Closed | Frontend, Sprint v3              |
+| Create search API to query database with text                                                | ✅ Closed | Backend, Sprint v3               |
+| Refactor FE messaging to improve modularity                                                  | ✅ Closed | Frontend, Sprint v3              |
+| Implement frontend of messaging system                                                       | ✅ Closed | Frontend, Sprint v3              |
+| About Us Page                                                                                | ✅ Closed | Frontend, Sprint v3              |
+| Add Pagination support for Get Products and Get Products By ID                               | ✅ Closed | Backend, Enhancement, Sprint v3  |
+| CI/CD setup created using GitHub actions                                                     | ✅ Closed | Sprint v3                        |
+| CI/CD for frontend using GitHub actions                                                      | ✅ Closed | Frontend, Sprint v3              |
+| UI for OTP for Email Verification                                                            | ✅ Closed | Frontend, Sprint v3              |
+| Animations for Page Transitions and Modal                                                    | ✅ Closed | Frontend, Sprint v3              |
+| UI Implementation for Forgot Password Functionality                                          | ✅ Closed | Frontend, Sprint v3              |
+| Design UI to display all products                                                            | ✅ Closed | Frontend, Sprint v3              |
+| Implement JWT for security to manage user login state                                        | ✅ Closed | Backend, Sprint v3               |
 
 
 ---
