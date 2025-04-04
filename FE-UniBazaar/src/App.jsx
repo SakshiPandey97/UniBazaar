@@ -5,6 +5,7 @@ import {
 import Navbar from "./customComponents/Navbar";
 import { AuthProvider } from "./hooks/useUserAuth";
 import useModal from "./hooks/useModal";
+import { SearchProvider } from "./context/SearchContext";
 import "./App.css";
 import AuthPage from "./pages/AuthPage";
 import ViewMyProfilePage from "./pages/ViewMyProfilePage";
@@ -19,21 +20,23 @@ function App() {
 
   return (
     <AuthProvider>
-      <Modal isOpen={isLoginModalOpen} toggleModal={toggleLoginModal}>
-        <AuthPage toggleModal={toggleLoginModal} />
-      </Modal>
+      <SearchProvider>
+        <Modal isOpen={isLoginModalOpen} toggleModal={toggleLoginModal}>
+          <AuthPage toggleModal={toggleLoginModal} />
+        </Modal>
 
-      <Modal isOpen={isProfileModalOpen} toggleModal={toggleProfileModal}>
-        <ViewMyProfilePage />
-      </Modal>
+        <Modal isOpen={isProfileModalOpen} toggleModal={toggleProfileModal}>
+          <ViewMyProfilePage />
+        </Modal>
 
-      <Router>
-        <Navbar
-          toggleLoginModal={toggleLoginModal}
-          toggleViewProfile={toggleProfileModal}
-        />
-        <AnimatedRoutes />
-      </Router>
+        <Router>
+          <Navbar
+            toggleLoginModal={toggleLoginModal}
+            toggleViewProfile={toggleProfileModal}
+          />
+          <AnimatedRoutes />
+        </Router>
+      </SearchProvider>
     </AuthProvider>
   );
 }
