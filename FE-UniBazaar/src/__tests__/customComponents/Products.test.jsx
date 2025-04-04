@@ -1,16 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import Products from "../../customComponents/Products";
-import useProducts from "../../hooks/useProducts";
+import useFetchProducts from "../../hooks/useFetchProducts";
 
-// Mock the useProducts hook
-vi.mock("../../hooks/useProducts", () => ({
+// Mock the useFetchProducts hook
+vi.mock("../../hooks/useFetchProducts", () => ({
   default: vi.fn(),
 }));
 
 describe("Products Component", () => {
   it("displays loading spinner while fetching products", () => {
-    useProducts.mockReturnValue({
+    useFetchProducts.mockReturnValue({
       products: [],
       loading: true,
       error: null,
@@ -23,7 +23,7 @@ describe("Products Component", () => {
   });
 
   it("displays error message if there is an error", () => {
-    useProducts.mockReturnValue({
+    useFetchProducts.mockReturnValue({
       products: [],
       loading: false,
       error: "Error fetching products",

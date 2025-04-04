@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi } from "vitest";
-import useAllProducts from "../../hooks/useAllProducts"; // Adjust path as needed
+import useFetchAllProducts from "../../hooks/useFetchAllProducts"; // Adjust path as needed
 import { getAllProductsAPI } from "../../api/productAxios";
 import Product from "../../modal/product";
 
@@ -9,7 +9,7 @@ vi.mock("../../api/productAxios", () => ({
   getAllProductsAPI: vi.fn(),
 }));
 
-describe("useAllProducts Hook", () => {
+describe("useFetchAllProducts Hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -22,7 +22,7 @@ describe("useAllProducts Hook", () => {
 
     getAllProductsAPI.mockResolvedValue(mockData); // ✅ Mock API response
 
-    const { result } = renderHook(() => useAllProducts(2, ""));
+    const { result } = renderHook(() => useFetchAllProducts(2, ""));
 
     // ✅ Before API call completes
     expect(result.current.loading).toBe(true);
@@ -45,7 +45,7 @@ describe("useAllProducts Hook", () => {
 
     getAllProductsAPI.mockResolvedValue(mockData); // ✅ Mock API response
 
-    const { result } = renderHook(() => useAllProducts(5, ""));
+    const { result } = renderHook(() => useFetchAllProducts(5, ""));
 
     await act(async () => {});
 
@@ -57,7 +57,7 @@ describe("useAllProducts Hook", () => {
   test("handles API error correctly", async () => {
     getAllProductsAPI.mockRejectedValue(new Error("API Error")); // ✅ Simulate API failure
 
-    const { result } = renderHook(() => useAllProducts(2, ""));
+    const { result } = renderHook(() => useFetchAllProducts(2, ""));
 
     await act(async () => {});
 
@@ -70,7 +70,7 @@ describe("useAllProducts Hook", () => {
   test("handles 404 response and stops fetching", async () => {
     getAllProductsAPI.mockRejectedValue({ response: { status: 404 } }); // ✅ Simulate 404 error
 
-    const { result } = renderHook(() => useAllProducts(2, ""));
+    const { result } = renderHook(() => useFetchAllProducts(2, ""));
 
     await act(async () => {});
 

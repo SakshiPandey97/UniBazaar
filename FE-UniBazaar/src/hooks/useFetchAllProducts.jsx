@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { getAllProductsAPI } from "../api/productAxios";
 import Product from "../modal/product";
 
-function useAllProducts(limit, lastId) {
+function useFetchAllProducts(limit, lastId) {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -59,4 +59,4 @@ function useAllProducts(limit, lastId) {
     return { products, loading, error, hasMoreProducts };
 }
 
-export default useAllProducts;
+export default useFetchAllProducts;

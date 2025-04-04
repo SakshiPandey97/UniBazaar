@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi } from "vitest";
-import useProducts from "../../hooks/useProducts"; // Adjust the path based on your project
+import useFetchProducts from "../../hooks/useFetchProducts"; // Adjust the path based on your project
 import { getAllProductsAPI } from "../../api/productAxios";
 import Product from "../../modal/product";
 
@@ -9,7 +9,7 @@ vi.mock("../../api/productAxios", () => ({
   getAllProductsAPI: vi.fn(),
 }));
 
-describe("useProducts Hook", () => {
+describe("useFetchProducts Hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -22,7 +22,7 @@ describe("useProducts Hook", () => {
 
     getAllProductsAPI.mockResolvedValue(mockData); // ✅ Mock API response
 
-    const { result } = renderHook(() => useProducts());
+    const { result } = renderHook(() => useFetchProducts());
 
     // ✅ Before API call completes
     expect(result.current.loading).toBe(true);
@@ -43,7 +43,7 @@ describe("useProducts Hook", () => {
   test("handles API error correctly", async () => {
     getAllProductsAPI.mockRejectedValue(new Error("API Error")); // ✅ Simulate API failure
 
-    const { result } = renderHook(() => useProducts());
+    const { result } = renderHook(() => useFetchProducts());
 
     // ✅ Before API call completes
     expect(result.current.loading).toBe(true);
