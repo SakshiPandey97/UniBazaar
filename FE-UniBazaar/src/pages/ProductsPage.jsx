@@ -1,25 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { FaSearch } from "react-icons/fa";
+import { useSearchContext } from "../context/SearchContext";
 import useFetchAllProducts from "../hooks/useFetchAllProducts";
 import useSearchProducts from "../hooks/useSearchProducts";
 import ProductCard from "@/customComponents/ProductCard";
 
 function ProductsPage() {
+  const { searchTerm: globalSearchTerm, setSearchTerm: setGlobalSearchTerm } = useSearchContext();
   const [lastId, setLastId] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const loadMoreButtonPositionRef = useRef(0);
   const [isSearchCleared, setIsSearchCleared] = useState(false);
 
   const limit = 12;
   const searchLimit = 100;
 
-  const { products: searchProducts, loading: searchLoading, error: searchError } = useSearchProducts(searchTerm, searchLimit);
+  const { products: searchProducts, loading: searchLoading, error: searchError } = useSearchProducts(globalSearchTerm, searchLimit);
   const { products: allProducts, loading: allLoading, error: allError, hasMoreProducts } = useFetchAllProducts(limit, lastId);
 
-  const products = searchTerm ? searchProducts : allProducts;
-  const loading = searchTerm ? searchLoading : allLoading;
-  const error = searchTerm ? searchError : allError;
+  const products = globalSearchTerm ? searchProducts : allProducts;
+  const loading = globalSearchTerm ? searchLoading : allLoading;
+  const error = globalSearchTerm ? searchError : allError;
 
   const loadMoreButtonRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -49,7 +50,7 @@ function ProductsPage() {
 
   const handleSearchChange = (e) => {
     const newValue = e.target.value;
-    setSearchTerm(newValue);
+    setGlobalSearchTerm(newValue);
     setLastId("");
 
     if (!newValue) {
@@ -81,7 +82,7 @@ function ProductsPage() {
           ref={searchInputRef}
           type="text"
           placeholder="Search products..."
-          value={searchTerm}
+          value={globalSearchTerm}
           onChange={handleSearchChange}
           className="w-full p-3 pl-12 border-4 border-[#3B82F6] rounded-lg shadow-md transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#3B82F6] focus:border-[#3B82F6] focus:shadow-xl hover:shadow-lg text-base"
         />
@@ -90,7 +91,7 @@ function ProductsPage() {
         </div>
       </div>
       <h2 className="text-3xl font-semibold mb-6">
-        {searchTerm ? "Search Results" : "All Products"}
+        {globalSearchTerm ? "Search Results" : "All Products"}
       </h2>
 
       <motion.div
@@ -121,7 +122,7 @@ function ProductsPage() {
         )}
       </motion.div>
 
-      {!searchTerm && (
+      {!globalSearchTerm && (
         <div className="flex justify-center mt-8">
           {!hasMoreProducts ? (
             <div className="text-lg text-gray-500">No more products</div>
