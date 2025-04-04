@@ -7,11 +7,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Spinner from "./Spinner";
-import useProducts from "../hooks/useProducts";
+import useFetchProducts from "../hooks/useFetchProducts";
 import ProductCard from "./ProductCard";
 
 const Products = () => {
-  const { products, loading, error } = useProducts();
+  const { products, loading, error } = useFetchProducts();
   if (loading) return <Spinner />;
   if (error) return <div>{error}</div>;
 
