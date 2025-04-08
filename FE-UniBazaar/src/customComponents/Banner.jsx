@@ -1,11 +1,25 @@
 import React from "react";
 import bannerImg from "../assets/imgs/banner_image.svg";
 import { motion } from "framer-motion";
-// import { AiOutlineSearch } from "react-icons/ai";
-// import { FaMicrophone } from "react-icons/fa";
+import { useSearchContext } from "../context/SearchContext";
+import { useNavigate } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
 
 
 const Banner = () => {
+  const { searchTerm, setSearchTerm } = useSearchContext();
+  const navigate = useNavigate();
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      navigate("/products");
+    }
+  };
+
   return (
     <div className="w-100vh h-[70vh] relative py-24">
       <img
@@ -13,7 +27,6 @@ const Banner = () => {
         className="absolute inset-0 w-full h-full object-cover"
         alt="Banner"
       />
-      {/* <div className='absolute inset-0 bg-black/30'></div> */}
 
       <div className="w-full m-auto relative z-10 py-4">
         <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -21,7 +34,7 @@ const Banner = () => {
             <motion.span
               initial={{ x: -100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeInOut"}}
+              transition={{ duration: 1, ease: "easeInOut" }}
               className="text-[#FA4616] inline-block"
             >
               Uni
@@ -41,21 +54,16 @@ const Banner = () => {
 
           <div className="relative flex items-center w-full max-w-[600px] bg-white/50 rounded-lg">
             <div className="absolute left-3 text-gray-500">
-              {/* <AiOutlineSearch className="h-5 w-5" /> */}
+              <FaSearch size={20} />
             </div>
             <input
               type="text"
               placeholder="Search for items..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
               className="w-full pl-10 pr-12 py-2 bg-transparent rounded-lg focus:outline-none text-gray-800 placeholder-gray-600"
             />
-            <button
-              className="absolute right-3 text-gray-500 hover:text-gray-800"
-              onClick={() => {
-                /* need to keep the functionality of mic click */
-              }}
-            >
-              {/* <FaMicrophone className="h-5 w-5" /> */}
-            </button>
           </div>
         </div>
       </div>
