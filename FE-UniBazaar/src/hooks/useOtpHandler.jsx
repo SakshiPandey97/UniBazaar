@@ -19,12 +19,12 @@ export function useOtpHandler(email) {
     setIsSubmitting(true);
     setMessage("");
 
-    userVerificationAPI({ email, otp })
+    userVerificationAPI({ email:email, code:otp })
       .then((res) => {
         if (res.success) {
-          setMessage("OTP Verified Successfully! ✅");
+          setMessage("OTP Verified Successfully! ");
         } else {
-          setMessage("Invalid OTP. Please try again ❌");
+          setMessage("Invalid OTP. Please try again ");
         }
       })
       .catch((err) => {

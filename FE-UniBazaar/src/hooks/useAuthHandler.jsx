@@ -72,6 +72,7 @@ export function useAuthHandler({ toggleModal }) {
     isSubmitting,
     successMessage,
     isVerifyingOTP,
+    registeredEmail,
     toggleAuthMode,
     handleSubmit,
   };

@@ -26,27 +26,27 @@ function AuthPage({ toggleModal }) {
       {showConfetti && <Confetti width={width} height={height} />}
 
       <div className="w-full h-full flex justify-center items-center relative">
-          {isVerifyingOTP ? (
-              <InputOtp email={registeredEmail} />
-          ) : isRegistering ? (
-              <UserRegisterView
-                authHandlers={{
-                  isSubmitting,
-                  successMessage,
-                  toggleAuthMode,
-                  handleSubmit,
-                }}
-              />
-          ) : (
-              <UserLoginView
-                authHandlers={{
-                  isSubmitting,
-                  successMessage,
-                  toggleAuthMode,
-                  handleSubmit,
-                }}
-              />
-          )}
+        {isVerifyingOTP ? (
+          <InputOtp email={registeredEmail} />
+        ) : isRegistering ? (
+          <UserRegisterView
+            authHandlers={{
+              isSubmitting,
+              successMessage,
+              toggleAuthMode,
+              handleSubmit,
+            }}
+          />
+        ) : (
+          <UserLoginView
+            authHandlers={{
+              isSubmitting,
+              successMessage,
+              toggleAuthMode,
+              handleSubmit,
+            }}
+          />
+        )}
       </div>
     </>
   );

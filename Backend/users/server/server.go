@@ -9,7 +9,7 @@ import (
 )
 
 func InitServer() {
-	dsn := "postgres://postgres:postgres2025@localhost/unibazaar?sslmode=disable"
+	dsn := "postgresql://user:npg_8eILQzF2cGhM@ep-damp-bread-a88f66ei-pooler.eastus2.azure.neon.tech/neondb?sslmode=require"
 	app := handler.Application{}
 	conn := config.Connect(dsn)
 	app.Models = models.NewModels(conn)
