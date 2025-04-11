@@ -55,6 +55,7 @@ func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Reques
 		Email string `json:"email"`
 		Code  string `json:"code"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "invalid JSON input", http.StatusBadRequest)
 		return
