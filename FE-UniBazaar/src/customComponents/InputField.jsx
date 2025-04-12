@@ -13,7 +13,7 @@ function InputField({
     <div className="flex flex-col mb-4 relative">
       <div className="flex justify-center">
         <Field
-          data-testid={data_testid}  // ✅ Use the correct attribute
+          data-testid={data_testid}
           placeholder={placeholder}
           type={type}
           id={name}
@@ -23,7 +23,11 @@ function InputField({
           {...additionalProps}
         />
       </div>
-      <ErrorMessage name={name} component="div" className="text-red-500 text-sm mt-1 ml-[50px]" />
+        <ErrorMessage
+          name={name}
+          component="div"
+          className="text-red-500 text-sm mt-1 ml-[50px]"
+        />
     </div>
   );
 }

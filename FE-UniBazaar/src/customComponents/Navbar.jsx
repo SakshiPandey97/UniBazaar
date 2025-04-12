@@ -14,9 +14,9 @@ const Navbar = ({ toggleLoginModal }) => {
     toggleDropdown,
     toggleMenu,
     handleNavigation,
-    handleAuthAction,
+    handleLogout,
     userAuth,
-  } = useNavbar({ toggleLoginModal });
+    } = useNavbar({ toggleLoginModal });
 
   const isActive = (path) => location.pathname === path;
 
@@ -32,16 +32,8 @@ const Navbar = ({ toggleLoginModal }) => {
         <div className="hidden md:flex gap-8 text-lg font-semibold">
           {[
             { path: "/", label: "Home" },
-            {
-              path: "#",
-              label: "Messaging",
-              onClick: () => handleNavigation("/messaging"),
-            },
-            {
-              path: "#",
-              label: "Sell",
-              onClick: () => handleNavigation("/sell"),
-            },
+            { path: "#", label: "Messaging", onClick: () => handleNavigation("/messaging") },
+            { path: "#", label: "Sell", onClick: () => handleNavigation("/sell") },
             { path: "/products", label: "Products" },
             {
               path: "/userproducts",
@@ -54,7 +46,7 @@ const Navbar = ({ toggleLoginModal }) => {
               <button
                 key={label}
                 onClick={onClick}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black`}
+                className="px-4 py-2 rounded-lg text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black transition-all"
               >
                 {label}
               </button>
@@ -75,7 +67,7 @@ const Navbar = ({ toggleLoginModal }) => {
 
         <div className="hidden md:flex items-center gap-4 relative">
           <button
-            data_testid="loginBtn"
+            data-testid="loginBtn"
             className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#E5E5E5] hover:bg-[#D6D2D2] transition duration-200 text-black font-medium"
             onClick={userAuth.userState ? toggleDropdown : toggleLoginModal}
           >
@@ -94,7 +86,7 @@ const Navbar = ({ toggleLoginModal }) => {
                 </li>
                 <li
                   className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-red-500"
-                  onClick={handleAuthAction}
+                  onClick={handleLogout}
                 >
                   Log Out
                 </li>
@@ -116,32 +108,24 @@ const Navbar = ({ toggleLoginModal }) => {
         <div className="absolute top-[80px] left-0 w-full bg-white px-6 py-4 md:hidden shadow-lg z-50">
           <ul className="space-y-4">
             {[
-              {
-                path: "#",
-                label: "Messaging",
-                onClick: () => handleNavigation("/messaging"),
-              },
-              {
-                path: "#",
-                label: "Sell",
-                onClick: () => handleNavigation("/sell"),
-              },
 
-              { path: "/products", label: "Products" },
+              { path: "#", label: "Messaging", onClick: () => handleNavigation("/messaging") },
+              { path: "#", label: "Sell", onClick: () => handleNavigation("/sell") },
+              { path: "/product", label: "Products" },
               {
                 path: "/userproducts",
                 label: "My Products",
                 onClick: () => handleNavigation("/userproducts"),
               },
               { path: "/about", label: "About Us" },
-            ].map(({ path, label }) => (
+            ].map(({ path, label, onClick }) => (
               <li
                 key={path}
                 className={`p-4 rounded-lg transition ${isActive(path)
                     ? "bg-[#FFC67D] text-black font-bold"
                     : "hover:bg-gray-100"
-                  }`}
-                onClick={() => handleNavigation(path)}
+                }`}
+                onClick={onClick || (() => handleNavigation(path))}
               >
                 {label}
               </li>
@@ -151,7 +135,7 @@ const Navbar = ({ toggleLoginModal }) => {
           <div className="mt-4 flex flex-col gap-4">
             <button
               className="border border-[#008080] flex items-center justify-center bg-transparent px-6 gap-2 py-3 rounded-lg"
-              onClick={handleAuthAction}
+              onClick={userAuth.userState ? handleLogout : toggleLoginModal}
             >
               <img src={loginIcon} className="h-[20px]" alt="Login" />
               {userAuth.userState ? "Log-Out" : "Login"}
@@ -160,7 +144,6 @@ const Navbar = ({ toggleLoginModal }) => {
         </div>
       )}
 
-      {/* Spacer to prevent content from being hidden behind fixed navbar */}
       <div className="pt-[80px]"></div>
     </>
   );

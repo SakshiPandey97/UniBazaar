@@ -10,21 +10,19 @@ const useNavbar = ({ toggleLoginModal }) => {
   const navigate = useNavigate();
 
   const toggleDropdown = () => {
-    setDropdownOpen(!isDropdownOpen);
+    setDropdownOpen((prev) => !prev);
   };
-  const toggleMenu = () => setMenuOpen((prev) => !prev);
+
+  const toggleMenu = () => {
+    setMenuOpen((prev) => !prev);
+  };
 
   const handleNavigation = (path) => {
     userAuth.userState ? navigate(path) : toggleLoginModal();
   };
 
-  const handleAuthAction = () => {
-    if (userAuth.userState) {
-      userAuth.toggleUserLogin();
-      userAuth.setUserID("");
-    } else {
-      toggleLoginModal();
-    }
+  const handleLogout = () => {
+    userAuth.logoutUser();
   };
 
   return {
@@ -33,7 +31,7 @@ const useNavbar = ({ toggleLoginModal }) => {
     toggleDropdown,
     toggleMenu,
     handleNavigation,
-    handleAuthAction,
+    handleLogout,
     userAuth,
   };
 };

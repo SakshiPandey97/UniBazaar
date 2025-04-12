@@ -30,7 +30,8 @@ export const userRegisterAPI = ({ userRegisterObject }) => {
     });
 };
 
-export const userVerificationAPI = ({ userVerificationObject }) => {
+export const userVerificationAPI = ( userVerificationObject ) => {
+  console.log(userVerificationObject)
   return axios
     .post(USER_BASE_URL + "/verifyEmail", userVerificationObject)
     .then((response) => {
