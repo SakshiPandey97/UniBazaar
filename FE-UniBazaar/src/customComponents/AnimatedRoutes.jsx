@@ -8,6 +8,7 @@ import Messaging from "@/pages/Messaging";
 import AboutUsPage from "@/pages/AboutUsPage";
 import ProductsPage from "@/pages/ProductsPage";
 import LandingPage from "@/pages/LandingPage";
+import MyProductsPage from "@/pages/MyProductsPage";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -39,6 +40,14 @@ function AnimatedRoutes() {
           element={
             <PageWrapper direction="right">
               <ProductsPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/userproducts"
+          element={
+            <PageWrapper direction="right">
+              <MyProductsPage />
             </PageWrapper>
           }
         />

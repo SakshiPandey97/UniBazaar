@@ -29,6 +29,25 @@ export const getAllProductsAPI = async (limit, lastId) => {
     }
   };
 
+  export const getUserProductsAPI = async (userId, limit, lastId) => {
+    const params = {
+      lastId: lastId,
+      limit: limit,
+    };
+    try {
+      const response = await axios.get(`${PRODUCT_BASE_URL}/products/${userId}`, { params });
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.warn("No products found for user:", userId);
+        return [];
+      }
+      console.error("Error fetching user products:", error);
+      throw error;
+    }
+  };
+  
+
   export const searchProductsAPI = async (query, limit) => {
     try {
         const response = await axios.get(`${PRODUCT_BASE_URL}/search/products`, {

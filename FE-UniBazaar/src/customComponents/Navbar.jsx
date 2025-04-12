@@ -43,6 +43,11 @@ const Navbar = ({ toggleLoginModal }) => {
               onClick: () => handleNavigation("/sell"),
             },
             { path: "/products", label: "Products" },
+            {
+              path: "/userproducts",
+              label: "My  Products",
+              onClick: () => handleNavigation("/userproducts"),
+            },
             { path: "/about", label: "About Us" },
           ].map(({ path, label, onClick }) =>
             onClick ? (
@@ -57,11 +62,10 @@ const Navbar = ({ toggleLoginModal }) => {
               <Link
                 key={path}
                 to={path}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  isActive(path)
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${isActive(path)
                     ? "bg-[#FFC67D] text-black font-bold"
                     : "text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black"
-                }`}
+                  }`}
               >
                 {label}
               </Link>
@@ -123,16 +127,20 @@ const Navbar = ({ toggleLoginModal }) => {
                 onClick: () => handleNavigation("/sell"),
               },
 
-              { path: "/product", label: "Products" },
+              { path: "/products", label: "Products" },
+              {
+                path: "/userproducts",
+                label: "My Products",
+                onClick: () => handleNavigation("/userproducts"),
+              },
               { path: "/about", label: "About Us" },
             ].map(({ path, label }) => (
               <li
                 key={path}
-                className={`p-4 rounded-lg transition ${
-                  isActive(path)
+                className={`p-4 rounded-lg transition ${isActive(path)
                     ? "bg-[#FFC67D] text-black font-bold"
                     : "hover:bg-gray-100"
-                }`}
+                  }`}
                 onClick={() => handleNavigation(path)}
               >
                 {label}
