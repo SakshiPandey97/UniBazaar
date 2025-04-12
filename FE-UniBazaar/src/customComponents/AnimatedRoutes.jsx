@@ -8,6 +8,7 @@ import Messaging from "@/pages/Messaging";
 import AboutUsPage from "@/pages/AboutUsPage";
 import ProductsPage from "@/pages/ProductsPage";
 import LandingPage from "@/pages/LandingPage";
+import PrivateRoute from "@/customComponents/PrivateRoute"; // <- import it
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -16,24 +17,31 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<LandingPage />} />
+        
         <Route
           path="/sell"
           element={
-            <Suspense fallback={<Spinner />}>
-              <PageWrapper>
-                <SellProductPage />
-              </PageWrapper>
-            </Suspense>
+            <PrivateRoute>
+              <Suspense fallback={<Spinner />}>
+                <PageWrapper>
+                  <SellProductPage />
+                </PageWrapper>
+              </Suspense>
+            </PrivateRoute>
           }
         />
+
         <Route
           path="/messaging"
           element={
-            <PageWrapper direction="right">
-              <Messaging />
-            </PageWrapper>
+            <PrivateRoute>
+              <PageWrapper direction="right">
+                <Messaging />
+              </PageWrapper>
+            </PrivateRoute>
           }
         />
+
         <Route
           path="/products"
           element={

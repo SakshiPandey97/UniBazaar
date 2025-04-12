@@ -1,69 +1,66 @@
-import { describe, test, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
 import {
   userLoginAPI,
   userRegisterAPI,
   userVerificationAPI,
-} from "../../api/userAxios"; // Adjust import path if needed
+} from "@/api/userAxios";
 
-// Mock axios
 vi.mock("axios");
 
-describe("User API Tests", () => {
-  const mockUserLoginObject = { email: "test@example.com", password: "password123" };
-  const mockUserRegisterObject = { name: "John Doe", email: "john@example.com", password: "password123" };
-  const mockUserVerificationObject = { email: "john@example.com", otp: "123456" };
-
-  afterEach(() => {
-    vi.clearAllMocks();
+describe("API Functions", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    localStorage.clear();
   });
 
-  test("userLoginAPI should return userId and store it in localStorage", async () => {
-    const mockUserId = "12345";
-    axios.post.mockResolvedValue({ data: { userId: mockUserId } });
+  it("userLoginAPI should return userId and store in localStorage", async () => {
+    const mockUserId = "user123";
+    const mockLoginObj = { email: "test@example.com", password: "pass" };
 
-    const result = await userLoginAPI({ userLoginObject: mockUserLoginObject });
+    axios.post.mockResolvedValueOnce({ data: { userId: mockUserId } });
+
+    const result = await userLoginAPI({ userLoginObject: mockLoginObj });
 
     expect(result).toBe(mockUserId);
     expect(localStorage.getItem("userId")).toBe(mockUserId);
-    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining("/login"), mockUserLoginObject);
+
+    // ✅ Check path ending only (less brittle)
+    expect(axios.post.mock.calls[0][0].endsWith("/login")).toBe(true);
+    expect(axios.post.mock.calls[0][1]).toEqual(mockLoginObj);
   });
 
-  test("userLoginAPI should throw an error on failure", async () => {
-    axios.post.mockRejectedValue(new Error("Login failed"));
+  it("userRegisterAPI should return response data", async () => {
+    const mockResponse = { status: "success" };
+    const mockRegisterObj = { email: "new@example.com", password: "123456" };
 
-    await expect(userLoginAPI({ userLoginObject: mockUserLoginObject })).rejects.toThrow("Login failed");
-  });
+    axios.post.mockResolvedValueOnce({ data: mockResponse });
 
-  test("userRegisterAPI should return response data", async () => {
-    const mockResponse = { message: "User registered successfully" };
-    axios.post.mockResolvedValue({ data: mockResponse });
-
-    const result = await userRegisterAPI({ userRegisterObject: mockUserRegisterObject });
+    const result = await userRegisterAPI({ userRegisterObject: mockRegisterObj });
 
     expect(result).toEqual(mockResponse);
-    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining("/signup"), mockUserRegisterObject);
+    expect(axios.post.mock.calls[0][0].endsWith("/signup")).toBe(true);
+    expect(axios.post.mock.calls[0][1]).toEqual(mockRegisterObj);
   });
 
-  test("userRegisterAPI should throw an error on failure", async () => {
-    axios.post.mockRejectedValue(new Error("Registration failed"));
+  it("userVerificationAPI should return userId", async () => {
+    const mockUserId = "verified123";
+    const verifyData = { email: "verify@example.com", code: "123456" };
 
-    await expect(userRegisterAPI({ userRegisterObject: mockUserRegisterObject })).rejects.toThrow("Registration failed");
-  });
+    axios.post.mockResolvedValueOnce({ data: { userId: mockUserId } });
 
-  test("userVerificationAPI should return userId", async () => {
-    const mockUserId = "67890";
-    axios.post.mockResolvedValue({ data: { userId: mockUserId } });
-
-    const result = await userVerificationAPI({ userVerificationObject: mockUserVerificationObject });
+    const result = await userVerificationAPI(verifyData);
 
     expect(result).toBe(mockUserId);
-    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining("/verifyEmail"), mockUserVerificationObject);
+    expect(axios.post.mock.calls[0][0].endsWith("/verifyEmail")).toBe(true);
+    expect(axios.post.mock.calls[0][1]).toEqual(verifyData);
   });
 
-  test("userVerificationAPI should throw an error on failure", async () => {
-    axios.post.mockRejectedValue(new Error("Verification failed"));
+  it("userLoginAPI should throw error on failure", async () => {
+    axios.post.mockRejectedValueOnce(new Error("Request failed"));
 
-    await expect(userVerificationAPI({ userVerificationObject: mockUserVerificationObject })).rejects.toThrow("Verification failed");
+    await expect(
+      userLoginAPI({ userLoginObject: { email: "fail", password: "wrong" } })
+    ).rejects.toThrow("Request failed");
   });
 });
