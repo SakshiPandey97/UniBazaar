@@ -16,7 +16,7 @@ const Navbar = ({ toggleLoginModal }) => {
     handleNavigation,
     handleLogout,
     userAuth,
-    } = useNavbar({ toggleLoginModal });
+  } = useNavbar({ toggleLoginModal });
 
   const isActive = (path) => location.pathname === path;
 
@@ -32,9 +32,18 @@ const Navbar = ({ toggleLoginModal }) => {
         <div className="hidden md:flex gap-8 text-lg font-semibold">
           {[
             { path: "/", label: "Home" },
-            { path: "#", label: "Messaging", onClick: () => handleNavigation("/messaging") },
-            { path: "#", label: "Sell", onClick: () => handleNavigation("/sell") },
+            { path: "/messaging", label: "Messaging", onClick: () => handleNavigation("/messaging") },
+            {
+              path: "/sell",
+              label: "Sell",
+              onClick: () => handleNavigation("/sell")
+            },
             { path: "/products", label: "Products" },
+            {
+              path: "/userproducts",
+              label: "My Products",
+              onClick: () => handleNavigation("/userproducts"),
+            },
             { path: "/about", label: "About Us" },
           ].map(({ path, label, onClick }) =>
             onClick ? (
@@ -49,11 +58,10 @@ const Navbar = ({ toggleLoginModal }) => {
               <Link
                 key={path}
                 to={path}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  isActive(path)
-                    ? "bg-[#FFC67D] text-black font-bold"
-                    : "text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black"
-                }`}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${isActive(path)
+                  ? "bg-[#FFC67D] text-black font-bold"
+                  : "text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black"
+                  }`}
               >
                 {label}
               </Link>
@@ -104,18 +112,23 @@ const Navbar = ({ toggleLoginModal }) => {
         <div className="absolute top-[80px] left-0 w-full bg-white px-6 py-4 md:hidden shadow-lg z-50">
           <ul className="space-y-4">
             {[
-              { path: "#", label: "Messaging", onClick: () => handleNavigation("/messaging") },
-              { path: "#", label: "Sell", onClick: () => handleNavigation("/sell") },
+
+              { path: "/messaging", label: "Messaging", onClick: () => handleNavigation("/messaging") },
+              { path: "/sell", label: "Sell", onClick: () => handleNavigation("/sell") },
               { path: "/product", label: "Products" },
+              {
+                path: "/userproducts",
+                label: "My Products",
+                onClick: () => handleNavigation("/userproducts"),
+              },
               { path: "/about", label: "About Us" },
             ].map(({ path, label, onClick }) => (
               <li
                 key={path}
-                className={`p-4 rounded-lg transition ${
-                  isActive(path)
-                    ? "bg-[#FFC67D] text-black font-bold"
-                    : "hover:bg-gray-100"
-                }`}
+                className={`p-4 rounded-lg transition ${isActive(path)
+                  ? "bg-[#FFC67D] text-black font-bold"
+                  : "hover:bg-gray-100"
+                  }`}
                 onClick={onClick || (() => handleNavigation(path))}
               >
                 {label}

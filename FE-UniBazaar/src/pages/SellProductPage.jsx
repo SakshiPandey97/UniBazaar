@@ -12,6 +12,7 @@ import { postProductAPI } from "@/api/productAxios";
 import { prepareFormData } from "@/utils/prepareFormData";
 import { useProductData } from "@/hooks/useProductData";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const SellProductPage = () => {
   const navigate = useNavigate();
@@ -19,29 +20,32 @@ const SellProductPage = () => {
   const { productData, handleChange, handleFileChange, setProductData } =
     useProductData();
   const { isAnimating, triggerAnimation } = useAnimation();
-  const [isUploaded, setIsUploaded] = useState(false); // Track successful upload
+  const [isUploaded, setIsUploaded] = useState(false);
 
   const handleSubmit = async () => {
     if (!productData.productImage) {
-      alert("Please upload a file before listing the product.");
+      toast.error("Please upload a file before listing the product.");
+      // alert("Please upload a file before listing the product.");
       return;
     }
 
     const condition = productConditionMapping[productData.productCondition];
 
     if (!condition) {
-      alert("Please select a valid product condition.");
+      toast.error("Please select a valid product condition.");
+      // alert("Please select a valid product condition.");
       return;
     }
 
     try {
-      await postProductAPI(prepareFormData(productData, productData.productImage, condition));
+      await postProductAPI(prepareFormData(productData, productData.productImage, condition, true));
       triggerAnimation();
       setIsUploaded(true);
       setTimeout(() => navigate("/"), 3000);
     } catch (error) {
       console.error("Error posting product:", error);
-      alert("Failed to post product. Try again.");
+      toast.error("Failed to post product. Try again.");
+      // alert("Failed to post product. Try again.");
     }
   };
 
@@ -84,9 +88,8 @@ const SellProductPage = () => {
               <Button
                 key={condition}
                 onClick={() => setProductData({ ...productData, productCondition: condition })}
-                className={`px-4 py-2 rounded-lg border text-black font-bold transition-all ${
-                  productData.productCondition === condition ? "bg-[#F58B00] text-white" : "bg-gray-200 hover:bg-gray-300"
-                }`}
+                className={`px-4 py-2 rounded-lg border text-black font-bold transition-all ${productData.productCondition === condition ? "bg-[#F58B00] text-white" : "bg-gray-200 hover:bg-gray-300"
+                  }`}
               >
                 {condition}
               </Button>

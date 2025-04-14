@@ -11,6 +11,8 @@ function ProductsPage() {
   const [lastId, setLastId] = useState("");
   const loadMoreButtonPositionRef = useRef(0);
   const [isSearchCleared, setIsSearchCleared] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isPaginationLoading, setIsPaginationLoading] = useState(false);
 
   const limit = 12;
   const searchLimit = 100;
@@ -28,6 +30,7 @@ function ProductsPage() {
   const loadMoreProducts = () => {
     if (products.length > 0) {
       setLastId(products[products.length - 1].productId);
+      setIsPaginationLoading(true);
     }
 
     if (loadMoreButtonRef.current) {
@@ -46,6 +49,7 @@ function ProductsPage() {
       }, 300);
     }
     setIsSearchCleared(false);
+    setIsPaginationLoading(false);
   }, [products]);
 
   const handleSearchChange = (e) => {
@@ -57,7 +61,18 @@ function ProductsPage() {
       setIsSearchCleared(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+
+    setIsTyping(true);
   };
+
+  useEffect(() => {
+    if (isTyping) {
+      const timeoutId = setTimeout(() => {
+        setIsTyping(false);
+      }, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isTyping]);
 
   if (error) {
     return (
@@ -103,7 +118,11 @@ function ProductsPage() {
           visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
         }}
       >
-        {products.length > 0 ? (
+        {loading && !isPaginationLoading ? (
+          <div className="col-span-full flex justify-center items-center mt-8">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-[#F58B00] border-solid"></div>
+          </div>
+        ) : products.length > 0 ? (
           products.map((product) => (
             <motion.div
               key={product.productId}
@@ -116,13 +135,16 @@ function ProductsPage() {
             </motion.div>
           ))
         ) : (
-          <div className="text-lg text-gray-500 col-span-full text-center">
-            No products found
-          </div>
+          !isTyping && (
+            <div className="text-lg text-gray-500 col-span-full text-center">
+              No products found
+            </div>
+          )
         )}
+
       </motion.div>
 
-      {!globalSearchTerm && (
+      {!globalSearchTerm && !loading && (
         <div className="flex justify-center mt-8">
           {!hasMoreProducts ? (
             <div className="text-lg text-gray-500">No more products</div>
@@ -137,7 +159,7 @@ function ProductsPage() {
                 Load More
               </button>
 
-              {loading && (
+              {isPaginationLoading && !isTyping && (
                 <div className="mt-4">
                   <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-[#F58B00] border-solid"></div>
                 </div>

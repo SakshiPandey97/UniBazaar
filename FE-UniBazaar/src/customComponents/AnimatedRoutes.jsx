@@ -8,7 +8,8 @@ import Messaging from "@/pages/Messaging";
 import AboutUsPage from "@/pages/AboutUsPage";
 import ProductsPage from "@/pages/ProductsPage";
 import LandingPage from "@/pages/LandingPage";
-import PrivateRoute from "@/customComponents/PrivateRoute"; // <- import it
+import MyProductsPage from "@/pages/MyProductsPage";
+import PrivateRoute from "@/customComponents/PrivateRoute";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -17,13 +18,13 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<LandingPage />} />
-        
+
         <Route
           path="/sell"
           element={
             <PrivateRoute>
               <Suspense fallback={<Spinner />}>
-                <PageWrapper>
+                <PageWrapper direction="right">
                   <SellProductPage />
                 </PageWrapper>
               </Suspense>
@@ -35,9 +36,11 @@ function AnimatedRoutes() {
           path="/messaging"
           element={
             <PrivateRoute>
-              <PageWrapper direction="right">
-                <Messaging />
-              </PageWrapper>
+              <Suspense fallback={<Spinner />}>
+                <PageWrapper direction="right">
+                  <Messaging />
+                </PageWrapper>
+              </Suspense>
             </PrivateRoute>
           }
         />
@@ -46,16 +49,32 @@ function AnimatedRoutes() {
           path="/products"
           element={
             <PageWrapper direction="right">
-              <ProductsPage />
+              <Suspense fallback={<Spinner />}>
+                <ProductsPage />
+              </Suspense>
             </PageWrapper>
+          }
+        />
+        <Route
+          path="/userproducts"
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Spinner />}>
+                <PageWrapper direction="right">
+                  <MyProductsPage />
+                </PageWrapper>
+              </Suspense>
+            </PrivateRoute>
           }
         />
         <Route
           path="/about"
           element={
-            <PageWrapper direction="right">
-              <AboutUsPage />
-            </PageWrapper>
+            <Suspense fallback={<Spinner />}>
+              <PageWrapper direction="right">
+                <AboutUsPage />
+              </PageWrapper>
+            </Suspense>
           }
         />
       </Routes>

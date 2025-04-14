@@ -11,6 +11,8 @@ import AuthPage from "./pages/AuthPage";
 import ViewMyProfilePage from "./pages/ViewMyProfilePage";
 import Modal from "./customComponents/Modal";
 import AnimatedRoutes from "./customComponents/AnimatedRoutes";
+import { ToastContainer } from "react-toastify";
+
 
 function App() {
   const { isModalOpen: isProfileModalOpen, toggleModal: toggleProfileModal } =
@@ -37,6 +39,7 @@ function App() {
           <AnimatedRoutes />
         </Router>
       </SearchProvider>
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} closeOnClick pauseOnHover draggable pauseOnFocusLoss />
     </AuthProvider>
   );
 }

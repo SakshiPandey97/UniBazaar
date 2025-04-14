@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -169,53 +170,66 @@ func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Req
 
 	existingProduct, err := h.ProductRepo.FindProductByUserAndId(userId, productId)
 	if err != nil {
-		HandleError(w, err, "Error updating product")
+		HandleError(w, err, "Error finding existing product")
 		return
 	}
 
 	updatedProduct, err := helper.ParseFormAndCreateProduct(r, userId)
 	if err != nil {
-		HandleError(w, err, "Invalid userId")
+		HandleError(w, err, "Error parsing form data")
 		return
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-	var imageDeleteErr, imageUploadErr error
-	var newS3ImageKey string
+	_, _, err = r.FormFile("productImage")
+	if err == http.ErrMissingFile {
+		updatedProduct.ProductImage = existingProduct.ProductImage
+	} else if err != nil {
+		HandleError(w, err, "Error retrieving uploaded image")
+		return
+	} else {
+		var wg sync.WaitGroup
+		wg.Add(2)
+		var imageDeleteErr, imageUploadErr error
+		var newS3ImageKey string
 
-	go func() {
-		defer wg.Done()
-		if existingProduct.ProductImage != "" {
-			imageDeleteErr = h.ImageRepo.DeleteImage(existingProduct.ProductImage)
+		go func() {
+			defer wg.Done()
+			if existingProduct.ProductImage != "" {
+				imageDeleteErr = h.ImageRepo.DeleteImage(existingProduct.ProductImage)
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+			newS3ImageKey, imageUploadErr = h.handleProductImageUpload(w, r, &updatedProduct)
+		}()
+
+		wg.Wait()
+
+		if imageDeleteErr != nil {
+			log.Printf("Error deleting old image: %v", imageDeleteErr)
 		}
-	}()
 
-	go func() {
-		defer wg.Done()
-		newS3ImageKey, imageUploadErr = h.handleProductImageUpload(w, r, &updatedProduct)
-	}()
+		if imageUploadErr != nil {
+			HandleError(w, imageUploadErr, "Error uploading image")
+			return
+		}
 
-	wg.Wait()
-
-	if imageDeleteErr != nil {
-		log.Printf("Error deleting old image: %v", imageDeleteErr)
+		updatedProduct.ProductImage = newS3ImageKey
 	}
-
-	if imageUploadErr != nil {
-		HandleError(w, imageUploadErr, "Error uploading image")
-		return
-	}
-
-	updatedProduct.ProductImage = newS3ImageKey
 
 	err = h.ProductRepo.UpdateProduct(userId, productId, updatedProduct)
 	if err != nil {
-		HandleError(w, err, "Error updating product")
+		HandleError(w, err, "Error updating product in database")
 		return
 	}
 
-	HandleSuccessResponse(w, http.StatusOK, updatedProduct)
+	productsWithURL := h.ImageRepo.GetPreSignedURLs([]model.Product{updatedProduct})
+	if len(productsWithURL) > 0 {
+		HandleSuccessResponse(w, http.StatusOK, productsWithURL[0])
+	} else {
+		HandleError(w, errors.New("failed to generate pre-signed URL"), "Image URL generation failed")
+	}
 }
 
 // @Summary Delete a product by user ID and product ID
