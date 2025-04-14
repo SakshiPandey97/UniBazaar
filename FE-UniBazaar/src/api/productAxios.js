@@ -1,4 +1,6 @@
 import axios from "axios";
+import { toast } from "react-toastify";
+
 const PRODUCT_BASE_URL = import.meta.env.VITE_PRODUCT_BASE_URL;
 
 export const getAllProductsAPI = async (limit, lastId) => {
@@ -12,6 +14,7 @@ export const getAllProductsAPI = async (limit, lastId) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching products:", error);
+    toast.error("Failed to fetch products.");
     throw error;
   }
 };
@@ -20,11 +23,11 @@ export const postProductAPI = async (formData) => {
   try {
     const response = await axios
       .post(PRODUCT_BASE_URL + "/products", formData);
-    alert("Product posted successfully!");
+    toast.success("Product posted successfully!");
     return response.data;
   } catch (error) {
     console.error("Error posting product:", error);
-    alert("Failed to post product. Try again.");
+    toast.error("Failed to post product. Try again.");
     throw error;
   }
 };
@@ -32,11 +35,11 @@ export const postProductAPI = async (formData) => {
 export const updateProductAPI = async (userId, productId, formData) => {
   try {
     const response = await axios.put(`${PRODUCT_BASE_URL}/products/${userId}/${productId}`, formData);
-    alert("Product updated successfully!");
+    toast.success("Product updated successfully!");
     return response.data;
   } catch (error) {
     console.error("Error updating product:", error);
-    alert("Failed to update product. Try again.");
+    toast.error("Failed to update product. Try again.");
     throw error;
   }
 };
@@ -54,7 +57,7 @@ export const getUserProductsAPI = async (userId, limit, lastId) => {
       console.warn("No products found for user:", userId);
       return [];
     }
-    console.error("Error fetching user products:", error);
+    toast.error("Failed to fetch your products.");
     throw error;
   }
 };
@@ -71,7 +74,7 @@ export const searchProductsAPI = async (query, limit) => {
       console.log("No products found (404).");
       return [];
     }
-    console.error("Error searching products:", error);
+    toast.error("Failed to search products.");
     throw error;
   }
 };
@@ -79,11 +82,11 @@ export const searchProductsAPI = async (query, limit) => {
 export const deleteProductAPI = async (userId, productId) => {
   try {
     const response = await axios.delete(`${PRODUCT_BASE_URL}/products/${userId}/${productId}`);
-    alert("Product deleted successfully!");
+    toast.success("Product deleted successfully!");
     return response.data;
   } catch (error) {
     console.error("Error deleting product:", error);
-    alert("Failed to delete product. Try again.");
+    toast.error("Failed to delete product. Try again.");
     throw error;
   }
 };

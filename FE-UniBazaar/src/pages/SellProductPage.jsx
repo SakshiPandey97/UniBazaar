@@ -12,6 +12,7 @@ import { postProductAPI } from "@/api/productAxios";
 import { prepareFormData } from "@/utils/prepareFormData";
 import { useProductData } from "@/hooks/useProductData";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const SellProductPage = () => {
   const navigate = useNavigate();
@@ -23,14 +24,16 @@ const SellProductPage = () => {
 
   const handleSubmit = async () => {
     if (!productData.productImage) {
-      alert("Please upload a file before listing the product.");
+      toast.error("Please upload a file before listing the product.");
+      // alert("Please upload a file before listing the product.");
       return;
     }
 
     const condition = productConditionMapping[productData.productCondition];
 
     if (!condition) {
-      alert("Please select a valid product condition.");
+      toast.error("Please select a valid product condition.");
+      // alert("Please select a valid product condition.");
       return;
     }
 
@@ -41,7 +44,8 @@ const SellProductPage = () => {
       setTimeout(() => navigate("/"), 3000);
     } catch (error) {
       console.error("Error posting product:", error);
-      alert("Failed to post product. Try again.");
+      toast.error("Failed to post product. Try again.");
+      // alert("Failed to post product. Try again.");
     }
   };
 
