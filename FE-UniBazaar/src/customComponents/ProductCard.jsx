@@ -40,8 +40,10 @@ const ProductCard = ({
       setEditableProduct(product);
       setImagePreview(product.productImage);
       setNewImageFile(null);
+    } else {
+      setImagePreview(editableProduct.productImage);
     }
-  }, [propIsEditing, product]);
+  }, [propIsEditing, product, editableProduct.productImage]);
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -87,7 +89,8 @@ const ProductCard = ({
       setNewImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     } else {
-      setImagePreview(product.productImage);
+      setImagePreview(editableProduct.productImage);
+      setNewImageFile(null);
     }
   };
 
@@ -100,6 +103,7 @@ const ProductCard = ({
     if (updatedProduct) {
       if (onProductUpdated) {
         onProductUpdated(updatedProduct);
+
         setImagePreview(updatedProduct.productImage);
       }
       setIsEditing(false);

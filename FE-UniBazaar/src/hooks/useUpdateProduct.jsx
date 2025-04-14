@@ -18,7 +18,7 @@ const useUpdateProduct = () => {
       const response = await updateProductAPI(userId, editableProduct.productId, formData);
       setIsSaving(false);
 
-      return response.data;
+      return response;
     } catch (error) {
       console.error(error);
       setError("Failed to update product.");
