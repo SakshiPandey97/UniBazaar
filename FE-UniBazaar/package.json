@@ -19,6 +19,7 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@tailwindcss/vite": "^4.0.8",
     "axios": "^1.7.9",
+    "axios-mock-adapter": "^2.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cypress": "^14.1.0",

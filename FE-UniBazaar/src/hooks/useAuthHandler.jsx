@@ -47,9 +47,12 @@ export function useAuthHandler({ toggleModal }) {
           }, 4000);
         } else {
           setSuccessMessage("Login successful! Redirecting to Home...");
+
+          
+          useAuth.loginUser(data); 
+
           setTimeout(() => {
             setSuccessMessage("");
-            useAuth.toggleUserLogin();
             toggleModal();
           }, 3000);
         }
@@ -59,7 +62,7 @@ export function useAuthHandler({ toggleModal }) {
           `${isRegistering ? "Registration" : "Login"} failed:`,
           err
         );
-        setSuccessMessage(err);
+        setSuccessMessage(err?.response?.data?.message || "Something went wrong.");
         setTimeout(() => setSuccessMessage(""), 3000);
         setSubmitting(false);
         setIsSubmitting(false);

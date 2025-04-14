@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { userVerificationAPI } from "@/api/userAxios";
 
 export function useOtpHandler(email) {
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
 
   const handleChange = (value) => {
     setOtp(value);
@@ -19,21 +20,35 @@ export function useOtpHandler(email) {
     setIsSubmitting(true);
     setMessage("");
 
-    userVerificationAPI({ email:email, code:otp })
-      .then((res) => {
-        if (res.success) {
-          setMessage("OTP Verified Successfully! ");
-        } else {
-          setMessage("Invalid OTP. Please try again ");
-        }
-      })
-      .catch((err) => {
-        setMessage("Error verifying OTP. Please try again.", err);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
+    try {
+      const res = await userVerificationAPI({ email, code: otp });
+      if (res.success) {
+        setMessage("OTP Verified Successfully!");
+      } else {
+        setMessage("Invalid OTP. Please try again.");
+      }
+    } catch (err) {
+      setMessage("Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  return { otp, message, isSubmitting, handleChange, handleSubmit };
+  // Timer countdown
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  return {
+    otp,
+    message,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    timeLeft,
+  };
 }
