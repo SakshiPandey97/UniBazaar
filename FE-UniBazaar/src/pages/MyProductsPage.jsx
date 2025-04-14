@@ -7,16 +7,44 @@ import { getCurrentUserId } from "@/utils/getUserId";
 function MyProductsPage() {
     const [lastId, setLastId] = useState("");
     const loadMoreButtonPositionRef = useRef(0);
+    const [productsData, setProductsData] = useState([]);
 
     const limit = 12;
-    const userId = 456;//getCurrentUserId();
-    const { products, loading, error, hasMoreProducts } = useFetchUserProducts(userId, limit, lastId);
+    const userId = getCurrentUserId();
+    const { products: fetchedProducts, loading, error, hasMoreProducts } = useFetchUserProducts(userId, limit, lastId);
 
     const loadMoreButtonRef = useRef(null);
 
+    useEffect(() => {
+        if (fetchedProducts) {
+            setProductsData((prevProducts) => {
+                const newProducts = fetchedProducts.filter(
+                    (newProduct) => !prevProducts.some((p) => p.productId === newProduct.productId)
+                );
+                return [...prevProducts, ...newProducts];
+            });
+        }
+    }, [fetchedProducts]);
+
+    const handleProductUpdated = (updatedProduct) => {
+        setProductsData((prevProducts) =>
+            prevProducts.map((product) =>
+                product.productId === updatedProduct.productId ? updatedProduct : product
+            )
+        );
+
+    };
+
+    const handleProductDeleted = (deletedProductId) => {
+        setProductsData((prevProducts) =>
+            prevProducts.filter((product) => product.productId !== deletedProductId)
+        );
+    };
+
+
     const loadMoreProducts = () => {
-        if (products.length > 0) {
-            setLastId(products[products.length - 1].productId);
+        if (productsData.length > 0) {
+            setLastId(productsData[productsData.length - 1].productId);
         }
 
         if (loadMoreButtonRef.current) {
@@ -34,7 +62,7 @@ function MyProductsPage() {
                 });
             }, 300);
         }
-    }, [products]);
+    }, [productsData]);
 
     if (error) {
         return (
@@ -65,12 +93,12 @@ function MyProductsPage() {
                     visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
                 }}
             >
-                {loading && products.length === 0 ? (
+                {loading && productsData.length === 0 ? (
                     <div className="flex justify-center col-span-full">
                         <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-[#F58B00] border-solid"></div>
                     </div>
-                ) : products.length > 0 ? (
-                    products.map((product) => (
+                ) : productsData.length > 0 ? (
+                    productsData.map((product) => (
                         <motion.div
                             key={product.productId}
                             variants={{
@@ -78,7 +106,12 @@ function MyProductsPage() {
                                 visible: { opacity: 1, scale: 1, transition: { duration: 0.4, delay: 0.05 } },
                             }}
                         >
-                            <ProductCard product={product} />
+                            <ProductCard
+                                product={product}
+                                onProductUpdated={handleProductUpdated}
+                                onProductDeleted={handleProductDeleted}
+
+                            />
                         </motion.div>
                     ))
                 ) : (
@@ -86,10 +119,9 @@ function MyProductsPage() {
                         No products found
                     </div>
                 )}
-
             </motion.div>
 
-            {products.length > 0 && (
+            {productsData.length > 0 && (
                 <div className="flex justify-center mt-8">
                     {hasMoreProducts ? (
                         <div className="flex flex-col items-center">

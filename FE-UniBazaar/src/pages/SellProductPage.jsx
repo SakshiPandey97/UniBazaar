@@ -19,7 +19,7 @@ const SellProductPage = () => {
   const { productData, handleChange, handleFileChange, setProductData } =
     useProductData();
   const { isAnimating, triggerAnimation } = useAnimation();
-  const [isUploaded, setIsUploaded] = useState(false); // Track successful upload
+  const [isUploaded, setIsUploaded] = useState(false);
 
   const handleSubmit = async () => {
     if (!productData.productImage) {
@@ -35,7 +35,7 @@ const SellProductPage = () => {
     }
 
     try {
-      await postProductAPI(prepareFormData(productData, productData.productImage, condition));
+      await postProductAPI(prepareFormData(productData, productData.productImage, condition, true));
       triggerAnimation();
       setIsUploaded(true);
       setTimeout(() => navigate("/"), 3000);
@@ -84,9 +84,8 @@ const SellProductPage = () => {
               <Button
                 key={condition}
                 onClick={() => setProductData({ ...productData, productCondition: condition })}
-                className={`px-4 py-2 rounded-lg border text-black font-bold transition-all ${
-                  productData.productCondition === condition ? "bg-[#F58B00] text-white" : "bg-gray-200 hover:bg-gray-300"
-                }`}
+                className={`px-4 py-2 rounded-lg border text-black font-bold transition-all ${productData.productCondition === condition ? "bg-[#F58B00] text-white" : "bg-gray-200 hover:bg-gray-300"
+                  }`}
               >
                 {condition}
               </Button>
