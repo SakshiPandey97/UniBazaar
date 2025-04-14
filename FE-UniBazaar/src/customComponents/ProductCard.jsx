@@ -41,9 +41,10 @@ const ProductCard = ({
       setImagePreview(product.productImage);
       setNewImageFile(null);
     } else {
-      setImagePreview(editableProduct.productImage);
+      setEditableProduct(product);
+      setImagePreview(product.productImage);
     }
-  }, [propIsEditing, product, editableProduct.productImage]);
+  }, [propIsEditing, product]);
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -89,7 +90,7 @@ const ProductCard = ({
       setNewImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     } else {
-      setImagePreview(editableProduct.productImage);
+      setImagePreview(product.productImage);
       setNewImageFile(null);
     }
   };
@@ -101,10 +102,9 @@ const ProductCard = ({
     const updatedProduct = await updateProduct(updatedProductData, newImageFile, condition);
 
     if (updatedProduct) {
+      console.log("Updated Product", updatedProduct);
       if (onProductUpdated) {
         onProductUpdated(updatedProduct);
-
-        setImagePreview(updatedProduct.productImage);
       }
       setIsEditing(false);
       setNewImageFile(null);
@@ -244,8 +244,8 @@ const ProductCard = ({
           <div className="relative h-64 w-full overflow-hidden">
             <img
               className="w-full h-full object-cover transition-all duration-500"
-              src={editableProduct.productImage}
-              alt={editableProduct.productTitle}
+              src={product.productImage}
+              alt={product.productTitle}
             />
             <div
               className={`absolute bottom-0 left-0 w-full bg-gradient-to-t from-black to-transparent p-4 text-white transition-opacity ${isHovered ? "opacity-0" : "opacity-100"
