@@ -281,6 +281,21 @@ func TestUpdateProductHandler(t *testing.T) {
 	mockProductRepo.On("UpdateProduct", 1, "test-product-id", mock.AnythingOfType("model.Product")).Return(nil)
 	mockImageRepo.On("DeleteImage", "test-image-key").Return(nil)
 	mockImageRepo.On("UploadImage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("new-image-key", nil)
+	updatedProducts := []model.Product{
+		{
+			UserID:             1,
+			ProductID:          "test-product-id",
+			ProductTitle:       "Updated Product",
+			ProductDescription: "Updated product description",
+			ProductPostDate:    time.Date(2025, time.March, 3, 0, 0, 0, 0, time.UTC),
+			ProductCondition:   4,
+			ProductPrice:       199.99,
+			ProductLocation:    "New Location",
+			ProductImage:       "https://dummy-url",
+		},
+	}
+
+	mockImageRepo.On("GetPreSignedURLs", mock.Anything).Return(updatedProducts, nil)
 
 	handler.UpdateProductHandler(rr, req)
 
