@@ -102,17 +102,22 @@ const ProductCard = ({
     const updatedProduct = await updateProduct(updatedProductData, newImageFile, condition);
 
     if (updatedProduct) {
-      console.log("Updated Product", updatedProduct);
       if (onProductUpdated) {
         onProductUpdated(updatedProduct);
       }
+
+      setEditableProduct(prev => ({
+        ...prev,
+        productImage: updatedProduct.productImage
+      }));
+      setImagePreview(updatedProduct.productImage);
+
       setIsEditing(false);
       setNewImageFile(null);
     } else {
       console.error("Failed to update product.");
     }
   };
-
   const handleCancel = () => {
     setEditableProduct(product);
     setImagePreview(product.productImage);
@@ -244,8 +249,8 @@ const ProductCard = ({
           <div className="relative h-64 w-full overflow-hidden">
             <img
               className="w-full h-full object-cover transition-all duration-500"
-              src={product.productImage}
-              alt={product.productTitle}
+              src={editableProduct.productImage}
+              alt={editableProduct.productTitle}
             />
             <div
               className={`absolute bottom-0 left-0 w-full bg-gradient-to-t from-black to-transparent p-4 text-white transition-opacity ${isHovered ? "opacity-0" : "opacity-100"

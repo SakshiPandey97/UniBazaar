@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -223,8 +224,12 @@ func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	updatedProductsWithURL := h.ImageRepo.GetPreSignedURLs([]model.Product{updatedProduct})
-	HandleSuccessResponse(w, http.StatusOK, updatedProductsWithURL)
+	productsWithURL := h.ImageRepo.GetPreSignedURLs([]model.Product{updatedProduct})
+	if len(productsWithURL) > 0 {
+		HandleSuccessResponse(w, http.StatusOK, productsWithURL[0])
+	} else {
+		HandleError(w, errors.New("failed to generate pre-signed URL"), "Image URL generation failed")
+	}
 }
 
 // @Summary Delete a product by user ID and product ID

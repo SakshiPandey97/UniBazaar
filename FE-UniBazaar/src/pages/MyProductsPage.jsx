@@ -29,11 +29,13 @@ function MyProductsPage() {
     const handleProductUpdated = (updatedProduct) => {
         setProductsData((prevProducts) =>
             prevProducts.map((product) =>
-                product.productId === updatedProduct.productId ? updatedProduct : product
+                product.productId === updatedProduct.productId
+                    ? { ...product, ...updatedProduct }
+                    : product
             )
         );
-
     };
+    
 
     const handleProductDeleted = (deletedProductId) => {
         setProductsData((prevProducts) =>
