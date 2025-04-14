@@ -61,11 +61,13 @@ func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	user, err := app.Models.UserModel.Read(input.Email)
+	fmt.Printf("Code Received: %s\n", input.Code)
 	if err != nil {
 		fmt.Printf("VerifyEmailHandler error: user not found: %v\n", err)
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
+	fmt.Printf("Code Received: %s && %s\n", input.Code, user.OTPCode)
 	if user.OTPCode != input.Code {
 		user.FailedResetAttempts++
 		if user.FailedResetAttempts >= 5 {
