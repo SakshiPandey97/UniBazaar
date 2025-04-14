@@ -1,12 +1,11 @@
-
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useUserAuth } from "@/hooks/useUserAuth";
 
 const PrivateRoute = ({ children }) => {
-  const { user } = useUserAuth();
+  const { userState } = useUserAuth();
 
-  if (!user) {
+  if (!userState) {
     return <Navigate to="/" replace />;
   }
 
