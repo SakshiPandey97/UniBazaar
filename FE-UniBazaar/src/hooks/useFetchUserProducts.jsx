@@ -42,6 +42,12 @@ function useFetchUserProducts(userId, limit, lastId) {
                     return false;
                 });
 
+                newProducts.sort((a, b) => {
+                    const dateA = new Date(a.productPostDate);
+                    const dateB = new Date(b.productPostDate);
+                    return dateB - dateA;
+                });
+
                 setProducts((prevProducts) => [...prevProducts, ...newProducts]);
             } catch (err) {
                 if (err.response && err.response.status === 404) {

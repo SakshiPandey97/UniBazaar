@@ -194,6 +194,10 @@ func (repo *MongoProductRepository) SearchProducts(query string, limit int) ([]m
 				bson.E{Key: "text", Value: bson.D{
 					bson.E{Key: "query", Value: query},
 					bson.E{Key: "path", Value: []string{"ProductTitle", "ProductDescription"}},
+					bson.E{Key: "fuzzy", Value: bson.D{
+						bson.E{Key: "maxEdits", Value: 2},
+						bson.E{Key: "prefixLength", Value: 2},
+					}},
 				}},
 			}},
 		},

@@ -50,7 +50,7 @@ const Navbar = ({ toggleLoginModal }) => {
               <button
                 key={label}
                 onClick={onClick}
-                className="px-4 py-2 rounded-lg text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black transition-all"
+                className="px-4 py-2 rounded-lg text-[#E5E5E5] hover:bg-[#FFC67D] hover:text-black hover:cursor-pointer transition-all"
               >
                 {label}
               </button>
@@ -72,7 +72,7 @@ const Navbar = ({ toggleLoginModal }) => {
         <div className="hidden md:flex items-center gap-4 relative">
           <button
             data-testid="loginBtn"
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#E5E5E5] hover:bg-[#D6D2D2] transition duration-200 text-black font-medium"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#E5E5E5] hover:cursor-pointer hover:bg-[#D6D2D2] transition duration-200 text-black font-medium"
             onClick={userAuth.userState ? toggleDropdown : toggleLoginModal}
           >
             <img src={loginIcon} className="h-[24px]" alt="Login" />
@@ -138,7 +138,7 @@ const Navbar = ({ toggleLoginModal }) => {
 
           <div className="mt-4 flex flex-col gap-4">
             <button
-              className="border border-[#008080] flex items-center justify-center bg-transparent px-6 gap-2 py-3 rounded-lg"
+              className="border border-[#008080] flex items-center justify-center bg-transparent hover:cursor-pointer px-6 gap-2 py-3 rounded-lg"
               onClick={userAuth.userState ? handleLogout : toggleLoginModal}
             >
               <img src={loginIcon} className="h-[20px]" alt="Login" />
