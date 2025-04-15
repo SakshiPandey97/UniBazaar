@@ -282,7 +282,7 @@ const ProductCard = ({
               <div className="flex items-center justify-between mt-4">
                 <span className="text-2xl font-bold text-[#F58B00]">${editableProduct.productPrice}</span>
 
-                {location.pathname === "/products" && (
+                {(location.pathname === "/" || location.pathname === "/products") && (
                   <Button
                     className="bg-[#F58B00] hover:bg-[#FFC67D] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all hover:shadow-lg hover:text-black cursor-pointer"
                     onClick={onClick}

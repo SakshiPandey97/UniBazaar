@@ -69,7 +69,7 @@ function ProductsPage() {
     if (isTyping) {
       const timeoutId = setTimeout(() => {
         setIsTyping(false);
-      }, 2000);
+      }, 1500);
       return () => clearTimeout(timeoutId);
     }
   }, [isTyping]);
@@ -135,7 +135,7 @@ function ProductsPage() {
             </motion.div>
           ))
         ) : (
-          !isTyping && (
+          !isTyping && !loading && (
             <div className="text-lg text-gray-500 col-span-full text-center">
               No products found
             </div>
