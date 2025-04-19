@@ -9,6 +9,10 @@ import { motion } from "framer-motion";
 import { useAnimation } from "../hooks/useAnimation";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { FiUploadCloud, FiCheckCircle } from "react-icons/fi";
+import {
+  productConditionMapping,
+  conditionColorMap,
+} from "../utils/productMappings";
 
 const SellProductPage = () => {
   const navigate = useNavigate();
@@ -78,9 +82,14 @@ const SellProductPage = () => {
               placeholder="Describe your product in detail..."
               value={productData.productDescription}
               onChange={handleChange}
+              maxLength={250}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
+            <p className="text-sm text-gray-500 text-right">
+              {productData.productDescription.length}/250 characters
+            </p>
           </div>
+
 
           {/* Price */}
           <div>
@@ -109,16 +118,23 @@ const SellProductPage = () => {
               Product Condition
             </label>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-3">
-              {PRODUCT_CONDITIONS.map((condition) => (
-                <Button
-                  key={condition}
-                  onClick={() => setProductData({ ...productData, productCondition: condition })}
-                  className={`px-4 py-2 rounded-md border text-black font-medium transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${productData.productCondition === condition ? "bg-[#F58B00] text-white" : "bg-white hover:bg-gray-100 text-gray-700"
-                    }`}
-                >
-                  {condition}
-                </Button>
-              ))}
+              {PRODUCT_CONDITIONS.map((condition) => {
+                const isSelected = productData.productCondition === condition;
+                const conditionValue = productConditionMapping[condition];
+                const selectedColorClass = isSelected ? conditionColorMap[conditionValue] : "bg-white hover:bg-gray-100 text-gray-700";
+
+                return (
+                  <Button
+                    key={condition}
+                    onClick={() =>
+                      setProductData({ ...productData, productCondition: condition })
+                    }
+                    className={`px-4 py-2 rounded-md border font-medium transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${selectedColorClass}`}
+                  >
+                    {condition}
+                  </Button>
+                );
+              })}
             </div>
           </div>
 

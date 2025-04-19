@@ -179,14 +179,14 @@ function ProductsPage() {
             <div className="text-lg text-gray-500">No more products</div>
           ) : (
             <div className="flex flex-col items-center">
-              <button
+              <motion.button
                 ref={loadMoreButtonRef}
                 onClick={loadMoreProducts}
                 className="bg-[#F58B00] text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 cursor-pointer hover:bg-[#FFC67D] hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#FFC67D] focus:ring-opacity-50"
                 whileHover={{ scale: 1.05, backgroundColor: "#FFC67D" }}
               >
                 Load More
-              </button>
+              </motion.button>
 
               {isPaginationLoading && !isTyping && (
                 <div className="mt-4">
