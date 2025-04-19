@@ -7,13 +7,15 @@ export const userLoginAPI = ({ userLoginObject }) => {
   return axios
     .post(USER_BASE_URL + "/login", userLoginObject)
     .then((response) => {
-      const userId = response.data.userId;
-      localStorage.setItem("userId", userId);
-      return userId;
+      const userData = response.data;
+      if (userData.userId) {
+        localStorage.setItem("userId", userData.userId);
+     }
+     return userData;
     })
     .catch((error) => {
       console.error("Error logging in:", error);
-      throw error;
+      throw error.response?.data?.message || error;
     });
 };
 

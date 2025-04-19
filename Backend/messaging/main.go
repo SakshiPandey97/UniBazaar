@@ -4,16 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"messaging/db"
+	"messaging/handler"
+	"messaging/repository"
+	"messaging/websocket"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"messaging/db"
-	"messaging/handler"
-	"messaging/repository"
-	"messaging/websocket"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -44,7 +43,7 @@ func main() {
 	r.HandleFunc("/api/conversation/{user1ID}/{user2ID}", msgHandler.GetConversationHandler).Methods(http.MethodGet)
 	r.HandleFunc("/messages", msgHandler.HandleSendMessage).Methods(http.MethodPost)
 	r.HandleFunc("/users", userHandler.GetUsersHandler).Methods("GET")
-
+	r.HandleFunc("/api/users/sync", userHandler.SyncUserHandler).Methods(http.MethodPost)
 	// Configure CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"}, // Allow requests from your frontend

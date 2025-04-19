@@ -215,6 +215,8 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	responseData := map[string]interface{}{
 		"userId": userID,
 		"token":  tokenString,
+		"name":   user.Name,
+		"email":  user.Email,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseData)
