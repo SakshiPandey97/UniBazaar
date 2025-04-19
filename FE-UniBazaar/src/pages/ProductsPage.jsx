@@ -5,8 +5,7 @@ import { useSearchContext } from "../context/SearchContext";
 import useFetchAllProducts from "../hooks/useFetchAllProducts";
 import useSearchProducts from "../hooks/useSearchProducts";
 import ProductCard from "@/customComponents/ProductCard";
-import { useNavigate } from 'react-router-dom'; 
-import { getCurrentUserId } from '@/utils/getUserId'; 
+import useStartChat from "../hooks/useStartChat";
 
 
 function ProductsPage() {
@@ -16,8 +15,8 @@ function ProductsPage() {
   const [isSearchCleared, setIsSearchCleared] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isPaginationLoading, setIsPaginationLoading] = useState(false);
-  const navigate = useNavigate(); 
-  const currentUserId = getCurrentUserId();
+
+  const handleStartChat = useStartChat();
 
   const limit = 12;
   const searchLimit = 100;
@@ -56,28 +55,6 @@ function ProductsPage() {
     setIsSearchCleared(false);
     setIsPaginationLoading(false);
   }, [products]);
-
-  const handleStartChat = (sellerId) => {
-    if (!currentUserId) {
-      console.error("Current user ID not found. Cannot start chat.");
-      // Optionally redirect to login or show a message
-      // navigate('/login');
-      return;
-    }
-
-    // Prevent user from messaging themselves
-    // Compare as strings for reliability
-    if (String(currentUserId) === String(sellerId)) {
-      console.log("You cannot message yourself.");
-      // Optionally show a user-friendly alert/toast message here
-      alert("You cannot message yourself."); // Simple alert example
-      return;
-    }
-
-    console.log(`Navigating to chat with seller: ${sellerId}`);
-    // Navigate to the messaging page with the sellerId as a query parameter
-    navigate(`/messaging?recipient=${sellerId}`);
-  };
 
   const handleSearchChange = (e) => {
     const newValue = e.target.value;

@@ -6,7 +6,7 @@ export const useFetchMessages = (userId, selectedUser, setMessages) => {
 
         const fetchMessages = async () => {
             try {
-                const url = `http://44.211.71.47:8080/api/conversation/${userId}/${selectedUser.id}`;
+                const url = `http://127.0.0.1:8080/api/conversation/${userId}/${selectedUser.id}`;
                 console.log("Fetching messages from:", url);
                 const res = await fetch(url);
 

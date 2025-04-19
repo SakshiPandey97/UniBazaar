@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Carousel,
   CarouselContent,
@@ -6,11 +6,13 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import useStartChat from "../hooks/useStartChat";
 import Spinner from "./Spinner";
 import useFetchProducts from "../hooks/useFetchProducts";
 import ProductCard from "./ProductCard";
 
 const Products = () => {
+  const handleStartChat = useStartChat();
   const { products, loading, error } = useFetchProducts();
   if (loading) return <Spinner />;
   if (error) return <div>{error}</div>;
@@ -33,7 +35,7 @@ const Products = () => {
                 key={product.productId}
                 className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 transform transition-transform hover:scale-105 hover:shadow-lg"
               >
-                <ProductCard product={product} onClick={() => setSelectedProduct(product)} />
+                <ProductCard product={product} onStartChat={handleStartChat} />
               </CarouselItem>
             ))}
           </CarouselContent>
