@@ -52,7 +52,7 @@ describe('useWebSocket', () => {
     const userId = '123';
     renderHook(() => useWebSocket(userId, onMessageReceived));
 
-    expect(mockWebSocket).toHaveBeenCalledWith(`ws://13.218.174.66:8080/ws?user_id=${userId}`);
+    expect(mockWebSocket).toHaveBeenCalledWith(`ws://127.0.0.1:8080/ws?user_id=${userId}`);
   });
 
   it('should not connect to WebSocket when userId is not provided', () => {
