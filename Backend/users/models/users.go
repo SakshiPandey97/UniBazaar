@@ -99,6 +99,8 @@ func HashPassword(password string) (string, error) {
 	return argon2id.CreateHash(password, params)
 }
 
+// User represents a user in the database.
+// Note: Password, OTPCode, FailedResetAttempts, and Verified are omitted from JSON output for security.
 type User struct {
 	UserID              int    `gorm:"column:userid;primaryKey" json:"userid"`
 	Name                string `json:"name"`
@@ -114,6 +116,7 @@ type UserModel struct {
 	DB *gorm.DB
 }
 
+// Insert creates a new user record and emails an OTP.
 func (e UserModel) Insert(id int, name, email, password, phone string) error {
 	if err := ValidateEduEmail(email); err != nil {
 		return fmt.Errorf("Insert: %w", err)
@@ -152,6 +155,27 @@ func (e UserModel) Insert(id int, name, email, password, phone string) error {
 	return nil
 }
 
+// ResendOTP generates a new OTP for unverified accounts and emails it.
+func (e UserModel) ResendOTP(email string) error {
+	user, err := e.Read(email)
+	if err != nil {
+		return fmt.Errorf("ResendOTP (read user): %w", err)
+	}
+	if user.Verified {
+		return fmt.Errorf("ResendOTP: account already verified")
+	}
+	user.OTPCode = generateOTPCode()
+	user.FailedResetAttempts = 0
+	if err := e.DB.Save(user).Error; err != nil {
+		return fmt.Errorf("ResendOTP (save user): %w", err)
+	}
+	if err := sendOTPEmail(user.Email, user.OTPCode, "Your UniBazaar OTP Code"); err != nil {
+		return fmt.Errorf("ResendOTP (sending email): %w", err)
+	}
+	return nil
+}
+
+// Update updates a user's password.
 func (e UserModel) Update(email, newPassword string) error {
 	hashedPassword, err := HashPassword(newPassword)
 	if err != nil {
@@ -164,6 +188,7 @@ func (e UserModel) Update(email, newPassword string) error {
 	return nil
 }
 
+// UpdateName updates the user's name.
 func (e UserModel) UpdateName(email, newName string) error {
 	var user User
 	if err := e.DB.Where("email = ?", email).First(&user).Error; err != nil {
@@ -176,6 +201,7 @@ func (e UserModel) UpdateName(email, newName string) error {
 	return nil
 }
 
+// UpdatePhone updates the user's phone number.
 func (e UserModel) UpdatePhone(email, newPhone string) error {
 	var user User
 	if err := e.DB.Where("email = ?", email).First(&user).Error; err != nil {
@@ -191,6 +217,7 @@ func (e UserModel) UpdatePhone(email, newPhone string) error {
 	return nil
 }
 
+// Delete removes a user by email.
 func (e UserModel) Delete(email string) error {
 	res := e.DB.Where("email = ?", email).Delete(&User{})
 	if res.Error != nil {
@@ -199,6 +226,7 @@ func (e UserModel) Delete(email string) error {
 	return nil
 }
 
+// Read fetches a user by email.
 func (e UserModel) Read(email string) (*User, error) {
 	var user User
 	res := e.DB.Where("email = ?", email).First(&user)
@@ -208,6 +236,16 @@ func (e UserModel) Read(email string) (*User, error) {
 	return &user, nil
 }
 
+// ReadByID fetches a user by their numeric ID.
+func (e UserModel) ReadByID(id int) (*User, error) {
+	var user User
+	if err := e.DB.First(&user, id).Error; err != nil {
+		return nil, fmt.Errorf("ReadByID: %w", err)
+	}
+	return &user, nil
+}
+
+// UpdateVerificationStatus saves verification state.
 func (e UserModel) UpdateVerificationStatus(user *User) error {
 	if err := e.DB.Model(user).Updates(map[string]interface{}{
 		"verified": user.Verified,
@@ -293,6 +331,7 @@ func (e UserModel) VerifyResetCodeAndSetNewPassword(email, code, newPassword str
 	return nil
 }
 
+// sendOTPEmail sends an email through SendGrid.
 func sendOTPEmail(toEmail, code, subject string) error {
 	from := sgmail.NewEmail("UniBazaar Support", "unibazaar.marketplace@gmail.com")
 	to := sgmail.NewEmail("User", toEmail)
@@ -310,7 +349,8 @@ func sendOTPEmail(toEmail, code, subject string) error {
 	return nil
 }
 
-func CreateUser(name string, email string, phone string) *User {
+// CreateUser builds a lightweight User object (without password) for JWT generation.
+func CreateUser(name, email, phone string) *User {
 	return &User{
 		Name:  name,
 		Email: email,
