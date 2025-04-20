@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { userVerificationAPI } from "@/api/userAxios";
+import { userVerificationAPI, userResendAPI } from "@/api/userAxios";
 
 export function useOtpHandler(email) {
   const [otp, setOtp] = useState("");
@@ -22,19 +22,39 @@ export function useOtpHandler(email) {
 
     try {
       const res = await userVerificationAPI({ email, code: otp });
-      if (res.success) {
+      console.log(res)
+      if (res.verified) {
         setMessage("OTP Verified Successfully!");
+        setTimeout(() => {
+          window.location.href = "/"; 
+        }, 1000);
       } else {
         setMessage("Invalid OTP. Please try again.");
       }
     } catch (err) {
+      console.error("OTP verification failed:", err);
       setMessage("Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Timer countdown
+  const handleResend = async () => {
+    setIsSubmitting(true);
+    setMessage("");
+    try {
+      await userResendAPI({ email });
+      setMessage("OTP resent successfully!");
+      setTimeLeft(60);
+      setOtp("");
+    } catch (error) {
+      console.error("Resend OTP failed:", error);
+      setMessage("Failed to resend OTP. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     if (timeLeft <= 0) return;
     const timer = setInterval(() => {
@@ -50,5 +70,6 @@ export function useOtpHandler(email) {
     handleChange,
     handleSubmit,
     timeLeft,
+    resetTimer: handleResend,
   };
 }

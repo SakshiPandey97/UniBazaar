@@ -7,6 +7,7 @@ export const userLoginAPI = ({ userLoginObject }) => {
   return axios
     .post(USER_BASE_URL + "/login", userLoginObject)
     .then((response) => {
+      console.log(response)
       const userId = response.data.userId;
       localStorage.setItem("userId", userId);
       return userId;
@@ -31,11 +32,12 @@ export const userRegisterAPI = ({ userRegisterObject }) => {
 };
 
 export const userVerificationAPI = ( userVerificationObject ) => {
-  console.log(userVerificationObject)
+  
   return axios
     .post(USER_BASE_URL + "/verifyEmail", userVerificationObject)
     .then((response) => {
-      return response.data.userId;
+      console.log(response)
+      return response.data;
     })
     .catch((error) => {
       console.error("Error Verifying user in:", error);
@@ -43,3 +45,15 @@ export const userVerificationAPI = ( userVerificationObject ) => {
     });
 };
 
+export const userResendAPI = ( userVerificationObject ) => {
+  console.log(userVerificationObject)
+  return axios
+    .post(USER_BASE_URL + "/resendOTP", userVerificationObject)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Error resending OTP:", error);
+      throw error;
+    });
+};
