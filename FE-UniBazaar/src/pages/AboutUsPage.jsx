@@ -111,7 +111,7 @@ const AboutUsPage = () => {
               <p className="italic text-gray-700">
                 “UniBazaar changed how I shop on campus. It's sustainable, local, and just works.”
               </p>
-              <p className="mt-4 font-semibold text-right text-gray-800">– Rahul, UF Student</p>
+              <p className="mt-4 font-semibold text-right text-gray-800">– Vivek, UF Student</p>
             </div>
           </motion.div>
         </div>
