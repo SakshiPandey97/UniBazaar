@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useLocation }                  from "react-router-dom";
-import { getCurrentUserId }             from "@/utils/getUserId";
-import useWebSocket                     from "@/customComponents/WebsocketConnection";
-import { useFetchMessages }             from "@/hooks/useFetchMessages";
-import { useTypingIndicator }           from "@/hooks/useTypingIndicator";
-import useSendMessage                   from "@/hooks/useSendMessage";
+import { useLocation } from "react-router-dom";
+import { getCurrentUserId } from "@/utils/getUserId";
+import useWebSocket from "@/customComponents/WebsocketConnection";
+import { useFetchMessages } from "@/hooks/useFetchMessages";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import useSendMessage from "@/hooks/useSendMessage";
 
-import ChatHeader   from "@/customComponents/Chat/ChatHeader";
-import MessageList  from "@/customComponents/Chat/MessageList";
+import ChatHeader from "@/customComponents/Chat/ChatHeader";
+import MessageList from "@/customComponents/Chat/MessageList";
 import MessageInput from "@/customComponents/Chat/MessageInput";
 
 export default function ChatPanel({ users, selectedUser, setSelectedUser }) {
@@ -18,46 +18,50 @@ export default function ChatPanel({ users, selectedUser, setSelectedUser }) {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const rid    = params.get("recipient");
+    const rid = params.get("recipient");
     if (rid && users && users.length > 0) {
       const u = users.find((u) => String(u.id) === rid);
       if (u && String(u.id) !== String(userId)) {
-        if (!selectedUser || String(u.id) !== String(selectedUser.id)) {
+         if (!selectedUser || String(u.id) !== String(selectedUser.id)) {
             setSelectedUser(u);
-        }
+         }
       }
     }
   }, [location.search, users, userId, setSelectedUser, selectedUser]);
 
-  const onReceive = useCallback(
+  const onReceiveActiveChat = useCallback(
     (msg) => {
       if (
         selectedUser &&
-        ((String(msg.sender_id)   === String(userId)              &&
-          String(msg.receiver_id) === String(selectedUser.id))   ||
-         (String(msg.sender_id)   === String(selectedUser.id)    &&
+        msg &&
+        ((String(msg.sender_id) === String(userId) &&
+          String(msg.receiver_id) === String(selectedUser.id)) ||
+         (String(msg.sender_id) === String(selectedUser.id) &&
           String(msg.receiver_id) === String(userId)))
       ) {
         const messageWithTimestamp = {
-            ...msg,
-            created_at: msg.created_at || new Date().toISOString(),
+          ...msg,
+          created_at: msg.timestamp ? new Date(msg.timestamp * (msg.timestamp > 1e12 ? 1 : 1000)).toISOString() : new Date().toISOString(),
         };
         setMessages((prev) => [...prev, messageWithTimestamp]);
       }
     },
-    [userId, selectedUser]
+    [userId, selectedUser] 
   );
-  const ws = useWebSocket(userId, onReceive);
+
+  const ws = useWebSocket(userId, onReceiveActiveChat);
+
   useFetchMessages(userId, selectedUser, setMessages);
+
   const handleTyping = useTypingIndicator(setInput);
   const sendMessage = useSendMessage(
     userId,
     selectedUser,
-    users,
+    users, 
     ws,
     input,
     setInput,
-    setMessages 
+    setMessages
   );
 
   if (!selectedUser) {
@@ -73,19 +77,16 @@ export default function ChatPanel({ users, selectedUser, setSelectedUser }) {
 
   return (
     <div className="flex flex-col h-full w-full flex-grow bg-white">
-
       <div className="flex-shrink-0">
         <ChatHeader name={selectedUser.name} status={selectedUser.status} />
       </div>
-
-      <div className="flex-grow min-h-0"> 
+      <div className="flex-grow min-h-0">
         <MessageList
           messages={messages}
           userId={userId}
           selectedUser={selectedUser}
         />
       </div>
-
       <div className="flex-shrink-0">
         <MessageInput
           input={input}
