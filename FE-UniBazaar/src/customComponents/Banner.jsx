@@ -1,70 +1,73 @@
 import React from "react";
-import bannerImg from "../assets/imgs/banner_image.svg";
+import bannerImg from "../assets/imgs/banner_image.jpg";
 import { motion } from "framer-motion";
 import { useSearchContext } from "../context/SearchContext";
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 
-
 const Banner = () => {
   const { searchTerm, setSearchTerm } = useSearchContext();
   const navigate = useNavigate();
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      navigate("/products");
-    }
+    if (e.key === "Enter") navigate("/products");
   };
 
   return (
-    <div className="w-100vh h-[70vh] relative py-24">
+    <div className="relative h-[70vh] w-full overflow-hidden">
+      {/* Background illustration */}
       <img
+        loading="lazy"
         src={bannerImg}
-        className="absolute inset-0 w-full h-full object-cover"
-        alt="Banner"
+        alt="Banner illustration"
+        className="absolute inset-0 h-full w-full object-cover"
       />
 
-      <div className="w-full m-auto relative z-10 py-4">
-        <div className="flex flex-col items-center justify-center h-full gap-4">
-          <h1 className="text-[96px] font-serif font-Playfair font-semibold py-4">
-            <motion.span
-              initial={{ x: -100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeInOut" }}
-              className="text-[#FA4616] inline-block"
-            >
-              Uni
-            </motion.span>
-            <motion.span
-              initial={{ x: 100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeInOut" }}
-              className="text-[#0021A5] inline-block"
-            >
-              Bazaar
-            </motion.span>
-          </h1>
-          <p className="text-[32px] text-[#D9D9D9] font-Raleway py-4">
-            Connecting students for buying/selling
-          </p>
+      {/* Darkening overlay for better text contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
 
-          <div className="relative flex items-center w-full max-w-[600px] bg-white/50 rounded-lg">
-            <div className="absolute left-3 text-gray-500">
-              <FaSearch size={20} />
-            </div>
-            <input
-              type="text"
-              placeholder="Search for items..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              onKeyDown={handleKeyDown}
-              className="w-full pl-10 pr-12 py-2 bg-transparent rounded-lg focus:outline-none text-gray-800 placeholder-gray-600"
-            />
-          </div>
+      {/* Content */}
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+        {/* UniBazaar word‑mark with fine white outline */}
+        <h1 className="drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)] font-serif font-Playfair font-semibold leading-tight text-6xl sm:text-7xl lg:text-8xl [-webkit-text-stroke:0.75px_white]">
+          <motion.span
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1 }}
+            className="text-[#033460]"
+          >
+            Uni
+          </motion.span>
+          <motion.span
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1 }}
+            className="text-[#FA4616]"
+          >
+            Bazaar
+          </motion.span>
+        </h1>
+
+        {/* Tagline in Playfair italic & bold with blue outline */}
+        <p className="mb-6 mt-4 text-2xl sm:text-3xl font-serif font-Playfair font-bold text-[#FA4616] [-webkit-text-stroke:0.5px_#033460]">
+          Declutter, Discover, Deal&nbsp;
+        </p>
+
+        {/* Search bar */}
+        <div className="relative w-full max-w-[600px] rounded-lg bg-white/20 backdrop-blur-md shadow-md">
+          <FaSearch
+            size={20}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/80"
+          />
+          <input
+            type="text"
+            placeholder="Search for items..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            onKeyDown={handleKeyDown}
+            className="w-full bg-transparent py-2 pl-10 pr-4 text-white placeholder-white/70 focus:outline-none"
+          />
         </div>
       </div>
     </div>
