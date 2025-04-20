@@ -16,6 +16,6 @@ describe("Banner Component", () => {
 
     expect(screen.getByText("Uni")).toBeInTheDocument();
     expect(screen.getByText("Bazaar")).toBeInTheDocument();
-    expect(screen.getByText("Connecting students for buying/selling")).toBeInTheDocument();
+    expect(screen.getByText("Declutter, Discover, Deal")).toBeInTheDocument();
   });
 });
