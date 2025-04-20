@@ -2,7 +2,6 @@ import axios from "axios";
 
 const USER_BASE_URL = import.meta.env.VITE_USER_BASE_URL;
 
-
 export const userLoginAPI = ({ userLoginObject }) => {
   return axios
     .post(USER_BASE_URL + "/login", userLoginObject)
@@ -18,7 +17,6 @@ export const userLoginAPI = ({ userLoginObject }) => {
       throw error.response?.data?.message || error;
     });
 };
-
 export const userRegisterAPI = ({ userRegisterObject }) => {
   console.log("Register Recevied Obj", userRegisterObject);
   return axios
@@ -32,12 +30,12 @@ export const userRegisterAPI = ({ userRegisterObject }) => {
     });
 };
 
-export const userVerificationAPI = ( userVerificationObject ) => {
-  console.log(userVerificationObject)
+export const userVerificationAPI = (userVerificationObject) => {
   return axios
     .post(USER_BASE_URL + "/verifyEmail", userVerificationObject)
     .then((response) => {
-      return response.data.userId;
+      console.log(response);
+      return response.data;
     })
     .catch((error) => {
       console.error("Error Verifying user in:", error);
@@ -45,3 +43,26 @@ export const userVerificationAPI = ( userVerificationObject ) => {
     });
 };
 
+export const userResendAPI = (userVerificationObject) => {
+  console.log(userVerificationObject);
+  return axios
+    .post(USER_BASE_URL + "/resendOTP", userVerificationObject)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Error resending OTP:", error);
+      throw error;
+    });
+};
+
+export const userProfileDetailsAPI = (userId) => {
+  console.log(userId)
+  return axios
+    .get(`${USER_BASE_URL}/displayUser/${userId}`)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.error("Error fetching data", error);
+      throw error;
+    });
+};
