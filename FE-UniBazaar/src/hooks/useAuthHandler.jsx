@@ -1,5 +1,6 @@
 import { userLoginAPI, userRegisterAPI } from "@/api/userAxios";
 import { useUserAuth } from "@/hooks/useUserAuth";
+import { syncUserToMessagingAPI } from "../api/messagingAxios"; 
 import { useState } from "react";
 
 export function useAuthHandler({ toggleModal }) {
@@ -50,6 +51,19 @@ export function useAuthHandler({ toggleModal }) {
 
           
           useAuth.loginUser(data); 
+
+          if (data.userId && data.name && data.email) {
+            syncUserToMessagingAPI({
+              id: data.userId,
+              name: data.name,
+              email: data.email,
+            }).catch(syncError => {
+              // Log the error, but usually don't block the login flow
+              console.error("Failed to sync user to messaging service (non-blocking):", syncError);
+            });
+          } else {
+            console.warn("Login successful, but missing details (userId, name, email) in response. Cannot sync to messaging.");
+          }
 
           setTimeout(() => {
             setSuccessMessage("");

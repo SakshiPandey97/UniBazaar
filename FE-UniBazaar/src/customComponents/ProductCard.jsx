@@ -15,7 +15,8 @@ import { getCurrentUserId } from "@/utils/getUserId";
 
 const ProductCard = ({
   product,
-  onClick,
+  // onClick,
+  onStartChat,
   onEdit,
   isEditing: propIsEditing,
   onCancel: propOnCancel,
@@ -288,10 +289,18 @@ const ProductCard = ({
                 {(location.pathname === "/" || location.pathname === "/products") && (
                   <Button
                     className="bg-[#F58B00] hover:bg-[#FFC67D] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all hover:shadow-lg hover:text-black cursor-pointer"
-                    onClick={onClick}
+                    // Call onStartChat with the seller's ID when clicked
+                    // Assuming the seller's ID is stored in product.userId
+                    onClick={() => {
+                      if (onStartChat && product.userId) {
+                        onStartChat(product.userId);
+                      } else {
+                        console.error("onStartChat handler or product.userId missing");
+                      }
+                    }}
                   >
-                    Message
-                  </Button>
+                  Message
+                </Button>
                 )}
               </div>
             </div>

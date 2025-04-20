@@ -12,9 +12,13 @@ export const AuthProvider = ({ children }) => {
   const [userID, setUserID] = useState(getUserIdFromCookie());
   const [userState, setUserState] = useState(!!getUserIdFromCookie());
 
-  const loginUser = (id) => {
-    setUserID(id);
-    setUserState(true);
+  const loginUser = (userData) => {
+    // Extract the actual userId from the object
+    const id = userData?.userId; // Use optional chaining just in case
+
+    if (id) { // Only proceed if we have a valid ID
+      setUserID(id); // Set state with the primitive ID
+      setUserState(true);}
 
     const expires = new Date(
       Date.now() + 7 * 24 * 60 * 60 * 1000
