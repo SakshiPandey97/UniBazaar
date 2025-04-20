@@ -6,7 +6,7 @@ import menuToggleIcon from "../assets/imgs/menu-toggle.svg";
 import closeIcon from "../assets/imgs/close.svg";
 import Logo from "./Logo";
 
-const Navbar = ({ toggleLoginModal }) => {
+const Navbar = ({ toggleLoginModal ,toggleViewProfile}) => {
   const location = useLocation();
   const {
     isMenuOpen,
@@ -84,7 +84,7 @@ const Navbar = ({ toggleLoginModal }) => {
               <ul className="py-2">
                 <li
                   className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                  onClick={toggleLoginModal}
+                  onClick={toggleViewProfile}
                 >
                   View My Profile
                 </li>
