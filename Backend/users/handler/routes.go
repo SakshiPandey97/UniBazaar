@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"users/models"
 	"users/utils"
@@ -37,6 +38,7 @@ func (app *Application) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	nameParts := strings.Fields(trimmedName)
 	if len(nameParts) < 2 {
 		http.Error(w, "please provide both first and last name", http.StatusBadRequest)
+
 		return
 	}
 
@@ -55,19 +57,16 @@ func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Reques
 		Email string `json:"email"`
 		Code  string `json:"code"`
 	}
-
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "invalid JSON input", http.StatusBadRequest)
 		return
 	}
 	user, err := app.Models.UserModel.Read(input.Email)
-	fmt.Printf("Code Received: %s\n", input.Code)
 	if err != nil {
 		fmt.Printf("VerifyEmailHandler error: user not found: %v\n", err)
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
-	fmt.Printf("Code Received: %s && %s\n", input.Code, user.OTPCode)
 	if user.OTPCode != input.Code {
 		user.FailedResetAttempts++
 		if user.FailedResetAttempts >= 5 {
@@ -94,6 +93,23 @@ func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Reques
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Email verified successfully!")
+}
+
+func (app *Application) ResendOTPHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "invalid JSON input", http.StatusBadRequest)
+		return
+	}
+	if err := app.Models.UserModel.ResendOTP(input.Email); err != nil {
+		fmt.Printf("ResendOTPHandler error: %v\n", err)
+		http.Error(w, fmt.Sprintf("failed to resend OTP: %v", err), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "OTP resent successfully. Check your e‑mail.")
 }
 
 func (app *Application) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
@@ -153,19 +169,21 @@ func (app *Application) DeleteUserHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *Application) DisplayUserHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Email string `json:"email"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "invalid JSON input", http.StatusBadRequest)
+	params := httprouter.ParamsFromContext(r.Context())
+	idStr := params.ByName("id")
+	userID, err := strconv.Atoi(idStr)
+	if err != nil || userID <= 0 {
+		http.Error(w, "invalid user ID", http.StatusBadRequest)
 		return
 	}
-	user, err := app.Models.UserModel.Read(input.Email)
+
+	user, err := app.Models.UserModel.ReadByID(userID)
 	if err != nil {
 		fmt.Printf("DisplayUserHandler error: %v\n", err)
-		http.Error(w, "User not found", http.StatusNotFound)
+		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
@@ -215,8 +233,6 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	responseData := map[string]interface{}{
 		"userId": userID,
 		"token":  tokenString,
-		"name":   user.Name,
-		"email":  user.Email,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseData)
@@ -415,18 +431,26 @@ func (app *Application) enableCORS(next http.Handler) http.Handler {
 func (app *Application) Routes() http.Handler {
 	router := httprouter.New()
 
+	/*  AUTH  */
 	router.HandlerFunc("POST", "/signup", app.SignUpHandler)
 	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler)
+	router.HandlerFunc("POST", "/resendOtp", app.ResendOTPHandler)
+
+	/*  PASSWORD RESET  */
 	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler)
 	router.HandlerFunc("POST", "/updatePassword", app.UpdatePasswordHandler)
+
+	/*  USER CRUD  */
 	router.HandlerFunc("POST", "/deleteUser", app.DeleteUserHandler)
-	router.HandlerFunc("POST", "/displayUser", app.DisplayUserHandler)
-	router.HandlerFunc("POST", "/login", app.LoginHandler)
+	router.HandlerFunc("GET", "/displayUser/:id", app.DisplayUserHandler)
 	router.HandlerFunc("POST", "/updateName", app.UpdateNameHandler)
 	router.HandlerFunc("POST", "/updatePhone", app.UpdatePhoneHandler)
-	router.HandlerFunc(http.MethodPost, "/getjwt", app.GetJWTHandler)
-	router.HandlerFunc(http.MethodGet, "/verifyjwt", app.VerifyJWTHandler)
-	router.HandlerFunc(http.MethodPost, "/logout", app.LogoutHandler)
+
+	/*  TOKEN  */
+	router.HandlerFunc("POST", "/login", app.LoginHandler)
+	router.HandlerFunc("POST", "/logout", app.LogoutHandler)
+	router.HandlerFunc("POST", "/getjwt", app.GetJWTHandler)
+	router.HandlerFunc("GET", "/verifyjwt", app.VerifyJWTHandler)
 
 	return app.enableCORS(router)
 }
