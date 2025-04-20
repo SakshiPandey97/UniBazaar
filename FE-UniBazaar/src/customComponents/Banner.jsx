@@ -55,10 +55,10 @@ const Banner = () => {
         </p>
 
         {/* Search bar */}
-        <div className="relative w-full max-w-[600px] rounded-lg bg-white/20 backdrop-blur-md shadow-md">
+        <div className="relative w-full max-w-[600px] rounded-lg bg-white/70 shadow-lg border border-gray-300">
           <FaSearch
             size={20}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/80"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
           />
           <input
             type="text"
@@ -66,8 +66,8 @@ const Banner = () => {
             value={searchTerm}
             onChange={handleSearchChange}
             onKeyDown={handleKeyDown}
-            className="w-full bg-transparent py-2 pl-10 pr-4 text-white placeholder-white/70 focus:outline-none"
-          />
+            className="w-full bg-transparent py-2 pl-10 pr-4 text-black placeholder-gray-500 focus:outline-none"
+        />
         </div>
       </div>
     </div>
