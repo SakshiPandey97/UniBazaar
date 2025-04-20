@@ -142,6 +142,7 @@ func TestHandlers(t *testing.T) {
 	})
 
 	t.Run("DisplayUserHandler", func(t *testing.T) {
+		// create a user in the in‑memory DB
 		user := models.User{
 			UserID: 505,
 			Name:   "Henry",
@@ -150,11 +151,7 @@ func TestHandlers(t *testing.T) {
 		}
 		_ = db.Create(&user)
 
-		body := map[string]string{"email": "henry@ufl.edu"}
-		reqBody, _ := json.Marshal(body)
-
-		req, _ := http.NewRequest(http.MethodPost, "/displayUser", bytes.NewReader(reqBody))
-		req.Header.Set("Content-Type", "application/json")
+		req, _ := http.NewRequest(http.MethodGet, "/displayUser/505", nil)
 		rr := httptest.NewRecorder()
 		app.Routes().ServeHTTP(rr, req)
 
