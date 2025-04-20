@@ -61,18 +61,21 @@ func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "invalid JSON input", http.StatusBadRequest)
 		return
 	}
+
 	user, err := app.Models.UserModel.Read(input.Email)
 	if err != nil {
 		fmt.Printf("VerifyEmailHandler error: user not found: %v\n", err)
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
+
 	if user.OTPCode != input.Code {
 		user.FailedResetAttempts++
 		if user.FailedResetAttempts >= 5 {
-			fmt.Printf("VerifyEmailHandler: user %s reached 5 OTP failures, deleting account\n", user.Email)
 			_ = app.Models.UserModel.Delete(user.Email)
-			http.Error(w, "Too many OTP attempts. Your account has been removed. Please sign up again.", http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]bool{"verified": false})
 			return
 		}
 		if user.FailedResetAttempts >= 3 {
@@ -80,19 +83,23 @@ func (app *Application) VerifyEmailHandler(w http.ResponseWriter, r *http.Reques
 			user.OTPCode = ""
 		}
 		_ = app.Models.UserModel.SaveUser(user)
-		http.Error(w, "invalid OTP code", http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]bool{"verified": false})
 		return
 	}
+
 	user.Verified = true
 	user.FailedResetAttempts = 0
 	user.OTPCode = ""
 	if err := app.Models.UserModel.UpdateVerificationStatus(user); err != nil {
-		fmt.Printf("VerifyEmailHandler error: %v\n", err)
 		http.Error(w, "failed to update verification status", http.StatusInternalServerError)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Email verified successfully!")
+	json.NewEncoder(w).Encode(map[string]bool{"verified": true})
 }
 
 func (app *Application) ResendOTPHandler(w http.ResponseWriter, r *http.Request) {
