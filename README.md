@@ -115,7 +115,7 @@ AWS_PWD=<AWS_USER_ID_PASSWORD>
 ### ⚙️ Backend/messaging/.env
 
 ```env
-CHAT_DB_URI=<YOUR_POSTGRESQL_CONNECTION_STRING>
+CHAT_DB_URI=<POSTGRES_DB_CONNECTION_STRING>
 ```
 
 ### ⚙️ Backend/users/.env
@@ -220,35 +220,22 @@ SENDGRID_API_KEY=<API_KEY>
 #### 3. Create Database Tables
 
 - Connect to the newly created `unibazaar_messaging` database.
-- You'll need to create two main tables: one to store user information relevant for messaging, and another to store the chat messages themselves.
 
   **`users` Table:**
   This table holds basic user details needed by the messaging service. It is expected to be synchronized automatically when new users login.
 
-  - `id`: A unique identifier for the user (Primary Key).
-  - `name`: The user's display name.
-  - `email`: The user's unique email address.
-
-  **`messages` Table:**
-  This table stores the individual chat messages exchanged between users.
-
-  - `id`: A unique identifier for the message (Primary Key, like a UUID string).
-  - `sender_id`: The ID of the user who sent the message (Foreign Key referencing `users.id`).
-  - `receiver_id`: The ID of the user who received the message (Foreign Key referencing `users.id`).
-  - `content`: The text content of the message.
-  - `timestamp`: When the message was sent (stored as a Unix timestamp).
-  - `read`: A boolean flag indicating if the message has been read by the receiver.
-  - `sender_name`: The name of the sender.
-
-  **Example `CREATE TABLE` Statements:**
-
-  ```sql
+    ```sql
   CREATE TABLE users (
       id    BIGSERIAL PRIMARY KEY,
       name  VARCHAR(255) NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL
   );
+  ```
 
+  **`messages` Table:**
+  This table stores the individual chat messages exchanged between users.
+
+  ```sql
   CREATE TABLE messages (
       id          VARCHAR(255) PRIMARY KEY,
       sender_id   BIGINT NOT NULL REFERENCES users(id),
@@ -260,26 +247,20 @@ SENDGRID_API_KEY=<API_KEY>
   );
   ```
 
-- **Note:** Adjust column types (like `BIGINT`, `VARCHAR`, `TEXT`) and constraints based on your specific needs and PostgreSQL version.
-
 #### 4. Set Environment Variable
 
 - In `Backend/messaging/.env`, set the `CHAT_DB_URI` variable with the appropriate connection string:
 
   ```env
-  # --- Choose ONE of the following examples ---
-
   # Example using the default 'postgres' user:
-  # CHAT_DB_URI="host=localhost user=postgres password=your_postgres_password dbname=unibazaar_messaging port=5432 sslmode=disable"
+  CHAT_DB_URI="host=localhost user=postgres password=your_postgres_password dbname=unibazaar_messaging port=5432 sslmode=disable"
 
   # Example using the dedicated 'unibazaar_msg_user':
   CHAT_DB_URI="host=localhost user=unibazaar_msg_user password=your_messaging_db_password dbname=unibazaar_messaging port=5432 sslmode=disable"
 
-  # Example for AWS RDS (replace placeholders):
+  Example for AWS RDS (replace placeholders):
   # CHAT_DB_URI="host=your_rds_endpoint user=your_rds_user password=your_rds_password dbname=unibazaar_messaging port=5432 sslmode=require"
   ```
-
-- Replace placeholders like `your_postgres_password` or `your_messaging_db_password` with the actual passwords you set up.
 
 ### ☁️ AWS S3 Setup (for Image Uploads)
 
