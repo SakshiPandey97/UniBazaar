@@ -6,7 +6,7 @@ const useWebSocket = (userId, onMessageReceived) => {
     useEffect(() => {
       if (!userId) return;
   
-      const newWs = new WebSocket(`ws://127.0.0.1:8080/ws?user_id=${userId}`);
+      const newWs = new WebSocket(`ws://messaging.eastus.cloudapp.azure.com:8000/ws?user_id=${userId}`);
       ws.current = newWs;
   
       newWs.onopen = () => {

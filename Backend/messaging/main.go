@@ -56,12 +56,12 @@ func main() {
 	handler := c.Handler(r)
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8000",
 		Handler: handler,
 	}
 
 	go func() {
-		fmt.Println("Server started on :8080")
+		fmt.Println("Server started on :8000")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Could not start server: %v\n", err)
 		}
