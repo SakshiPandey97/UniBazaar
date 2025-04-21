@@ -57,13 +57,13 @@ VITE_CHAT_USERS_BASE_URL=
 ### ⚙️ Backend/products/.env
 ```env
 MONGO_URI=<MONGO_DB_CONNECTION_STRING>
-AWS_REGION=<your-region>
-AWS_ACCESS_KEY_ID=<your-access-key-id>
-AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
-AWS_S3_BUCKET=<your-s3-bucket-name>
-AWS_CONSOLE=<aws-console-url>
-AWS_USER=<your-iam-username>
-AWS_PWD=<your-iam-user-password>
+AWS_REGION=<AWS_REGION>
+AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
+AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
+AWS_S3_BUCKET=<AWS_S3_BUCKET_NAME>
+AWS_CONSOLE=<AWS_CONSOLE_URL>
+AWS_USER=<AWS_USER_ID>
+AWS_PWD=<AWS_USER_ID_PASSWORD>
 ```
 
 ### ⚙️ Backend/messaging/.env
