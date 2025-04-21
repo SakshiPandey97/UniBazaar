@@ -47,12 +47,12 @@ The React app has the following functionality:
 
 Each service and the client app requires a `.env` file.
 
-### 🟢 FE-UniBazaar/.env
+### ⚙️ FE-UniBazaar/.env
 VITE_USER_BASE_URL=\
 VITE_PRODUCT_BASE_URL=\
 VITE_CHAT_USERS_BASE_URL=
 
-### 🟢 Backend/products/.env
+### ⚙️ Backend/products/.env
 MONGO_URI=\
 AWS_REGION=\
 AWS_ACCESS_KEY_ID=\
@@ -62,10 +62,10 @@ AWS_CONSOLE=\
 AWS_USER=\
 AWS_PWD=
 
-### 🟢 Backend/messaging/.env
+### ⚙️ Backend/messaging/.env
 TODO
 
-### 🟢 Backend/users/.env
+### ⚙️ Backend/users/.env
 SENDGRID_API_KEY=
 
 ## 🛠️ Running Locally
@@ -133,7 +133,7 @@ To enable image uploads in the Products Service using AWS S3, follow these steps
 
 #### 1. Create an S3 Bucket
 - Go to the [AWS S3 Console](https://s3.console.aws.amazon.com/s3).
-- Click **Create bucket**, give it a name (e.g., `unibazaar-images`), and choose a region.
+- Click **Create bucket**, give it a name (e.g., `unibazaar`), and choose a region.
 
 #### 2. Create an IAM User
 - Go to the [IAM Console](https://console.aws.amazon.com/iam/).
