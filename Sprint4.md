@@ -1,10 +1,5 @@
 # Sprint 4
 
-## Overview
-**Sprint 4** focused on finalizing key user-facing features and enhancing overall platform stability and usability. This sprint included the implementation of some core authentication flows, significant messaging system improvements, and multiple frontend enhancements for better responsiveness and UX. Backend integration for chat and user services was also completed, alongside updates for session management and search capabilities. The team also addressed several important bugs and optimized various UI flows to ensure a seamless experience. The project was successfully completed and deployed to the cloud, and is now live at: https://uni-bazaar.vercel.app/.
-
----
-
 ## Sprint 4: Completed Issues
 
 | **Issue** | **Status** | **Type** |
@@ -35,7 +30,7 @@
 ---
 
 ## Summary of Work Done in Sprint 4
-Throughout Sprint 4, the team brought UniBazaar across the finish line by implementing and polishing all critical user‑facing features, from authentication flows and OTP management to a fully integrated chat system. Frontend enhancements delivered a more responsive, intuitive UI—updating pages like About Us and FrontPage, and streamlining search and messaging interactions. On the backend, user and messaging services were containerized and deployed to Azure, and unit tests were expanded to ensure long‑term stability. Finally, we squashed numerous cross‑platform bugs, optimized our services, and successfully deployed the completed project to Vercel, making the platform live at https://uni-bazaar.vercel.app/.
+In Sprint 4, the team focused on implementing and refining key user-facing functionalities for UniBazaar. We successfully added the ability to edit and delete products, fuzzy search products, and message sellers, which are now fully integrated and operational. Additionally, we polished the authentication flows and OTP management to enhance security and user experience. Frontend enhancements were made to improve the responsiveness and intuitiveness of the UI, including updates to pages like About Us and FrontPage. On the backend, user and messaging services were containerized and deployed to Azure, with expanded unit tests to ensure long-term stability. After addressing cross-platform bugs and optimizing services, the platform was successfully deployed to Vercel and is now live at https://unibazaar.vercel.app/.
 
 ## UniBazaar User API Documentation
 This section of the document describes the UniBazaar backend API for user management. It covers the **design choices**, **request/response formats**, **error handling**, and **sample JSON** requests for each endpoint. 
@@ -707,6 +702,1122 @@ go get github.com/stretchr/testify
 
 ## Conclusion
 These unit tests help ensure the reliability of the backend user management functionalities by validating the core operations such as user creation, update, deletion, authentication, and validation processes.
+
+---
+
+# Products: Backend API Documentation
+For detailed information, you can view the Swagger API specification here:
+
+[Swagger API Specification](https://github.com/SakshiPandey97/UniBazaar/blob/main/Backend/products/docs/swagger.yaml)
+
+## Table of Contents
+1. [Endpoints Overview](#endpoints)
+2. [Detailed Endpoint Documentation](#endpoint-documentation)
+   - [Get All Products (GET /products)](#1-get-products)
+   - [Get Produtcs By User Id (GET /producs/{userId})](#2-get-products-user)
+   - [Create Product (POST /products)](#3-create-product)
+   - [Update Product (PUT /products/{userId}/{productId})](#4-update-product)
+   - [Delete Product (DELETE /products/{userId}/{productId})](#5-delete-product)
+3. [Unit Tests](#unit-tests)
+
+---
+
+## Endpoints Overview
+
+Below is a quick reference to each endpoint:
+
+| **Endpoint**                                      | **Method** | **Description**                                  |
+| ------------------------------------------------- | ---------- | ------------------------------------------------ |
+| `/products?lastId={lastId}&limit={limit}`         | GET        | Get all products from database.                  |
+| `/producs/{userId}?lastId={lastId}&limit={limit}` | GET        | Get all products belonging to a particular user. |
+| `/search/products?query={query}&limit={limit}`    | GET        | Search products with given query.                |
+| `/products`                                       | POST       | Create a new product in database.                |
+| `/products/{userId}/{productId}`                  | PUT        | Update a user in database.                       |
+| `/products/{userId}/{productId}`                  | DELETE     | Delete a product from database.                  |
+
+---
+
+
+## 1. **Get All Products** - `GET /products`
+
+### Description
+Fetches all products from the system, regardless of the user ID. If no products are found, an error is returned.
+
+### Query Parameters (Pagination)
+| Name   | Type   | Required | Description                                                                                  |
+| ------ | ------ | -------- | -------------------------------------------------------------------------------------------- |
+| lastId | string | ❌ No     | The lastId of the product to start the pagination from (If empty starts from first product). |
+| limit  | int    | ❌ No     | The maximum number of results to return (default is 10).                                     |
+
+
+### Response
+- **200 OK**: Returns a list of all products.
+- **404 Not Found**: If no products are found in the system.
+- **500 Internal Server Error**: For database issues.
+
+### Example Response (200 OK)
+```json
+[
+  {
+    "productId": "9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd",
+    "productTitle": "Laptop",
+    "productDescription": "A high-performance laptop",
+    "productPrice": 999.99,
+    "productCondition": 4,
+    "productLocation": "University of Florida",
+    "productImage": "https://example.com/laptop.jpg",
+    "productPostDate": "02-20-2025",
+    "userId": 123
+  }
+]
+```
+
+## 2. Create a New Product - POST /products
+
+### Description
+Creates a new product by parsing form data, uploading images to S3, and saving the details in the database. The product is linked to the user via their User ID.
+
+### Request Parameters (Form Data)
+- **UserId** (integer): *Required*. The user ID linking to the product.
+- **productTitle** (string): *Required*. Title of the product.
+- **productDescription** (string): *Optional*. Description of the product.
+- **productPrice** (number): *Required*. Price of the product.
+- **productCondition** (integer): *Required*. Condition of the product.
+- **productLocation** (string): *Required*. Location of the product.
+- **productImage** (file): *Required*. Image of the product.
+
+### Response
+- **201 Created**: The product was successfully created.
+- **400 Bad Request**: Invalid User ID or form data.
+- **500 Internal Server Error**: Server issues.
+
+### Example Response (201 OK)
+```json
+[
+  {
+    "productId": "9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd",
+    "productTitle": "Laptop",
+    "productDescription": "A high-performance laptop",
+    "productPrice": 999.99,
+    "productCondition": 4,
+    "productLocation": "University of Florida",
+    "productImage": "https://example.com/laptop.jpg",
+    "productPostDate": "02-20-2025",
+    "userId": 123
+  }
+]
+```
+
+### Example Response (400 Bad Request)
+```json
+{
+    "error": "Error reading image",
+    "details": "error retrieving file: http: no such file"
+}
+```
+
+## 3. Get Products by User ID - GET /products/{UserId}
+
+### Description
+Fetches all products listed by a user, identified by their user ID. If no products are found, an error is returned.
+
+### Request Parameters
+- **UserId** (integer): *Required*. The unique user ID.
+
+### Query Parameters
+| Name   | Type   | Required | Description                                              |
+| ------ | ------ | -------- | -------------------------------------------------------- |
+| lastId | string | ✅ Yes    | The lastId of the product to start the pagination from.  |
+| limit  | int    | ❌ No     | The maximum number of results to return (default is 10). |
+
+### Response
+- **200 OK**: Returns a list of products.
+- **400 Bad Request**: Invalid user ID.
+- **404 Not Found**: No products found for the given user ID.
+- **500 Internal Server Error**: Server issues.
+
+### Example Response (200 OK)
+```json
+[
+  {
+    "productId": "9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd",
+    "productTitle": "Laptop",
+    "productDescription": "A high-performance laptop",
+    "productPrice": 999.99,
+    "productCondition": 4,
+    "productLocation": "University of Florida",
+    "productImage": "https://example.com/laptop.jpg",
+    "productPostDate": "02-20-2025",
+    "userId": 123
+  }
+]
+```
+
+### Example Response (404 Not Found)
+```json
+{
+    "error": "Error fetching products for user",
+    "details": "No products found for user ID: 45: no products found"
+}
+```
+
+## 4. Update Product by User ID and Product ID - PUT /products/{UserId}/{ProductId}
+
+### Description
+Updates a product's details based on the user ID and product ID. The product image is also updated if provided.
+
+### Request Parameters
+- **UserId** (integer): *Required*. The unique user ID.
+- **ProductId** (string): *Required*. The unique product ID.
+- **productTitle** (string): *Required*. The updated title of the product.
+- **productDescription** (string): *Optional*. The updated description of the product.
+- **productPrice** (number): *Required*. The updated price of the product.
+- **productCondition** (integer): *Required*. The updated condition of the product.
+- **productLocation** (string): *Required*. The updated location of the product.
+- **productImage** (string): *Optional*. Image of the product.
+
+### Response
+- **200 OK**: The product was updated successfully.
+- **400 Bad Request**: Invalid request data.
+- **404 Not Found**: Product not found.
+- **500 Internal Server Error**: Server issues.
+
+### Example Response Body
+```json
+{
+    "productId": "9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd",
+    "productTitle": "Laptop",
+    "productDescription": "A high-performance laptop",
+    "productPrice": 999.99,
+    "productCondition": 4,
+    "productLocation": "University of Florida",
+    "productImage": "Image",
+    "productPostDate": "02-20-2025",
+    "userId": 123
+  }
+  ```
+
+### Example Response (404 Not Found)
+```json
+  {
+    "error": "Error reading image",
+    "details": "error retrieving file: http: no such file"
+}
+```
+
+## 5. Delete Product by User ID and Product ID - DELETE /products/{UserId}/{ProductId}
+
+### Description
+Deletes a product from the system based on the user ID and product ID. This also removes the associated image from S3 if available.
+
+### Request Parameters
+- **UserId** (integer): *Required*. The unique user ID.
+- **ProductId** (string): *Required*. The unique product ID.
+
+### Response
+- **204 No Content**: The product was successfully deleted.
+- **400 Bad Request**: Invalid request data.
+- **404 Not Found**: Product not found.
+- **500 Internal Server Error**: Server issues.
+
+### Example Response (204 No Content)
+```json
+{}
+```
+
+### Example Response (404 Not Found)
+```json
+{
+    "error": "Error fetching product",
+    "details": "Product not found for UserId: 456 and ProductId: 26678cba-459c-45a8-b856-a333ae4e0356: no products found"
+}
+```
+## 6. **Search Products** - `GET /search/products`
+
+### Description
+Fetches all products from the system, regardless of the user ID. If no products are found, an error is returned. The search functionality includes fuzzy search, allowing for more lenient matching of search terms, which helps to find results even with minor typos or variations in the query.
+
+The fuzzy search option is used in the query to allow more flexible matching of product titles and descriptions. The following options are applied:
+
+- **`maxEdits`**: Specifies the maximum number of edits (insertions, deletions, substitutions) allowed between the query and the product text (set to 2).
+- **`prefixLength`**: Specifies how many characters of the query must match exactly at the start (set to 2).
+
+### Parameters
+| Name  | Type   | Required | Description                                              |
+| ----- | ------ | -------- | -------------------------------------------------------- |
+| query | string | ✅ Yes    | The search query for filtering products.                 |
+| limit | int    | ❌ No     | The maximum number of results to return (default is 10). |
+
+### Response
+- **200 OK**: Returns a list of all products.
+- **404 Not Found**: If no products are found in the system.
+- **500 Internal Server Error**: For database issues.
+
+### Example Response (200 OK)
+```json
+[
+  {
+    "productId": "9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd",
+    "productTitle": "Laptop",
+    "productDescription": "A high-performance laptop",
+    "productPrice": 999.99,
+    "productCondition": 4,
+    "productLocation": "University of Florida",
+    "productImage": "https://example.com/laptop.jpg",
+    "productPostDate": "02-20-2025",
+    "userId": 123
+  }
+]
+```
+---
+
+## Conclusion
+
+The **Products API** is designed to provide a robust, efficient, and scalable solution for managing product data within the UniBazaar platform. By utilizing well-structured endpoints, advanced database features, and optimized data handling mechanisms, the API ensures:
+
+- **Fast retrieval of product data** with efficient filtering, searching, and data indexing.
+- **Secure CRUD operations** with validation mechanisms.
+- **Scalability** Uses go routines to handle a growing product catalog and high traffic.
+
+With this API, UniBazaar can effectively manage its product offerings while ensuring smooth, secure, and optimized interactions for users, sellers, and administrators alike. Future enhancements can focus on expanding features like product search and security to further enrich the user experience.
+
+## Unit Tests
+## Product Handler: Unit Tests
+
+#### 1. Search Products
+- **Test:** `TestSearchProductsHandler`
+- **Description:** Tests the `SearchProductsHandler` function to ensure it returns the correct list of products based on the search query and limit.
+- **Expected Behavior:** Returns a `200 OK` status with the list of products and their pre-signed image URLs.
+
+#### 2. Handle Error
+- **Test:** `TestHandleError`
+- **Description:** Tests the `HandleError` function to ensure proper error handling and response formatting.
+- **Scenarios:**
+  - **Database Error:** Returns `500 Internal Server Error` with the correct error message.
+  - **Not Found Error:** Returns `404 Not Found` when the error is a resource-not-found error.
+  - **S3 Error:** Returns `500 Internal Server Error` for S3-related issues.
+  - **Bad Request Error:** Returns `400 Bad Request` for invalid input errors.
+  - **Default Error:** Returns `500 Internal Server Error` for generic errors.
+  - **Nil Error:** Returns `500 Internal Server Error` with a message indicating no specific error.
+
+#### 3. Handle Success Response
+- **Test:** `TestHandleSuccessResponse`
+- **Description:** Tests the `HandleSuccessResponse` function to verify proper response handling for successful operations.
+- **Scenarios:**
+  - **Success with Data:** Returns `200 OK` with a JSON response.
+  - **Success with Empty Data:** Returns `201 Created` with a `null` response body.
+  - **Success with Integer Data:** Returns `200 OK` with an integer in the response body.
+  - **Success with String Data:** Returns `200 OK` with a string in the response body.
+
+#### 4. Handle Success Response with Encoding Error
+- **Test:** `TestHandleSuccessResponse_EncodingError`
+- **Description:** Tests how `HandleSuccessResponse` handles encoding failures.
+- **Expected Behavior:** If the data cannot be encoded into JSON, it returns `500 Internal Server Error` with an appropriate error message.
+
+#### 5. Create Product
+- **Test:** `TestCreateProductHandler`
+- **Description:** Verifies that a product can be created successfully with an image upload.
+- **Expected Behavior:** The product is created, and the status code is `201 Created`.
+
+#### 6. Get All Products
+- **Test:** `TestGetAllProductsHandler`
+- **Description:** Tests retrieving all products from the database.
+- **Expected Behavior:** A list of products is returned with a status code of `200 OK`.
+
+#### 7. Get Products by User ID
+- **Test:** `TestGetAllProductsByUserIDHandler`
+- **Description:** Tests retrieving products specific to a user based on the user ID.
+- **Expected Behavior:** A list of products for the user is returned with a status code of `200 OK`.
+
+#### 8. Update Product
+- **Test:** `TestUpdateProductHandler`
+- **Description:** Ensures that an existing product can be updated successfully, including updating the product image.
+- **Expected Behavior:** The product is updated, and the status code is `200 OK`.
+
+#### 9. Delete Product
+- **Test:** `TestDeleteProductHandler`
+- **Description:** Verifies that a product can be deleted, including the associated image.
+- **Expected Behavior:** The product is deleted, and the status code is `204 No Content`.
+---
+## Mongo Repository: Unit Tests
+
+#### 1. Test Search Products Success
+- **Test:** `TestSearchProducts_Success`
+- **Description:** Verifies that products are returned correctly when a valid search query is provided.
+- **Expected Behavior:** The function should return a list of products matching the query.
+- **Test Case:**
+    - Search query: `"laptop"`, Limit: `2`.
+    - Expected products: 
+        - `ProductTitle: "Laptop X1"`, `ProductID: "prod123"`, `UserID: 1`.
+        - `ProductTitle: "Gaming Laptop"`, `ProductID: "prod456"`, `UserID: 2`.
+
+#### 2. Test Search Products No Results
+- **Test:** `TestSearchProducts_NoResults`
+- **Description:** Tests the behavior when no products match the search query.
+- **Expected Behavior:** The function should return an error with a message indicating no products were found.
+- **Test Case:**
+    - Search query: `"laptop"`, Limit: `2`.
+    - Expected behavior: 
+        - Error: `"no products found"`.
+        - An empty product list.
+
+#### 3. Test Search Products Database Error
+- **Test:** `TestSearchProducts_DatabaseError`
+- **Description:** Verifies the behavior when there is a database error during the product search.
+- **Expected Behavior:** The function should return an error indicating a database issue.
+- **Test Case:**
+    - Search query: `"laptop"`, Limit: `2`.
+    - Expected behavior:
+        - Error: `"database error"`.
+        - An empty product list.
+
+#### 4. Test Get All Products Pagination Success
+- **Test:** `TestGetAllProducts_Pagination_Success`
+- **Description:** Verifies that products are returned correctly when pagination is used with a valid last product ID.
+- **Expected Behavior:** The function should return a paginated list of products based on the `lastID` and `limit`.
+- **Test Case:**
+    - Last product ID: `"prod100"`, Limit: `2`.
+    - Expected products:
+        - `ProductID: "prod123"`, `UserID: 1`.
+        - `ProductID: "prod456"`, `UserID: 2`.
+
+#### 5. Test Get All Products Pagination No Last ID Success
+- **Test:** `TestGetAllProducts_Pagination_NoLastID_Success`
+- **Description:** Verifies that products are returned correctly when pagination is used without a last product ID (starting from the first product).
+- **Expected Behavior:** The function should return a paginated list of products based on the `limit` provided.
+- **Test Case:**
+    - Last product ID: `""` (empty), Limit: `3`.
+    - Expected products:
+        - `ProductID: "prod123"`, `UserID: 1`.
+
+        - `ProductID: "prod456"`, `UserID: 2`.
+        - `ProductID: "prod789"`, `UserID: 3`.
+
+#### 6. Test Get All Products Pagination Empty Results
+- **Test:** `TestGetAllProducts_Pagination_EmptyResults`
+- **Description:** Verifies the behavior when no products are found for a given `lastID` in pagination.
+- **Expected Behavior:** The function should return an empty list when no products are found.
+- **Test Case:**
+    - Last product ID: `"prod999"`, Limit: `2`.
+    - Expected behavior: 
+        - Empty product list.
+
+#### 7. Test CreateProduct Success
+- **Test:** `TestCreateProduct`
+- **Description:** Tests the successful creation of a product in the repository.
+- **Expected Behavior:** The function should return no error when the product is successfully created.
+- **Test Case:** 
+    - Product with `UserID: 1` and `ProductID: "prod123"`.
+    - Expected behavior: No error should be returned.
+
+#### 8. Test CreateProduct Error
+- **Test:** `TestCreateProduct_Error`
+- **Description:** Tests the failure scenario for creating a product in the repository.
+- **Expected Behavior:** The function should return an error when the product creation fails.
+- **Test Case:** 
+    - Product with `UserID: 1` and `ProductID: "prod123"`.
+    - Expected behavior: Error should be returned due to the insertion failure.
+
+#### 9. Test GetAllProducts Success
+- **Test:** `TestGetAllProducts`
+- **Description:** Tests the successful retrieval of all products from the repository.
+- **Expected Behavior:** The function should return all the products with no error.
+- **Test Case:** 
+    - Two products with IDs `prod123` and `prod456`.
+    - Expected behavior: The result should contain both products with correct IDs.
+
+#### 10. Test GetProductsByUserID Success
+- **Test:** `TestGetProductsByUserID`
+- **Description:** Tests the successful retrieval of products for a specific user.
+- **Expected Behavior:** The function should return all products for the specified user.
+- **Test Case:** 
+    - Two products for `UserID: 1` with IDs `prod123` and `prod456`.
+    - Expected behavior: The result should contain both products associated with the given user ID.
+
+#### 11. Test UpdateProduct Success
+- **Test:** `TestUpdateProduct`
+- **Description:** Tests the successful update of a product in the repository.
+- **Expected Behavior:** The function should return no error when the product is successfully updated.
+- **Test Case:** 
+    - Product with `UserID: 1` and `ProductID: "prod123"`.
+    - Expected behavior: No error should be returned.
+
+#### 12. Test DeleteProduct Success
+- **Test:** `TestDeleteProduct`
+- **Description:** Tests the successful deletion of a product from the repository.
+- **Expected Behavior:** The function should return no error when the product is successfully deleted.
+- **Test Case:** 
+    - Product with `UserID: 1` and `ProductID: "prod123"`.
+    - Expected behavior: No error should be returned.
+
+#### 13. Test FindProductByUserAndId Success
+- **Test:** `TestFindProductByUserAndId`
+- **Description:** Tests the successful retrieval of a product by user and product ID.
+- **Expected Behavior:** The function should return the product if found.
+- **Test Case:** 
+    - Product with `UserID: 1` and `ProductID: "prod123"`.
+    - Expected behavior: The product should be returned with the correct product ID.
+
+---
+
+## Config: Unit Tests
+
+#### 1. Test ConnectDB Success
+- **Test:** `TestConnectDB_Success`
+- **Description:** Verifies successful connection to the MongoDB database using a valid URI.
+- **Expected Behavior:** The function should establish a connection, and `client.Ping()` should succeed.
+- **Test Case:**
+  - Set environment variable `MONGO_URI` to `"mongodb://localhost:27017"`.
+  - Ensure the database client is not nil and no errors occur during connection, ping, and disconnection.
+
+#### 2. Test ConnectDB Default URI
+- **Test:** `TestConnectDB_DefaultURI`
+- **Description:** Verifies connection to MongoDB when the `MONGO_URI` environment variable is not set (default URI).
+- **Expected Behavior:** The function should establish a connection to the default URI.
+- **Test Case:**
+  - Unset `MONGO_URI` environment variable.
+  - Ensure the database client is not nil and no errors occur during connection, ping, and disconnection.
+
+#### 3. Test GetCollection Success
+- **Test:** `TestGetCollection_Success`
+- **Description:** Verifies that the correct collection is returned when the `MONGO_URI` is set and a connection is established.
+- **Expected Behavior:** The function should return the correct collection, and the collection name should match the input.
+- **Test Case:**
+  - Set `MONGO_URI` to `"mongodb://localhost:27017"`.
+  - Retrieve the collection named `"testCollection"`, ensure no error occurs, and that the collection name and database name match.
+
+#### 4. Test GetCollection DB Not Nil
+- **Test:** `TestGetCollection_DBNotNil`
+- **Description:** Verifies that when the database client is already connected, the function retrieves the collection without establishing a new connection.
+- **Expected Behavior:** The function should return the correct collection and database.
+- **Test Case:**
+  - Set `MONGO_URI` to `"mongodb://localhost:27017"`.
+  - Use an already established DB connection and retrieve the collection `"testCollection2"`.
+  - Ensure no error occurs and that the collection name and database name match.
+
+#### 5. Test ConnectDB Connection Failure
+- **Test:** `TestConnectDB_ConnectionFailure`
+- **Description:** Tests the failure scenario when the MongoDB URI is invalid.
+- **Expected Behavior:** The function should return an error indicating the connection failure.
+
+#### 6. Test GetCollection ConnectDB Failure
+- **Test:** `TestGetCollection_ConnectDBFailure`
+- **Description:** Tests the scenario when the MongoDB URI is invalid, causing `ConnectDB` to fail.
+- **Expected Behavior:** The function should return an error and nil collection.
+
+#### 7. Test GetAWSClientInstance Failure
+- **Test:** `TestGetAWSClientInstance_Failure`
+- **Description:** Verifies failure when loading AWS config results in an error.
+- **Expected Behavior:** The function should return an error and nil client.
+- **Test Case:**
+  - Mock the `LoadDefaultConfig` method to return an error.
+  - Ensure the AWS client is nil and an error is returned.
+
+#### 8. Test GetAWSClientInstance Success
+- **Test:** `TestGetAWSClientInstance_Success`
+- **Description:** Verifies successful loading of AWS config and creation of AWS client.
+- **Expected Behavior:** The function should successfully create and return an AWS client.
+- **Test Case:**
+  - Mock the `LoadDefaultConfig` method to return a valid `aws.Config`.
+  - Ensure the AWS client is created with the correct region.
+
+#### 9. Test GetAWSClientInstance Singleton
+- **Test:** `TestGetAWSClientInstance_Singleton`
+- **Description:** Verifies that `GetAWSClientInstance` returns the same AWS client instance across multiple calls.
+- **Expected Behavior:** The function should always return the same AWS client instance.
+- **Test Case:**
+  - Mock the `LoadDefaultConfig` method to return a valid `aws.Config`.
+  - Call `GetAWSClientInstance` twice and verify that both calls return the same client instance.
+
+#### 10. Test LoadAWSConfig Error
+- **Test:** `TestLoadAWSConfig_Error`
+- **Description:** Tests the failure scenario when loading the AWS config results in an error.
+- **Expected Behavior:** The function should return an error and nil client.
+
+#### 11. Test LoadAWSConfig Success
+- **Test:** `TestLoadAWSConfig_Success`
+- **Description:** Verifies successful loading of AWS config and client creation.
+- **Expected Behavior:** The function should successfully load the AWS config and create the AWS client.
+  
+---
+## Custom Errors: Unit Tests
+
+#### 1. Test Custom Error
+- **Test:** `TestCustomError`
+- **Description:** Verifies the behavior of custom errors with a non-nil cause and a nil cause.
+- **Expected Behavior:** The function should return the correct message, status code, cause, and formatted error message.
+- **Test Case:** 
+    - Error with message: `"test message"`, status code: `http.StatusInternalServerError`, cause: `"test cause"`.
+    - Expected behavior: 
+        - Message: `"test message"`.
+        - Status code: `500 Internal Server Error`.
+        - Cause: `"test cause"`.
+        - Error message: `"Error: test message, Cause: test cause"`.
+    - Error with `nil` cause:
+        - Message: `"test message"`, status code: `http.StatusInternalServerError`, cause: `nil`.
+        - Expected behavior: Error message: `"Error: test message, Cause: <nil>"`.
+
+#### 2. Test Not Found Error
+- **Test:** `TestNotFoundError`
+- **Description:** Verifies the behavior of a `NotFoundError` with a non-nil cause.
+- **Expected Behavior:** The function should return the correct message, status code, cause, and formatted error message.
+- **Test Case:** 
+    - Error with message: `"not found"`, cause: `"test cause"`.
+    - Expected behavior:
+        - Message: `"not found"`.
+        - Status code: `404 Not Found`.
+        - Cause: `"test cause"`.
+        - Error message: `"Error: not found, Cause: test cause"`.
+
+#### 3. Test Database Error
+- **Test:** `TestDatabaseError`
+- **Description:** Verifies the behavior of a `DatabaseError` with a non-nil cause.
+- **Expected Behavior:** The function should return the correct message, status code, cause, and formatted error message.
+- **Test Case:** 
+    - Error with message: `"database error"`, cause: `"test cause"`.
+    - Expected behavior:
+        - Message: `"database error"`.
+        - Status code: `500 Internal Server Error`.
+        - Cause: `"test cause"`.
+        - Error message: `"Error: database error, Cause: test cause"`.
+
+#### 4. Test S3 Error
+- **Test:** `TestS3Error`
+- **Description:** Verifies the behavior of an `S3Error` with a non-nil cause.
+- **Expected Behavior:** The function should return the correct message, status code, cause, and formatted error message.
+- **Test Case:** 
+    - Error with message: `"s3 error"`, cause: `"test cause"`.
+    - Expected behavior:
+        - Message: `"s3 error"`.
+        - Status code: `500 Internal Server Error`.
+        - Cause: `"test cause"`.
+        - Error message: `"Error: s3 error, Cause: test cause"`.
+
+#### 5. Test Bad Request Error
+- **Test:** `TestBadRequestError`
+- **Description:** Verifies the behavior of a `BadRequestError` with a non-nil cause.
+- **Expected Behavior:** The function should return the correct message, status code, cause, and formatted error message.
+- **Test Case:** 
+    - Error with message: `"bad request"`, cause: `"test cause"`.
+    - Expected behavior:
+        - Message: `"bad request"`.
+        - Status code: `400 Bad Request`.
+        - Cause: `"test cause"`.
+        - Error message: `"Error: bad request, Cause: test cause"`.
+
+#### 6. Test Error With Nil Cause
+- **Test:** `TestErrorWithNilCause`
+- **Description:** Verifies the behavior of an error with a `nil` cause.
+- **Expected Behavior:** The function should return the correct formatted error message when the cause is `nil`.
+- **Test Case:** 
+    - Error with message: `"bad request"`, cause: `nil`.
+    - Expected behavior:
+        - Error message: `"Error: bad request, Cause: <nil>"`.
+---
+### Helper Functions: Unit Tests
+
+#### 1. GetUserID: Valid Input
+- **Test:** `TestGetUserID_ValidInput`
+- **Description:** Verifies that a valid user ID returns the correct result.
+- **Expected Behavior:** The function returns `123` when input `"123"` is passed.
+
+#### 2. GetUserID: Invalid Input
+- **Test:** `TestGetUserID_InvalidInput`
+- **Description:** Tests the `GetUserID` function with invalid inputs.
+- **Expected Behavior:** An error is returned for inputs such as `"abc"`, `""`, `"12.34"`, and `"-"`.
+
+#### 3. ParseFormAndCreateProduct: Valid Data
+- **Test:** `TestParseFormAndCreateProduct_ValidData`
+- **Description:** Tests the creation of a product when valid form data is provided.
+- **Expected Behavior:** A product is created with correct user ID, title, and other fields.
+
+#### 4. ParseFormAndCreateProduct: Missing or Invalid Data
+- **Test:** `TestParseFormAndCreateProduct_MissingOrInvalidData`
+- **Description:** Tests handling of invalid or missing form data.
+- **Expected Behavior:** The function returns an error for missing or invalid data such as missing product title or invalid product condition and price.
+
+#### 5. ParseNumericalFormValues: Valid Data
+- **Test:** `TestParseNumericalFormValues_ValidData`
+- **Description:** Verifies that numerical form values are correctly parsed.
+- **Expected Behavior:** The correct product condition and price are set in the product object.
+
+#### 6. ParseNumericalFormValues: Invalid Data
+- **Test:** `TestParseNumericalFormValues_InvalidData`
+- **Description:** Tests the function with invalid numerical values.
+- **Expected Behavior:** The function returns an error when invalid numerical data is provided for condition or price.
+---
+## Helper Functions: Unit Tests
+
+#### 1. Create Mock Image
+- **Test:** `CreateMockImage`
+- **Description:** Creates a mock image (either JPEG or PNG) for testing purposes.
+- **Expected Behavior:** A red-colored 100x100 image is created and returned as a byte array.
+
+#### 2. Parse Product Image: Error Retrieving File
+- **Test:** `TestParseProductImage_ErrorRetrievingFile`
+- **Description:** Tests the `ParseProductImage` function when there is an error retrieving the file from the request.
+- **Expected Behavior:** The function returns an error containing the string "error retrieving file".
+
+#### 3. Parse Product Image: Error Encoding JPEG
+- **Test:** `TestParseProductImage_ErrorEncodingJPEG`
+- **Description:** Tests the `ParseProductImage` function when there is an error encoding the image in JPEG format.
+- **Expected Behavior:** The function returns an error containing the string "error encoding compressed image".
+
+#### 4. Parse Product Image: Error Encoding PNG
+- **Test:** `TestParseProductImage_ErrorEncodingPNG`
+- **Description:** Tests the `ParseProductImage` function when there is an error encoding the image in PNG format.
+- **Expected Behavior:** The function returns an error containing the string "error encoding compressed image".
+
+#### 5. Parse Product Image: Unsupported Format
+- **Test:** `TestParseProductImage_UnsupportedFormat`
+- **Description:** Tests the `ParseProductImage` function when an unsupported image format (GIF) is uploaded.
+- **Expected Behavior:** The function returns an error containing the string "error decoding image".
+---
+## Model Functions: Unit Tests
+
+#### 1. Test Error Response Serialization
+- **Test:** `TestErrorResponseSerialization`
+- **Description:** Tests the serialization of the `ErrorResponse` struct to JSON.
+- **Expected Behavior:** The function should correctly marshal the `ErrorResponse` into the expected JSON string.
+- **Test Case:**
+    ```json
+    {"error":"Error updating product","details":"ProductPrice: cannot be empty or zero, Product not found"}
+    ```
+
+#### 2. Test Error Response Deserialization
+- **Test:** `TestErrorResponseDeserialization`
+- **Description:** Tests the deserialization of JSON into the `ErrorResponse` struct.
+- **Expected Behavior:** The function should correctly unmarshal the JSON string into the `ErrorResponse` struct, with the error and details fields populated correctly.
+- **Test Case (JSON Input):**
+    ```json
+    {"error":"Error updating product","details":"ProductPrice: cannot be empty or zero, Product not found"}
+    ```
+
+#### 3. Test Error Response Serialization Without Details
+- **Test:** `TestErrorResponseSerializationWithoutDetails`
+- **Description:** Tests serialization of the `ErrorResponse` struct with no details field.
+- **Expected Behavior:** The function should correctly marshal the `ErrorResponse` into the expected JSON string with only the `error` field.
+- **Test Case:**
+    ```json
+    {"error":"Error updating product"}
+    ```
+
+#### 4. Test Empty Error Response
+- **Test:** `TestEmptyErrorResponse`
+- **Description:** Tests serialization of an empty `ErrorResponse` struct.
+- **Expected Behavior:** The function should correctly marshal the empty `ErrorResponse` struct into the expected JSON string with only the `error` field as an empty string.
+- **Test Case:**
+    ```json
+    {"error":""}
+    ```
+---
+## Model Functions: Unit Tests
+
+#### 1. Test Product Validation
+- **Test:** `TestProductValidation`
+- **Description:** Tests the validation of both valid and invalid `Product` instances.
+- **Expected Behavior:** The valid product should not return an error, while the invalid product should return validation errors.
+- **Test Case:**
+    - Valid Product:
+    ```json
+    {
+        "UserID": 123,
+        "ProductID": "9b96a85c-f02e-47a1-9a1a-1dd9ed6147bd",
+        "ProductTitle": "Laptop",
+        "ProductDescription": "A high-performance laptop",
+        "ProductPostDate": "02-20-2025",
+        "ProductCondition": 4,
+        "ProductPrice": 999.99,
+        "ProductLocation": "University of Florida",
+        "ProductImage": "https://example.com/laptop.jpg"
+    }
+    ```
+    - Invalid Product:
+    ```json
+    {
+        "UserID": 0,
+        "ProductID": "",
+        "ProductTitle": "",
+        "ProductPostDate": "02-20-2025",
+        "ProductCondition": 0,
+        "ProductPrice": 0,
+        "ProductLocation": "",
+        "ProductImage": ""
+    }
+    ```
+
+#### 2. Test Product Post Date Validation
+- **Test:** `TestProductPostDateValidation`
+- **Description:** Tests validation of the `ProductPostDate` field to ensure it is in MM-DD-YYYY format.
+- **Expected Behavior:** The valid date should not return an error, while the invalid date should trigger an error with the message "productPostDate must be in MM-DD-YYYY format".
+- **Test Case (Valid Date):**
+    ```json
+    {
+        "ProductPostDate": "02-20-2025"
+    }
+    ```
+- **Test Case (Invalid Date):**
+    ```json
+    {
+        "ProductPostDate": "2025-02-20"
+    }
+    ```
+
+#### 3. Test Product Validation with Empty Fields
+- **Test:** `TestProductValidationWithEmptyFields`
+- **Description:** Tests the validation of a `Product` with empty or zero values for required fields.
+- **Expected Behavior:** The function should return an error for missing or invalid required fields.
+- **Test Case:**
+    ```json
+    {
+        "UserID": 0,
+        "ProductID": "",
+        "ProductTitle": "",
+        "ProductCondition": 0,
+        "ProductPrice": 0,
+        "ProductLocation": "",
+        "ProductImage": ""
+    }
+    ```
+
+#### 4. Test Format Validation Error
+- **Test:** `TestFormatValidationError`
+- **Description:** Tests the formatting of validation error messages.
+- **Expected Behavior:** The function should format the error message as expected, e.g., `"ProductTitle: cannot be empty or zero"`.
+- **Test Case:**
+    ```json
+    {
+        "Error": "ProductTitle: zero value"
+    }
+    ```
+
+#### 5. Test Empty Product
+- **Test:** `TestEmptyProduct`
+- **Description:** Tests validation of an empty `Product` struct.
+- **Expected Behavior:** The function should return an error indicating that the product is empty and invalid.
+- **Test Case:**
+    ```json
+    {
+        "UserID": 0,
+        "ProductID": "",
+        "ProductTitle": "",
+        "ProductDescription": "",
+        "ProductCondition": 0,
+        "ProductPrice": 0,
+        "ProductLocation": "",
+        "ProductImage": ""
+    }
+    ```
+
+#### 6. Test Format Validation Error with Nil Error
+- **Test:** `TestFormatValidationErrorWithNilError`
+- **Description:** Tests the behavior of `formatValidationError` when a nil error is passed.
+- **Expected Behavior:** The function should return nil when the input error is nil.
+---
+## S3 Repository: Unit Tests
+
+#### 1. Test UploadImage Failure
+- **Test:** `TestUploadImage_Failure`
+- **Description:** Tests the failure scenario for uploading an image to S3.
+- **Expected Behavior:** The function should return an error when the upload fails and the URL should be empty.
+- **Test Case:**
+    - Mocked error response for S3 upload.
+    - Expected behavior: Error should be returned, URL should be empty.
+
+#### 2. Test DeleteImage Failure
+- **Test:** `TestDeleteImage_Failure`
+- **Description:** Tests the failure scenario for deleting an image from S3.
+- **Expected Behavior:** The function should return an error when the delete operation fails.
+- **Test Case:**
+    - Mocked error response for S3 delete.
+    - Expected behavior: Error should be returned.
+
+#### 3. Test GeneratePresignedURL Failure
+- **Test:** `TestGeneratePresignedURL_Failure`
+- **Description:** Tests the failure scenario for generating a presigned URL for an image in S3.
+- **Expected Behavior:** The function should return an error when generating the presigned URL fails and the URL should be empty.
+- **Test Case:**
+    - Mocked error response for presigned URL generation.
+    - Expected behavior: Error should be returned, URL should be empty.
+
+#### 4. Test GetPreSignedURLs Success
+- **Test:** `TestGetPreSignedURLs_Success`
+- **Description:** Tests the success scenario for generating presigned URLs for multiple products.
+- **Expected Behavior:** The function should return the presigned URLs for the provided products.
+- **Test Case:**
+    - Sample Products.
+    - Expected behavior: The result should contain 2 items, each with a presigned URL.
+
+---
+## Routes: Unit Tests
+
+#### 1. Test Register Product Routes
+- **Test:** `TestRegisterProductRoutes`
+- **Description:** Tests the registration of product routes, including POST and GET requests.
+- **Expected Behavior:** 
+    - POST request to `/products` should trigger `CreateProduct` on the `MockProductRepository`.
+    - GET request to `/products` should trigger `GetAllProducts` on the `MockProductRepository`.
+- **Test Case:**
+    - **POST /products:** The handler should call `CreateProduct` with the provided product and return a success response.
+    - **GET /products:** The handler should call `GetAllProducts` and return an empty list in the response.
+
+#### 2. Test CORS Headers
+- **Test:** `TestCORSHeaders`
+- **Description:** Tests that the CORS headers are correctly set on the response.
+- **Expected Behavior:** 
+    - The response should include `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS`, and `Access-Control-Allow-Headers: Content-Type,Authorization`.
+- **Test Case:**
+    - **OPTIONS /products:** The handler should set the correct CORS headers in the response. The `Access-Control-Allow-Origin` should be `*`, `Access-Control-Allow-Methods` should include all necessary HTTP methods, and `Access-Control-Allow-Headers` should include `Content-Type` and `Authorization`.
+
+
+## Running Tests
+To execute the unit tests, use the following command:
+```sh
+ go test -coverprofile=coverage ./... 
+```
+```sh
+ go tool cover -html=coverage
+```
+This will run all test cases and display detailed coverage in browser.
+
+Current Coverage:
+| Package                  | Time    | Coverage             |
+| ------------------------ | ------- | -------------------- |
+| `web-service/config`     | 20.160s | 93.9% of statements  |
+| `web-service/errors`     | 0.079s  | 100.0% of statements |
+| `web-service/handler`    | 0.186s  | 70.5% of statements  |
+| `web-service/helper`     | 0.162s  | 83.3% of statements  |
+| `web-service/model`      | 0.068s  | 100.0% of statements |
+| `web-service/repository` | 0.111s  | 27.0% of statements  |
+| `web-service/routes`     | 0.092s  | 100.0% of statements |
+
+
+
+
+## Dependencies
+The tests utilize the following dependencies:
+- `github.com/stretchr/testify/assert` for assertions
+- `github.com/stretchr/testify/mock` for mocking user model methods
+
+Ensure these dependencies are installed before running tests:
+```sh
+go mod tidy
+go get github.com/stretchr/testify
+```
+
+## Conclusion
+
+These unit tests help ensure the reliability of the backend product management functionalities by validating core operations such as product creation, update, deletion, retrieval, and validation processes.
+
+---
+
+# Frontend Unit Testing
+
+---
+
+## Testing Summary
+
+This project utilizes **Vitest** for running unit and integration tests to ensure proper functionality, performance, and reliability of the application. **React Testing Library** is used for rendering components, simulating user interactions, and checking component behavior through assertions.
+
+### Key Features:
+- **Unit Tests**: Validating individual functions and components to ensure expected behavior.
+- **UI Tests**: Verifying the rendering of UI elements and interactions, such as button clicks or form submissions.
+- **Mocking**: Mocking external API calls and services to test components in isolation.
+- **Assertions**: Using `expect()` to check if components or values meet the expected results.
+
+### How to Run Tests:
+1. Install dependencies using `npm install`.
+2. Run tests with the command:
+   ```bash
+   npx vitest
+   ```
+
+The tests cover critical areas of the app, including UI rendering, state management, API interactions, and more, helping maintain code quality and application stability.
+
+---
+
+## Test Scenarios for `ProductCard` Component
+
+1. **Renders Product Title and Price**: (NEW) 🚀
+   - Verifies that the product title ("Sample Product") and price ("$99") are displayed correctly.
+
+2. **Shows Description on Hover**: (NEW) 🚀
+   - Simulates a mouse hover over the product title and checks if the product description ("This is a sample product") appears.
+
+3. **Shows Menu on /userproducts Path**: (NEW) 🚀
+   - Mocks the `/userproducts` path and checks if the more options menu (Edit/Delete) is visible.
+
+4. **Calls `onEdit` When Edit is Clicked**: (NEW) 🚀
+   - Simulates clicking the "Edit" option and verifies that the `onEdit` callback is called with the correct product ID ("1").
+
+5. **Shows Editable Fields If `propIsEditing` is True and Allows Editing When Edit is Clicked**: (NEW) 🚀
+   - Mocks `propIsEditing` as `true`, clicks the "Edit" option, and ensures the editable fields (title, description, price) are shown with initial values.
+   - Verifies that the `onEdit` callback is called when the edit button is clicked.
+
+6. **Calls `onCancel` When Cancel Button is Clicked in Edit Mode**: (NEW) 🚀
+   - Mocks `propIsEditing` as `true`, clicks the "Edit" button, modifies the values in the input fields, and clicks the "Cancel" button.
+   - Verifies that the `onCancel` callback is called when the cancel button is clicked.
+
+7. **Calls `onSave` with Updated Values When Save is Clicked**: (NEW) 🚀
+   - Mocks `propIsEditing` as `true`, clicks the "Edit" button, modifies the values in the input fields, and clicks the "Save" button.
+   - Verifies that the `onSave` callback is called with the updated values.
+
+8. **Shows 'Message' Button on /products Path**: (NEW) 🚀
+   - Mocks the `/products` path and verifies that the "Message" button is displayed.
+
+---
+
+### 1. **User Login API**
+- **Test:** Should handle successful login
+- **Expected Behavior:** Returns user ID '12345' and calls `localStorage.setItem`.
+
+### 2. **User Registration API**
+- **Test:** Should handle successful registration
+- **Expected Behavior:** Returns success object and calls `axios.post`.
+
+### 3. **Fetch All Users API**
+- **Test:** Should fetch all users
+- **Expected Behavior:** Returns an array of users excluding the specified user.
+
+### 4. **Fetch All Products API**
+- **Test:** Should fetch all products
+- **Expected Behavior:** Returns an array of products.
+
+### 5. **Post Product API**
+- **Test:** Should post a new product
+- **Expected Behavior:** Returns the newly created product.
+
+---
+
+### 6. **Banner Rendering**
+- **Test:** Should render banner text
+- **Expected Behavior:** Renders "Uni", "Bazaar", and "Connecting students for buying/selling".
+
+---
+
+### 7. **Input Rendering**
+- **Test:** Should render input field with label
+- **Expected Behavior:** Renders input with the correct label.
+
+### 8. **Disabled Input**
+- **Test:** Should disable input when submitting
+- **Expected Behavior:** Input is disabled when `isSubmitting` is true.
+
+---
+
+### 9. **Product Rendering**
+- **Test:** Should render title, image, and price
+- **Expected Behavior:** Renders product title, image, and price correctly.
+
+---
+
+### 10. **Products Loading**
+- **Test:** Should display loading spinner
+- **Expected Behavior:** Spinner shown when `loading` is true.
+
+### 11. **Products Error**
+- **Test:** Should display error message
+- **Expected Behavior:** Shows error message "Error fetching products".
+
+---
+
+### 12. **Spinner Rendering**
+- **Test:** Should render spinner
+- **Expected Behavior:** Spinner is displayed.
+
+---
+
+### 13. **Valid Login**
+- **Test:** Should allow login with valid credentials
+- **Expected Behavior:** `handleSubmit` called with valid credentials.
+
+---
+
+### 14. **Registration Submission**
+- **Test:** Should call handleSubmit with correct values
+- **Expected Behavior:** Calls `handleSubmit` with correct form values.
+
+---
+
+### 15. **Initial State**
+- **Test:** Should initialize with `isAnimating` as false
+- **Expected Behavior:** `isAnimating` is `false` initially.
+
+---
+
+### 16. **Navbar State**
+- **Test:** Should return initial menu and dropdown state
+- **Expected Behavior:** `isMenuOpen` and `isDropdownOpen` are both `false`.
+
+---
+
+### 17. **User Selection**
+- **Test:** Should fetch the list of users for selection.  
+- **Expected Behavior:** Calls `useFetchUsers(userId)` and returns a list of users.  
+
+---  
+
+### 18. **Real-time Messaging**  
+- **Test:** Should establish a WebSocket connection and receive live updates.  
+- **Expected Behavior:** Calls `useWebSocket(userId, handleMessageReceived)` and updates messages in real time.  
+
+---  
+
+### 19. **Message History**  
+- **Test:** Should fetch previously exchanged messages when a user is selected.  
+- **Expected Behavior:** Calls `useFetchMessages(userId, selectedUser, setMessages)` and retrieves message history.  
+
+---  
+
+### 20. **Typing Indicator**  
+- **Test:** Should detect and notify when a user is typing.  
+- **Expected Behavior:** Calls `useTypingIndicator(setInput)` and displays a typing indicator when a user types.  
+
+---  
+
+### 21. **Send Messages**  
+- **Test:** Should send messages via WebSocket.  
+- **Expected Behavior:** Calls `useSendMessage(userId, selectedUser, users, ws, input, setInput)` and updates the chat.  
+
+---  
+
+### 22. **Receive Messages**  
+- **Test:** Should update the message state when a new message arrives.  
+- **Expected Behavior:** Calls `handleMessageReceived(message)` and updates the UI.  
+
+---  
+
+### 23. **User Authentication**  
+- **Test:** Should retrieve the logged-in user’s ID.  
+- **Expected Behavior:** Calls `getCurrentUserId()` and returns a valid user ID.  
+
+
+---
+
+### **End-to-End Testing (Cypress)**  
+Cypress was used for **end-to-end testing**, with a successful test for the **login functionality**, as demonstrated in the recorded video.  
+
+#### **Tested Scenario: Login Flow**  
+- **Steps Covered:**  
+  1. Navigate to the login page.  
+  2. Enter valid credentials.  
+  3. Click the login button.  
+  4. Verify successful authentication and redirection to the dashboard.  
+
+- **Expected Behavior:**  
+  - User should be authenticated and redirected to the dashboard upon successful login.  
+  - Incorrect credentials should display an error message.  
+
+### **Running Tests**  
+
+#### **Cypress E2E Tests**  
+To run Cypress tests, use:  
+```bash
+npx cypress open
+```
+### **Video** 
+
+TODO
 
 ---
 
