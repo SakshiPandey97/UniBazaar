@@ -194,29 +194,29 @@ The app will run at http://localhost:3000
 
 ### Users Service
 
-| Method | Endpoint           | Description      |
-| ------ | ------------------ | ---------------- |
-| POST   | `/signup`          | Register a user  |
-| POST   | `/verifyEmail`     | OTP verification |
-| POST   | `/resendOtp`       | Resend OTP       |
-| POST   | `/login`           | Login            |
-| POST   | `/logout`          | Logout           |
-| POST   | `/getjwt`          | Get JWT token    |
-| GET    | `/verifyjwt`       | Verify JWT token |
-| GET    | `/displayUser/:id` | Get user details |
+| Method | Endpoint            | Description            |
+| ------ | ------------------- | ---------------------- |
+| POST   | `/signup`           | Register a user        |
+| POST   | `/verifyEmail`      | OTP verification       |
+| POST   | `/resendOtp`        | Resend OTP             |
+| POST   | `/login`            | Login                  |
+| POST   | `/logout`           | Logout                 |
+| POST   | `/getjwt`           | Get JWT token          |
+| GET    | `/verifyjwt`        | Verify JWT token       |
+| GET    | `/displayUser/{id}` | Get user details by id |
 
 --- 
 
 ### Products Service
 
-| Method | Endpoint                         | Description          |
-| ------ | -------------------------------- | -------------------- |
-| POST   | `/products`                      | Create new product   |
-| GET    | `/products`                      | Get all products     |
-| GET    | `/products/{UserId}`             | Get products by user |
-| PUT    | `/products/{UserId}/{ProductId}` | Update product       |
-| DELETE | `/products/{UserId}/{ProductId}` | Delete product       |
-| GET    | `/search/products`               | Search products      |
+| Method | Endpoint                                          | Description          |
+| ------ | ------------------------------------------------- | -------------------- |
+| POST   | `/products`                                       | Create new product   |
+| GET    | `/products?lastId={lastId}&limit={limit}`         | Get all products     |
+| GET    | `/producs/{userId}?lastId={lastId}&limit={limit}` | Get products by user |
+| PUT    | `/products/{UserId}/{ProductId}`                  | Update product       |
+| DELETE | `/products/{UserId}/{ProductId}`                  | Delete product       |
+| GET    | `/search/products?query={query}&limit={limit}`    | Search products      |
 
 --- 
 
