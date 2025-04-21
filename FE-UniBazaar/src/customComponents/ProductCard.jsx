@@ -17,7 +17,6 @@ import { toast } from "react-toastify";
 
 const ProductCard = ({
   product,
-  // onClick,
   onStartChat,
   onEdit,
   isEditing: propIsEditing,
