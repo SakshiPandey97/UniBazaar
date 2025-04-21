@@ -15,7 +15,6 @@ import { getCurrentUserId } from "@/utils/getUserId";
 
 const ProductCard = ({
   product,
-  // onClick,
   onStartChat,
   onEdit,
   isEditing: propIsEditing,
