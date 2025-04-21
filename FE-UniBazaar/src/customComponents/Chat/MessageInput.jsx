@@ -22,7 +22,7 @@ export default function MessageInput({ input, onChange, onSend }) {
           type="text"
           value={input}
           onChange={onChange}
-          onKeyPress={handleKeyPress} 
+          onKeyUp ={handleKeyPress} 
           className="flex-1 border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Type a message..."
           autoComplete="off"

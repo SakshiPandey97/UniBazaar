@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"messaging/models"
-	// "github.com/google/uuid"
 )
 
 type MessageRepository struct {
@@ -17,10 +16,6 @@ func NewMessageRepository(db *sql.DB) *MessageRepository {
 }
 
 func (repo *MessageRepository) SaveMessage(msg models.Message) error {
-	// Generate a UUID if one doesn't exist
-	// if msg.ID == "" {
-	// 	msg.ID = uuid.New().String()
-	// }
 	_, err := repo.DB.Exec(`
         INSERT INTO messages (id, sender_id, receiver_id, content, timestamp, read, sender_name)
         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -108,4 +103,35 @@ func (repo *MessageRepository) GetConversation(user1ID, user2ID uint) ([]models.
 	}
 
 	return messages, nil
+}
+
+func (repo *MessageRepository) GetUnreadSenderIDs(receiverID uint) ([]uint, error) {
+	query := `
+        SELECT DISTINCT sender_id
+        FROM messages
+        WHERE receiver_id = $1 AND read = FALSE
+    `
+	rows, err := repo.DB.Query(query, receiverID)
+	if err != nil {
+		log.Printf("Error fetching unread sender IDs for receiver %d: %v", receiverID, err)
+		return nil, fmt.Errorf("failed to query unread sender IDs: %w", err)
+	}
+	defer rows.Close()
+
+	var senderIDs []uint
+	for rows.Next() {
+		var senderID uint
+		if err := rows.Scan(&senderID); err != nil {
+			log.Printf("Error scanning unread sender ID for receiver %d: %v", receiverID, err)
+			return nil, fmt.Errorf("failed to scan sender ID: %w", err)
+		}
+		senderIDs = append(senderIDs, senderID)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over unread sender ID rows for receiver %d: %v", receiverID, err)
+		return nil, fmt.Errorf("error during row iteration for sender IDs: %w", err)
+	}
+
+	return senderIDs, nil
 }
