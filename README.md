@@ -117,6 +117,7 @@ TODO
 
 ```env
 SENDGRID_API_KEY=<API_KEY>
+DSN=<DATABASE_URL>>
 ```
 
 # 🛠️ Running Locally
