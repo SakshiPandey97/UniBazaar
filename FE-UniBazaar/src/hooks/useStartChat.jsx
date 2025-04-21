@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUserId } from '@/utils/getUserId'; 
+import { getCurrentUserId } from '@/utils/getUserId';
+import { toast } from "react-toastify";
 
 export const useStartChat = () => {
   const navigate = useNavigate(); 
@@ -13,7 +14,7 @@ export const useStartChat = () => {
 
     if (String(currentUserId) === String(sellerId)) {
       console.log("You cannot message yourself.");
-      alert("You cannot message yourself."); 
+      toast.error("You cannot message yourself.");
       return;
     }
 
