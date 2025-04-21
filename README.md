@@ -38,6 +38,7 @@ The React app has the following functionality:
 - **Messaging Service (Go)**: Real-time messaging and conversations.
 
 ---
+
 ## ☁️ Cloud Deployment
 
 UniBazaar is fully deployed in the cloud, so you can use it without any local setup.
@@ -113,9 +114,12 @@ AWS_PWD=<AWS_USER_ID_PASSWORD>
 
 ### ⚙️ Backend/messaging/.env
 
-TODO
+```env
+CHAT_DB_URI=<YOUR_POSTGRESQL_CONNECTION_STRING>
+```
 
 ### ⚙️ Backend/users/.env
+
 ```env
 DSN=<POSTGRES_DB_CONNECTION_STRING>
 JWT_SECRET=<JWT_SECRET>
@@ -147,22 +151,28 @@ SENDGRID_API_KEY=<API_KEY>
   ```
 
 ### PostgreSQL (Users Service)
+
 #### 1. Install PostgreSQL
+
 - Download and install from the [official PostgreSQL website](https://www.postgresql.org/download/).
 - During setup, remember your **username (`postgres`)** and **password**.
 
 #### 2. Create Database and Table
+
 - Open **pgAdmin** or use the terminal:
+
   ```bash
   psql -U postgres
   ```
 
 - Create the database:
+
   ```sql
   CREATE DATABASE unibazaar;
   ```
 
 - Connect to it:
+
   ```bash
   \c unibazaar
   ```
@@ -182,15 +192,94 @@ SENDGRID_API_KEY=<API_KEY>
   ```
 
 #### 3. Set Environment Variable
+
 - In `Backend/Users/.env`, add:
   ```env
-  DSN=postgres://postgres:admin@localhost/unibazaar?sslmode=disable 
+  DSN=postgres://postgres:admin@localhost/unibazaar?sslmode=disable
   (This is an example change the connection string to match your local setup.)
   ```
 
 ### PostgreSQL (Messaging Service)
 
-TODO
+#### 1. Install PostgreSQL (if not already done)
+
+- Follow the steps in the "PostgreSQL (Users Service)" section if you haven't installed PostgreSQL yet.
+
+#### 2. Create Database and User
+
+- Open `psql` (PostgreSQL command-line tool) or use a GUI tool like pgAdmin.
+- Connect as the `postgres` user (or your superuser).
+- Create a dedicated user and database for the messaging service:
+
+  ```sql
+  CREATE USER unibazaar_msg_user WITH PASSWORD 'your_messaging_db_password';
+
+  CREATE DATABASE unibazaar_messaging OWNER unibazaar_msg_user;
+  ```
+
+#### 3. Create Database Tables
+
+- Connect to the newly created `unibazaar_messaging` database.
+- You'll need to create two main tables: one to store user information relevant for messaging, and another to store the chat messages themselves.
+
+  **`users` Table:**
+  This table holds basic user details needed by the messaging service. It is expected to be synchronized automatically when new users login.
+
+  - `id`: A unique identifier for the user (Primary Key).
+  - `name`: The user's display name.
+  - `email`: The user's unique email address.
+
+  **`messages` Table:**
+  This table stores the individual chat messages exchanged between users.
+
+  - `id`: A unique identifier for the message (Primary Key, like a UUID string).
+  - `sender_id`: The ID of the user who sent the message (Foreign Key referencing `users.id`).
+  - `receiver_id`: The ID of the user who received the message (Foreign Key referencing `users.id`).
+  - `content`: The text content of the message.
+  - `timestamp`: When the message was sent (stored as a Unix timestamp).
+  - `read`: A boolean flag indicating if the message has been read by the receiver.
+  - `sender_name`: The name of the sender.
+
+  **Example `CREATE TABLE` Statements:**
+
+  ```sql
+  CREATE TABLE users (
+      id    BIGSERIAL PRIMARY KEY,
+      name  VARCHAR(255) NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL
+  );
+
+  CREATE TABLE messages (
+      id          VARCHAR(255) PRIMARY KEY,
+      sender_id   BIGINT NOT NULL REFERENCES users(id),
+      receiver_id BIGINT NOT NULL REFERENCES users(id),
+      content     TEXT NOT NULL,
+      timestamp   BIGINT NOT NULL,
+      read        BOOLEAN NOT NULL DEFAULT false,
+      sender_name VARCHAR(255) NOT NULL
+  );
+  ```
+
+- **Note:** Adjust column types (like `BIGINT`, `VARCHAR`, `TEXT`) and constraints based on your specific needs and PostgreSQL version.
+
+#### 4. Set Environment Variable
+
+- In `Backend/messaging/.env`, set the `CHAT_DB_URI` variable with the appropriate connection string:
+
+  ```env
+  # --- Choose ONE of the following examples ---
+
+  # Example using the default 'postgres' user:
+  # CHAT_DB_URI="host=localhost user=postgres password=your_postgres_password dbname=unibazaar_messaging port=5432 sslmode=disable"
+
+  # Example using the dedicated 'unibazaar_msg_user':
+  CHAT_DB_URI="host=localhost user=unibazaar_msg_user password=your_messaging_db_password dbname=unibazaar_messaging port=5432 sslmode=disable"
+
+  # Example for AWS RDS (replace placeholders):
+  # CHAT_DB_URI="host=your_rds_endpoint user=your_rds_user password=your_rds_password dbname=unibazaar_messaging port=5432 sslmode=require"
+  ```
+
+- Replace placeholders like `your_postgres_password` or `your_messaging_db_password` with the actual passwords you set up.
 
 ### ☁️ AWS S3 Setup (for Image Uploads)
 
@@ -299,18 +388,18 @@ The app will run at http://localhost:3000
 
 ### Users Service
 
-| Method | Endpoint              | Description              |
-| ------ | --------------------- | ------------------------ |
-| POST   | `/signup`             | Register a user          |
-| POST   | `/verifyEmail`        | OTP verification         |
-| POST   | `/resendOtp`          | Resend OTP               |
-| POST   | `/login`              | Login                    |
-| POST   | `/logout`             | Logout                   |
-| POST   | `/getjwt`             | Get JWT token            |
-| GET    | `/verifyjwt`          | Verify JWT token         |
-| GET    | `/displayUser/{id}`   | Get user details by id   |
-| POST   | `/forgotPassword`     | Forgot password handler  |
-| POST   | `/updatePassword`     | Update password handler  |
+| Method | Endpoint            | Description             |
+| ------ | ------------------- | ----------------------- |
+| POST   | `/signup`           | Register a user         |
+| POST   | `/verifyEmail`      | OTP verification        |
+| POST   | `/resendOtp`        | Resend OTP              |
+| POST   | `/login`            | Login                   |
+| POST   | `/logout`           | Logout                  |
+| POST   | `/getjwt`           | Get JWT token           |
+| GET    | `/verifyjwt`        | Verify JWT token        |
+| GET    | `/displayUser/{id}` | Get user details by id  |
+| POST   | `/forgotPassword`   | Forgot password handler |
+| POST   | `/updatePassword`   | Update password handler |
 
 ---
 
@@ -334,12 +423,11 @@ The app will run at http://localhost:3000
 | GET    | `/api/conversation/{user1ID}/{user2ID}` | Get conversation               |
 | POST   | `/messages`                             | Send a message                 |
 | GET    | `/users`                                | Get users                      |
-| POST   | `/api/users/sync`                       | Sync user data                 |
+| POST   | `/api/users/sync`                       | Sync latest user data          |
 | GET    | `/api/unread-senders`                   | Get users with unread messages |
 | WSS    | `/wss`                                  | WebSocket for real-time chat   |
 
 ---
-
 
 ## 💡 Why UniBazaar?
 
