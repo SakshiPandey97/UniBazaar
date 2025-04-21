@@ -109,6 +109,54 @@ pnpm run dev
 ```
 The app will run at http://localhost:3000
 
+## 🛠️ Local Database Setup
+
+### Mongo DB (Products Service)
+#### 1. Install MongoDB Compass
+   Download from [here](https://www.mongodb.com/try/download/compass).
+
+#### 2. Create DB and Collection
+   - Open Compass and connect to `mongodb://localhost:27017`.
+   - Create a database named `unibazaar`.
+   - Inside it, create a collection named `products`.
+
+#### 3. Set Environment Variable  
+   - Copy the connection string (e.g., `mongodb://localhost:27017/unibazaar`).
+   - In `Backend/Products/.env`, add (e.g.):
+     ```env
+     MONGO_URI=mongodb://localhost:27017/unibazaar
+     ```
+
+## ☁️ AWS S3 Setup (for Image Uploads)
+
+To enable image uploads in the Products Service using AWS S3, follow these steps:
+
+#### 1. Create an S3 Bucket
+- Go to the [AWS S3 Console](https://s3.console.aws.amazon.com/s3).
+- Click **Create bucket**, give it a name (e.g., `unibazaar-images`), and choose a region.
+
+#### 2. Create an IAM User
+- Go to the [IAM Console](https://console.aws.amazon.com/iam/).
+- Create a new user with **Programmatic access**.
+- Attach the **AmazonS3FullAccess** policy (or a custom policy with limited access to your bucket).
+
+#### 3. Copy Credentials
+- Note down the **Access Key ID** and **Secret Access Key** for the IAM user.
+
+#### 4. Set Up Environment Variables
+In `Backend/Products/.env`, add:
+
+```env
+AWS_REGION=<your-region>
+AWS_ACCESS_KEY_ID=<your-access-key-id>
+AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
+AWS_S3_BUCKET=<your-s3-bucket-name>
+AWS_CONSOLE=https://console.aws.amazon.com/
+AWS_USER=<your-iam-username>
+AWS_PWD=<your-iam-user-password>
+```
+
+
 ## 📡 Frontend Routes
 
 | Route           | Description                                               |
