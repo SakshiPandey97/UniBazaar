@@ -16,15 +16,15 @@ export default function Messaging() {
   const intervalRef = useRef(null);
 
   const fetchUnreadSenders = useCallback(async () => {
-    console.log("Attempting fetchUnreadSenders. User ID:", userId);
+    // console.log("Attempting fetchUnreadSenders. User ID:", userId);
 
     if (!userId) { 
-      console.log("fetchUnreadSenders returning early, userId is falsy.");
+      // console.log("fetchUnreadSenders returning early, userId is falsy.");
       return;
     }
 
     try {
-      console.log("Calling getUnreadSendersAPI with userId:", userId);
+      // console.log("Calling getUnreadSendersAPI with userId:", userId);
       const senderIds = await getUnreadSendersAPI(userId); 
 
       if (Array.isArray(senderIds)) {

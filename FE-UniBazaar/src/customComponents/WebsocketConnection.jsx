@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'; 
+const CHAT_USERS_WS_URL = import.meta.env.VITE_CHAT_USERS_WS_URL;
+
 
 const useWebSocket = (userId, onMessageReceived) => {
     const ws = useRef(null);
@@ -6,7 +8,7 @@ const useWebSocket = (userId, onMessageReceived) => {
     useEffect(() => {
       if (!userId) return;
   
-      const newWs = new WebSocket(`ws://127.0.0.1:8080/ws?user_id=${userId}`);
+      const newWs = new WebSocket(`${CHAT_USERS_WS_URL}/ws?user_id=${userId}`);
       ws.current = newWs;
   
       newWs.onopen = () => {

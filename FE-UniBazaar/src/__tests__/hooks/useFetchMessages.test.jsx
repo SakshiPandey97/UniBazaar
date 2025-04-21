@@ -35,7 +35,7 @@ describe('useFetchMessages', () => {
 
     renderHook(() => useFetchMessages(userId, selectedUser, setMessages));
 
-    expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8080/api/conversation/1/2');
+    expect(global.fetch).toHaveBeenCalledWith('http://messaging.eastus.cloudapp.azure.com:8000/api/conversation/1/2');
     await act(async () => {
       await vi.runAllTimersAsync();
     });
