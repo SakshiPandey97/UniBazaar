@@ -116,10 +116,10 @@ AWS_PWD=<AWS_USER_ID_PASSWORD>
 TODO
 
 ### ⚙️ Backend/users/.env
-
 ```env
+DSN=<POSTGRES_DB_CONNECTION_STRING>
+JWT_SECRET=<JWT_SECRET>
 SENDGRID_API_KEY=<API_KEY>
-DSN=<DATABASE_URL>>
 ```
 
 # 🛠️ Running Locally
@@ -147,8 +147,46 @@ DSN=<DATABASE_URL>>
   ```
 
 ### PostgreSQL (Users Service)
+#### 1. Install PostgreSQL
+- Download and install from the [official PostgreSQL website](https://www.postgresql.org/download/).
+- During setup, remember your **username (`postgres`)** and **password**.
 
-TODO
+#### 2. Create Database and Table
+- Open **pgAdmin** or use the terminal:
+  ```bash
+  psql -U postgres
+  ```
+
+- Create the database:
+  ```sql
+  CREATE DATABASE unibazaar;
+  ```
+
+- Connect to it:
+  ```bash
+  \c unibazaar
+  ```
+
+- Create the `users` table:
+  ```sql
+  CREATE TABLE users (
+      userid BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      phone TEXT,
+      verified BOOLEAN NOT NULL DEFAULT false,
+      otp_code TEXT,
+      failed_reset_attempts INT NOT NULL DEFAULT 0
+  );
+  ```
+
+#### 3. Set Environment Variable
+- In `Backend/Users/.env`, add:
+  ```env
+  DSN=postgres://postgres:admin@localhost/unibazaar?sslmode=disable 
+  (This is an example change the connection string to match your local setup.)
+  ```
 
 ### PostgreSQL (Messaging Service)
 
@@ -261,16 +299,18 @@ The app will run at http://localhost:3000
 
 ### Users Service
 
-| Method | Endpoint            | Description            |
-| ------ | ------------------- | ---------------------- |
-| POST   | `/signup`           | Register a user        |
-| POST   | `/verifyEmail`      | OTP verification       |
-| POST   | `/resendOtp`        | Resend OTP             |
-| POST   | `/login`            | Login                  |
-| POST   | `/logout`           | Logout                 |
-| POST   | `/getjwt`           | Get JWT token          |
-| GET    | `/verifyjwt`        | Verify JWT token       |
-| GET    | `/displayUser/{id}` | Get user details by id |
+| Method | Endpoint              | Description              |
+| ------ | --------------------- | ------------------------ |
+| POST   | `/signup`             | Register a user          |
+| POST   | `/verifyEmail`        | OTP verification         |
+| POST   | `/resendOtp`          | Resend OTP               |
+| POST   | `/login`              | Login                    |
+| POST   | `/logout`             | Logout                   |
+| POST   | `/getjwt`             | Get JWT token            |
+| GET    | `/verifyjwt`          | Verify JWT token         |
+| GET    | `/displayUser/{id}`   | Get user details by id   |
+| POST   | `/forgotPassword`     | Forgot password handler  |
+| POST   | `/updatePassword`     | Update password handler  |
 
 ---
 
