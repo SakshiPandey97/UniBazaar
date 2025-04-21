@@ -33,7 +33,7 @@ func InitServer() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "4000"
 	}
 
 	srv := http.Server{
@@ -46,7 +46,7 @@ func InitServer() {
 	//		Handler: app.Routes(),
 	//}
 
-	fmt.Println("app running on port 8080")
+	fmt.Println("app running on port 4000")
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
