@@ -7,8 +7,7 @@ import { requestPasswordResetOTP, resetUserPassword } from "@/api/userAxios";
 function UserForgetPasswordForm() {
   const [showOTPForm, setShowOTPForm] = useState(false);
   const [email, setEmail] = useState("");
-  const { isModalOpen: isProfileModalOpen, toggleModal: toggleProfileModal } =
-    useModal();
+  
   const handleEmailFormSubmit = async (values, actions) => {
     const success = await requestPasswordResetOTP(values.email);
     if (success) {

@@ -9,9 +9,11 @@ import {
   PRODUCT_CONDITIONS,
   conditionColorMap,
 } from "../utils/productMappings";
+import { useUserAuth } from "../hooks/useUserAuth";
 import useUpdateProduct from "../hooks/useUpdateProduct";
 import useDeleteProduct from "../hooks/useDeleteProduct";
 import { getCurrentUserId } from "@/utils/getUserId";
+import { toast } from "react-toastify";
 
 const ProductCard = ({
   product,
@@ -20,12 +22,13 @@ const ProductCard = ({
   isEditing: propIsEditing,
   onCancel: propOnCancel,
   onProductUpdated,
-  onProductDeleted
+  onProductDeleted,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const location = useLocation();
   const cardRef = useRef(null);
+  const userAuth = useUserAuth();
   const [editableProduct, setEditableProduct] = useState(product);
   const [imagePreview, setImagePreview] = useState(product.productImage);
   const [newImageFile, setNewImageFile] = useState(null);
@@ -99,16 +102,20 @@ const ProductCard = ({
     const updatedProductData = { ...editableProduct };
     const condition = updatedProductData.productCondition;
 
-    const updatedProduct = await updateProduct(updatedProductData, newImageFile, condition);
+    const updatedProduct = await updateProduct(
+      updatedProductData,
+      newImageFile,
+      condition
+    );
 
     if (updatedProduct) {
       if (onProductUpdated) {
         onProductUpdated(updatedProduct);
       }
 
-      setEditableProduct(prev => ({
+      setEditableProduct((prev) => ({
         ...prev,
-        productImage: updatedProduct.productImage
+        productImage: updatedProduct.productImage,
       }));
       setImagePreview(updatedProduct.productImage);
 
@@ -146,8 +153,9 @@ const ProductCard = ({
   return (
     <div
       ref={cardRef}
-      className={`relative flex flex-col w-full max-w-sm ${location.pathname === "/" ? "h-[22rem]" : "h-auto"
-        } border border-gray-300 rounded-xl shadow-lg overflow-hidden bg-gray-900 transition-transform transform hover:scale-105 hover:shadow-2xl`}
+      className={`relative flex flex-col w-full max-w-sm ${
+        location.pathname === "/" ? "h-[22rem]" : "h-auto"
+      } border border-gray-300 rounded-xl shadow-lg overflow-hidden bg-gray-900 transition-transform transform hover:scale-105 hover:shadow-2xl`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -169,11 +177,15 @@ const ProductCard = ({
                   Edit
                 </div>
               ) : (
-                <div className="px-4 py-2 text-gray-500 cursor-default">Edit</div>
+                <div className="px-4 py-2 text-gray-500 cursor-default">
+                  Edit
+                </div>
               )}
               <div
                 onClick={handleDelete}
-                className={`px-4 py-2 hover:bg-gray-700 cursor-pointer text-red-400 ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
+                className={`px-4 py-2 hover:bg-gray-700 cursor-pointer text-red-400 ${
+                  isDeleting ? "opacity-50 pointer-events-none" : ""
+                }`}
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </div>
@@ -199,7 +211,9 @@ const ProductCard = ({
                   onChange={handleImageUpload}
                   className="hidden"
                 />
-                <span className="bg-gray-700 px-3 py-1 mt-1 rounded-md">Choose File</span>
+                <span className="bg-gray-700 px-3 py-1 mt-1 rounded-md">
+                  Choose File
+                </span>
               </label>
             </div>
           </div>
@@ -225,21 +239,39 @@ const ProductCard = ({
           />
           <select
             value={editableProduct.productCondition}
-            onChange={(e) => handleChange("productCondition", parseInt(e.target.value))}
+            onChange={(e) =>
+              handleChange("productCondition", parseInt(e.target.value))
+            }
             className="w-full bg-gray-800 p-2 rounded-md text-white"
           >
-            <option value="" disabled>Select Condition</option>
+            <option value="" disabled>
+              Select Condition
+            </option>
             {PRODUCT_CONDITIONS.map((condition) => (
-              <option key={productConditionMapping[condition]} value={productConditionMapping[condition]}>
+              <option
+                key={productConditionMapping[condition]}
+                value={productConditionMapping[condition]}
+              >
                 {condition}
               </option>
             ))}
           </select>
           <div className="flex justify-end space-x-2">
-            <button onClick={handleSave} disabled={isSaving} className={`bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-400 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>
-              <FiCheck className="inline-block mr-1" /> {isSaving ? 'Saving...' : 'Save'}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-400 ${
+                isSaving ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <FiCheck className="inline-block mr-1" />{" "}
+              {isSaving ? "Saving..." : "Save"}
             </button>
-            <button onClick={handleCancel} disabled={isSaving} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-400">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-400"
+            >
               <FiX className="inline-block mr-1" /> Cancel
             </button>
           </div>
@@ -248,7 +280,9 @@ const ProductCard = ({
       ) : (
         <>
           <div
-            className={`relative w-full overflow-hidden ${location.pathname === "/" ? "h-full" : "h-64"}`}
+            className={`relative w-full overflow-hidden ${
+              location.pathname === "/" ? "h-full" : "h-64"
+            }`}
           >
             <img
               className="w-full h-full object-cover transition-all duration-500"
@@ -256,50 +290,79 @@ const ProductCard = ({
               alt={editableProduct.productTitle}
             />
             <div
-              className={`absolute bottom-0 left-0 w-full bg-gradient-to-t from-black to-transparent p-4 text-white transition-opacity ${isHovered ? "opacity-0" : "opacity-100"
-                }`}
+              className={`absolute bottom-0 left-0 w-full bg-gradient-to-t from-black to-transparent p-4 text-white transition-opacity ${
+                isHovered ? "opacity-0" : "opacity-100"
+              }`}
             >
-              <h5 className="text-lg font-semibold tracking-tight">{editableProduct.productTitle}</h5>
+              <h5 className="text-lg font-semibold tracking-tight">
+                {editableProduct.productTitle}
+              </h5>
             </div>
           </div>
 
           <div
-            className={`absolute top-0 left-0 w-full h-full bg-black/40 backdrop-blur-md text-white p-5 flex flex-col justify-between opacity-0 transition-opacity duration-500 ${isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+            className={`absolute top-0 left-0 w-full h-full bg-black/40 backdrop-blur-md text-white p-5 flex flex-col justify-between opacity-0 transition-opacity duration-500 ${
+              isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
           >
             <div>
-              <h5 className="text-xl font-semibold">{editableProduct.productTitle}</h5>
-              <p className="text-white text-sm mt-2 font-medium">{editableProduct.productDescription}</p>
+              <h5 className="text-xl font-semibold">
+                {editableProduct.productTitle}
+              </h5>
+              <p className="text-white text-sm mt-2 font-medium">
+                {editableProduct.productDescription}
+              </p>
             </div>
 
             <div>
               <div className="flex items-center">
-                <div className="flex space-x-1">{generateStars(editableProduct.productCondition)}</div>
-                {reverseProductConditionMapping[editableProduct.productCondition] && (
-                  <span className={`ml-2 text-xs font-semibold px-2.5 py-0.5 rounded-md ${conditionColorMap[editableProduct.productCondition]}`}>
-                    {reverseProductConditionMapping[editableProduct.productCondition]}
+                <div className="flex space-x-1">
+                  {generateStars(editableProduct.productCondition)}
+                </div>
+                {reverseProductConditionMapping[
+                  editableProduct.productCondition
+                ] && (
+                  <span
+                    className={`ml-2 text-xs font-semibold px-2.5 py-0.5 rounded-md ${
+                      conditionColorMap[editableProduct.productCondition]
+                    }`}
+                  >
+                    {
+                      reverseProductConditionMapping[
+                        editableProduct.productCondition
+                      ]
+                    }
                   </span>
                 )}
               </div>
 
               <div className="flex items-center justify-between mt-4">
-                <span className="text-2xl font-bold text-[#F58B00]">${editableProduct.productPrice}</span>
+                <span className="text-2xl font-bold text-[#F58B00]">
+                  ${editableProduct.productPrice}
+                </span>
 
-                {(location.pathname === "/" || location.pathname === "/products") && (
+                {(location.pathname === "/" ||
+                  location.pathname === "/products") && (
                   <Button
                     className="bg-[#F58B00] hover:bg-[#FFC67D] text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all hover:shadow-lg hover:text-black cursor-pointer"
                     // Call onStartChat with the seller's ID when clicked
                     // Assuming the seller's ID is stored in product.userId
                     onClick={() => {
-                      if (onStartChat && product.userId) {
-                        onStartChat(product.userId);
+                      if (userAuth.userState) {
+                        if (onStartChat && product.userId) {
+                          onStartChat(product.userId);
+                        } else {
+                          console.error(
+                            "onStartChat handler or product.userId missing"
+                          );
+                        }
                       } else {
-                        console.error("onStartChat handler or product.userId missing");
+                        toast.error("Please Login To Message");
                       }
                     }}
                   >
-                  Message
-                </Button>
+                    Message
+                  </Button>
                 )}
               </div>
             </div>
