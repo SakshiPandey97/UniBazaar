@@ -71,8 +71,6 @@ func (h *MessageHandler) HandleSendMessage(w http.ResponseWriter, r *http.Reques
 	msg.Timestamp = time.Now().Unix()
 	msg.Read = false
 	msg.ID = uuid.New().String()
-	// msg.ID = msg.MessageID
-	// Save the message to the database
 	if err := h.repo.SaveMessage(msg); err != nil {
 		http.Error(w, "Failed to save message", http.StatusInternalServerError)
 		return
@@ -89,7 +87,6 @@ func (h *MessageHandler) GetConversationHandler(w http.ResponseWriter, r *http.R
 	user1IDStr := vars["user1ID"]
 	user2IDStr := vars["user2ID"]
 
-	// Basic validation and type conversion
 	user1ID, err := strconv.ParseUint(user1IDStr, 10, 32)
 	if err != nil {
 		http.Error(w, "Invalid user1ID", http.StatusBadRequest)
@@ -107,7 +104,36 @@ func (h *MessageHandler) GetConversationHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// Respond with the messages
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(conversations)
+}
+
+func (h *MessageHandler) GetUnreadSendersHandler(w http.ResponseWriter, r *http.Request) {
+	userIDStr := r.URL.Query().Get("user_id")
+	userIDInt, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		log.Printf("Error parsing user_id query parameter '%s': %v", userIDStr, err)
+		http.Error(w, "Invalid or missing user_id query parameter", http.StatusBadRequest)
+		return
+	}
+	userID := uint(userIDInt)
+
+	senderIDs, err := h.repo.GetUnreadSenderIDs(userID)
+	if err != nil {
+		log.Printf("Error getting unread sender IDs from repository for user %d: %v", userID, err)
+		http.Error(w, "Failed to retrieve unread sender information", http.StatusInternalServerError)
+		return
+	}
+
+	if senderIDs == nil {
+		senderIDs = []uint{}
+	}
+
+	responsePayload := map[string][]uint{"senderIds": senderIDs}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(responsePayload); err != nil {
+		log.Printf("Error encoding JSON response for unread senders (user %d): %v", userID, err)
+	}
 }
