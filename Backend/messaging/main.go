@@ -35,29 +35,26 @@ func main() {
 
 	userHandler := handler.NewUserHandler(userRepo)
 
-	// Create a new ServeMux
 	r := mux.NewRouter()
 
-	// Register your handlers
 	r.HandleFunc("/ws", msgHandler.HandleWebSocket)
 	r.HandleFunc("/api/conversation/{user1ID}/{user2ID}", msgHandler.GetConversationHandler).Methods(http.MethodGet)
 	r.HandleFunc("/messages", msgHandler.HandleSendMessage).Methods(http.MethodPost)
 	r.HandleFunc("/users", userHandler.GetUsersHandler).Methods("GET")
 	r.HandleFunc("/api/users/sync", userHandler.SyncUserHandler).Methods(http.MethodPost)
-	// Configure CORS
+	r.HandleFunc("/api/unread-senders", msgHandler.GetUnreadSendersHandler).Methods(http.MethodGet)
+
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // Allow requests from your frontend
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		ExposedHeaders:   []string{"Content-Length"},
 		AllowCredentials: true,
-		Debug:            true, // Log CORS-related issues
+		Debug:            true,
 	})
 
-	// Wrap your ServeMux with the CORS middleware
 	handler := c.Handler(r)
 
-	// Create the server with the CORS-wrapped handler
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: handler,
