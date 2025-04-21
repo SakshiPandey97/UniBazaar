@@ -1,11 +1,17 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import useSendMessage from '../../hooks/useSendMessage';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'react-toastify';
 
-// Mock uuidv4 to return a consistent value for testing
 vi.mock('uuid', () => ({
   v4: vi.fn(() => 'mock-uuid'),
+}));
+
+vi.mock('react-toastify', () => ({
+  toast: {
+    error: vi.fn(),
+  },
 }));
 
 describe('useSendMessage', () => {
@@ -13,29 +19,26 @@ describe('useSendMessage', () => {
   let setInput;
   let setMessages;
   let users;
-  const mockTimestamp = 1743124747830; // Consistent timestamp for testing
+  const mockTimestamp = 1743124747830;
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock Date.now()
     vi.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
-
-    // Mock WebSocket
     mockWs = {
       current: {
         readyState: WebSocket.OPEN,
         send: vi.fn(),
       },
     };
-
     setInput = vi.fn();
     setMessages = vi.fn();
     users = [
       { id: 1, name: 'User 1' },
       { id: 2, name: 'User 2' },
     ];
+    toast.error.mockClear();
   });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -49,8 +52,10 @@ describe('useSendMessage', () => {
       useSendMessage(userId, selectedUser, users, mockWs, input, setInput, setMessages)
     );
 
+    const sendMessage = result.current;
+
     await act(async () => {
-      result.current();
+      sendMessage();
     });
 
     expect(mockWs.current.send).toHaveBeenCalledTimes(1);
@@ -66,9 +71,10 @@ describe('useSendMessage', () => {
       })
     );
     expect(setInput).toHaveBeenCalledWith('');
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
-  it('should not send a message if userId is missing', async () => {
+  it('should show toast error if userId is missing', async () => {
     const userId = null;
     const selectedUser = { id: 2, name: 'User 2' };
     const input = 'Hello, User 2!';
@@ -76,23 +82,18 @@ describe('useSendMessage', () => {
     const { result } = renderHook(() =>
       useSendMessage(userId, selectedUser, users, mockWs, input, setInput, setMessages)
     );
-
-    // Mock alert
-    const originalAlert = window.alert;
-    window.alert = vi.fn();
+    const sendMessage = result.current;
 
     await act(async () => {
-      result.current();
+      sendMessage();
     });
 
     expect(mockWs.current.send).not.toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalledWith('Please select a user to chat with!');
-
-    // Restore alert
-    window.alert = originalAlert;
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith('Please select a user to chat with!');
   });
 
-  it('should not send a message if selectedUser is missing', async () => {
+  it('should show toast error if selectedUser is missing', async () => {
     const userId = '1';
     const selectedUser = null;
     const input = 'Hello, User 2!';
@@ -100,20 +101,15 @@ describe('useSendMessage', () => {
     const { result } = renderHook(() =>
       useSendMessage(userId, selectedUser, users, mockWs, input, setInput, setMessages)
     );
-
-    // Mock alert
-    const originalAlert = window.alert;
-    window.alert = vi.fn();
+    const sendMessage = result.current;
 
     await act(async () => {
-      result.current();
+      sendMessage();
     });
 
     expect(mockWs.current.send).not.toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalledWith('Please select a user to chat with!');
-
-    // Restore alert
-    window.alert = originalAlert;
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith('Please select a user to chat with!');
   });
 
   it('should not send a message if input is empty', async () => {
@@ -124,12 +120,14 @@ describe('useSendMessage', () => {
     const { result } = renderHook(() =>
       useSendMessage(userId, selectedUser, users, mockWs, input, setInput, setMessages)
     );
+    const sendMessage = result.current;
 
     await act(async () => {
-      result.current();
+      sendMessage();
     });
 
     expect(mockWs.current.send).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it('should not send a message if WebSocket is not ready', async () => {
@@ -141,31 +139,36 @@ describe('useSendMessage', () => {
     const { result } = renderHook(() =>
       useSendMessage(userId, selectedUser, users, mockWs, input, setInput, setMessages)
     );
+    const sendMessage = result.current;
 
     await act(async () => {
-      result.current();
+      sendMessage();
     });
 
     expect(mockWs.current.send).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
+
   it('should handle error when sending message', async () => {
     const userId = '1';
     const selectedUser = { id: 2, name: 'User 2' };
     const input = 'Hello, User 2!';
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const sendError = new Error('Simulated WebSocket error');
     mockWs.current.send.mockImplementation(() => {
-      throw new Error('Simulated WebSocket error');
+      throw sendError;
     });
 
     const { result } = renderHook(() =>
       useSendMessage(userId, selectedUser, users, mockWs, input, setInput, setMessages)
     );
+    const sendMessage = result.current;
 
     await act(async () => {
-      result.current();
+      sendMessage();
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error sending message:', new Error('Simulated WebSocket error'));
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error sending message:', sendError);
     consoleErrorSpy.mockRestore();
   });
 });
