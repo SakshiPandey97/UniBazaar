@@ -240,6 +240,8 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	responseData := map[string]interface{}{
 		"userId": userID,
 		"token":  tokenString,
+		"name":   user.Name,
+		"email":  user.Email,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseData)
@@ -423,11 +425,11 @@ func (app *Application) GetJWTHandler(w http.ResponseWriter, r *http.Request) {
 
 func (app *Application) enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-		if r.Method == "OPTIONS" {
+		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -438,22 +440,23 @@ func (app *Application) enableCORS(next http.Handler) http.Handler {
 func (app *Application) Routes() http.Handler {
 	router := httprouter.New()
 
-	/*  AUTH  */
+	router.HandlerFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
 	router.HandlerFunc("POST", "/signup", app.SignUpHandler)
 	router.HandlerFunc("POST", "/verifyEmail", app.VerifyEmailHandler)
 	router.HandlerFunc("POST", "/resendOtp", app.ResendOTPHandler)
 
-	/*  PASSWORD RESET  */
 	router.HandlerFunc("POST", "/forgotPassword", app.ForgotPasswordHandler)
 	router.HandlerFunc("POST", "/updatePassword", app.UpdatePasswordHandler)
 
-	/*  USER CRUD  */
 	router.HandlerFunc("POST", "/deleteUser", app.DeleteUserHandler)
 	router.HandlerFunc("GET", "/displayUser/:id", app.DisplayUserHandler)
 	router.HandlerFunc("POST", "/updateName", app.UpdateNameHandler)
 	router.HandlerFunc("POST", "/updatePhone", app.UpdatePhoneHandler)
 
-	/*  TOKEN  */
 	router.HandlerFunc("POST", "/login", app.LoginHandler)
 	router.HandlerFunc("POST", "/logout", app.LogoutHandler)
 	router.HandlerFunc("POST", "/getjwt", app.GetJWTHandler)
