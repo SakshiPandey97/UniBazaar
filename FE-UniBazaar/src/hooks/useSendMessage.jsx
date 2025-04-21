@@ -1,10 +1,11 @@
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 
 const useSendMessage = (userId, selectedUser, users, ws, input, setInput, setMessages) => {
   const sendMessage = useCallback(async () => {
     if (!userId || !selectedUser) {
-      alert("Please select a user to chat with!");
+      toast.error("Please select a user to chat with!");
       return;
     }
 
