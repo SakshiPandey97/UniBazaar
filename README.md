@@ -48,6 +48,8 @@ UniBazaar is fully deployed in the cloud, so you can use it without any local se
 
 #### 🔗 [https://unibazaar.vercel.app](https://unibazaar.vercel.app)
 
+If you don’t want to set up everything locally, just visit the link above to explore the full UniBazaar experience online.
+
 ### 💻 Backend Services (Hosted on Azure)
 
 | Service               | URL                                                                                            |
