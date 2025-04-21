@@ -4,7 +4,9 @@ const CHAT_USERS_BASE_URL = import.meta.env.VITE_CHAT_USERS_BASE_URL;
 
 export const useFetchMessages = (userId, selectedUser, setMessages) => { 
     useEffect(() => {
-        if (!selectedUser || !userId) return; 
+        if (!selectedUser || !userId) {
+          return;
+        } 
 
         const fetchMessages = async () => {
             try {

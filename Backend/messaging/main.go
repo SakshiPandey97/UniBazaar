@@ -32,7 +32,7 @@ func main() {
 
 	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
 	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost:3000"
+		allowedOrigin = "*"
 	}
 
 	database := db.ConnectDB()

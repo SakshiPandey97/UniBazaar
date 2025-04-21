@@ -31,4 +31,3 @@ yarn.lock
 
 # Ignore IDE files
 .idea/
-.env
