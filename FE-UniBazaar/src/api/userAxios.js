@@ -9,8 +9,8 @@ export const userLoginAPI = ({ userLoginObject }) => {
       const userData = response.data;
       if (userData.userId) {
         localStorage.setItem("userId", userData.userId);
-     }
-     return userData;
+      }
+      return userData;
     })
     .catch((error) => {
       console.error("Error logging in:", error);
@@ -57,12 +57,45 @@ export const userResendAPI = (userVerificationObject) => {
 };
 
 export const userProfileDetailsAPI = (userId) => {
-  console.log(userId)
+  console.log(userId);
   return axios
     .get(`${USER_BASE_URL}/displayUser/${userId}`)
     .then((response) => response.data)
     .catch((error) => {
       console.error("Error fetching data", error);
       throw error;
+    });
+};
+
+export const requestPasswordResetOTP = (email) => {
+  return axios
+    .get(`${USER_BASE_URL}/forgotPassword`, {
+      params: { email },
+    })
+    .then((response) => {
+      console.log("OTP request successful:", response.data);
+      return true;
+    })
+    .catch((error) => {
+      console.error(
+        "Error sending OTP:",
+        error.response?.data || error.message
+      );
+      return false;
+    });
+};
+
+
+export const resetUserPassword = ({ email, otp, password }) => {
+  return axios
+    .post(`${USER_BASE_URL}/updatePassword`, {
+      email,
+      otp_code: otp,
+      new_password: password,
+    })
+    .then((res) => res.data)
+    .catch((err) => {
+      console.error("Password reset failed:", err.response?.data || err.message);
+      throw err;
     });
 };
