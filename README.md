@@ -48,29 +48,29 @@ The React app has the following functionality:
 Each service and the client app requires a `.env` file.
 
 ### ⚙️ FE-UniBazaar/.env
-```
+```env
 VITE_USER_BASE_URL=https://unibazaar-users.azurewebsites.net
 VITE_PRODUCT_BASE_URL=https://unibazaar-products.azurewebsites.net
 VITE_CHAT_USERS_BASE_URL=
 ```
 
 ### ⚙️ Backend/products/.env
-```
+```env
 MONGO_URI=<MONGO_DB_CONNECTION_STRING>
-AWS_REGION=<AWS_REGION>
-AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
-AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
-AWS_S3_BUCKET=<AWS_S3_BUCKET_NAME>
-AWS_CONSOLE=<AWS_CONSOLE_URL>
-AWS_USER=<AWS_USER_ID>
-AWS_PWD=<AWS_USER_ID_PASSWORD>
+AWS_REGION=<your-region>
+AWS_ACCESS_KEY_ID=<your-access-key-id>
+AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
+AWS_S3_BUCKET=<your-s3-bucket-name>
+AWS_CONSOLE=<aws-console-url>
+AWS_USER=<your-iam-username>
+AWS_PWD=<your-iam-user-password>
 ```
 
 ### ⚙️ Backend/messaging/.env
 TODO
 
 ### ⚙️ Backend/users/.env
-```
+```env
 SENDGRID_API_KEY=<API_KEY>
 ```
 
@@ -124,7 +124,7 @@ AWS_REGION=<your-region>
 AWS_ACCESS_KEY_ID=<your-access-key-id>
 AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 AWS_S3_BUCKET=<your-s3-bucket-name>
-AWS_CONSOLE=https://console.aws.amazon.com/
+AWS_CONSOLE=<aws-console-url>
 AWS_USER=<your-iam-username>
 AWS_PWD=<your-iam-user-password>
 ```
