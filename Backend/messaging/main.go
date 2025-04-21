@@ -15,10 +15,26 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found or error loading .env")
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "http://localhost:3000"
+	}
+
 	database := db.ConnectDB()
 	if database == nil {
 		log.Fatal("Failed to connect to the database")
@@ -32,7 +48,6 @@ func main() {
 	go wsManager.Run()
 
 	msgHandler := handler.NewMessageHandler(msgRepo, wsManager)
-
 	userHandler := handler.NewUserHandler(userRepo)
 
 	r := mux.NewRouter()
@@ -45,7 +60,7 @@ func main() {
 	r.HandleFunc("/api/unread-senders", msgHandler.GetUnreadSendersHandler).Methods(http.MethodGet)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   []string{allowedOrigin},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		ExposedHeaders:   []string{"Content-Length"},
@@ -56,12 +71,12 @@ func main() {
 	handler := c.Handler(r)
 
 	server := &http.Server{
-		Addr:    ":8000",
+		Addr:    ":" + port,
 		Handler: handler,
 	}
 
 	go func() {
-		fmt.Println("Server started on :8000")
+		fmt.Printf("Server started on :%s\n", port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Could not start server: %v\n", err)
 		}
