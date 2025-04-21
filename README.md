@@ -48,27 +48,88 @@ The React app has the following functionality:
 Each service and the client app requires a `.env` file.
 
 ### ⚙️ FE-UniBazaar/.env
-VITE_USER_BASE_URL=\
-VITE_PRODUCT_BASE_URL=\
+```
+VITE_USER_BASE_URL=https://unibazaar-users.azurewebsites.net
+VITE_PRODUCT_BASE_URL=https://unibazaar-products.azurewebsites.net
 VITE_CHAT_USERS_BASE_URL=
+```
 
 ### ⚙️ Backend/products/.env
-MONGO_URI=\
-AWS_REGION=\
-AWS_ACCESS_KEY_ID=\
-AWS_SECRET_ACCESS_KEY=\
-AWS_S3_BUCKET=\
-AWS_CONSOLE=\
-AWS_USER=\
-AWS_PWD=
+```
+MONGO_URI=<MONGO_DB_CONNECTION_STRING>
+AWS_REGION=<AWS_REGION>
+AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
+AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
+AWS_S3_BUCKET=<AWS_S3_BUCKET_NAME>
+AWS_CONSOLE=<AWS_CONSOLE_URL>
+AWS_USER=<AWS_USER_ID>
+AWS_PWD=<AWS_USER_ID_PASSWORD>
+```
 
 ### ⚙️ Backend/messaging/.env
 TODO
 
 ### ⚙️ Backend/users/.env
-SENDGRID_API_KEY=
+```
+SENDGRID_API_KEY=<API_KEY>
+```
 
-## 🛠️ Running Locally
+# 🛠️ Running Locally
+
+## 🗃️ Local Database Setup
+
+### Mongo DB (Products Service)
+#### 1. Install MongoDB Compass
+  - Download from [here](https://www.mongodb.com/try/download/compass).
+
+#### 2. Create DB and Collection
+   - Open Compass and connect to `mongodb://localhost:27017`.
+   - Create a database named `unibazaar`.
+   - Inside it, create a collection named `products`.
+
+#### 3. Set Environment Variable  
+   - Copy the connection string (e.g., `mongodb://localhost:27017/unibazaar`).
+   - In `Backend/Products/.env`, add (e.g.):
+     ```env
+     MONGO_URI=mongodb://localhost:27017/unibazaar
+     ```
+
+### PostgreSQL (Users Service)
+TODO
+
+### PostgreSQL (Messaging Service)
+TODO
+
+### ☁️ AWS S3 Setup (for Image Uploads)
+
+To enable image uploads in the Products Service using AWS S3, follow these steps:
+
+#### 1. Create an S3 Bucket
+- Go to the [AWS S3 Console](https://s3.console.aws.amazon.com/s3).
+- Click **Create bucket**, give it a name (e.g., `unibazaar`), and choose a region.
+
+#### 2. Create an IAM User
+- Go to the [IAM Console](https://console.aws.amazon.com/iam/).
+- Create a new user with **Programmatic access**.
+- Attach the **AmazonS3FullAccess** policy (or a custom policy with limited access to your bucket).
+
+#### 3. Copy Credentials
+- Note down the **Access Key ID** and **Secret Access Key** for the IAM user.
+
+#### 4. Set Up Environment Variables
+In `Backend/Products/.env`, add:
+
+```env
+AWS_REGION=<your-region>
+AWS_ACCESS_KEY_ID=<your-access-key-id>
+AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
+AWS_S3_BUCKET=<your-s3-bucket-name>
+AWS_CONSOLE=https://console.aws.amazon.com/
+AWS_USER=<your-iam-username>
+AWS_PWD=<your-iam-user-password>
+```
+
+## 🔌 Local Code Setup
 
 ### 1. Clone the repo
 ```bash
@@ -101,6 +162,13 @@ go run main.go
 ```
 The messaging service will run at http://localhost:8000
 
+Make sure to update `FE-UniBazaar/.env` as:
+```
+VITE_USER_BASE_URL=http://localhost:4000
+VITE_PRODUCT_BASE_URL=http://localhost:8080
+VITE_CHAT_USERS_BASE_URL=http://localhost:8000
+```
+
 ### 4. Run React frontend
 ```bash
 cd FE-UniBazaar
@@ -108,53 +176,6 @@ pnpm install
 pnpm run dev
 ```
 The app will run at http://localhost:3000
-
-## 🛠️ Local Database Setup
-
-### Mongo DB (Products Service)
-#### 1. Install MongoDB Compass
-   Download from [here](https://www.mongodb.com/try/download/compass).
-
-#### 2. Create DB and Collection
-   - Open Compass and connect to `mongodb://localhost:27017`.
-   - Create a database named `unibazaar`.
-   - Inside it, create a collection named `products`.
-
-#### 3. Set Environment Variable  
-   - Copy the connection string (e.g., `mongodb://localhost:27017/unibazaar`).
-   - In `Backend/Products/.env`, add (e.g.):
-     ```env
-     MONGO_URI=mongodb://localhost:27017/unibazaar
-     ```
-
-## ☁️ AWS S3 Setup (for Image Uploads)
-
-To enable image uploads in the Products Service using AWS S3, follow these steps:
-
-#### 1. Create an S3 Bucket
-- Go to the [AWS S3 Console](https://s3.console.aws.amazon.com/s3).
-- Click **Create bucket**, give it a name (e.g., `unibazaar`), and choose a region.
-
-#### 2. Create an IAM User
-- Go to the [IAM Console](https://console.aws.amazon.com/iam/).
-- Create a new user with **Programmatic access**.
-- Attach the **AmazonS3FullAccess** policy (or a custom policy with limited access to your bucket).
-
-#### 3. Copy Credentials
-- Note down the **Access Key ID** and **Secret Access Key** for the IAM user.
-
-#### 4. Set Up Environment Variables
-In `Backend/Products/.env`, add:
-
-```env
-AWS_REGION=<your-region>
-AWS_ACCESS_KEY_ID=<your-access-key-id>
-AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
-AWS_S3_BUCKET=<your-s3-bucket-name>
-AWS_CONSOLE=https://console.aws.amazon.com/
-AWS_USER=<your-iam-username>
-AWS_PWD=<your-iam-user-password>
-```
 
 
 ## 📡 Frontend Routes
