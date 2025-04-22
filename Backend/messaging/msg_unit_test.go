@@ -232,41 +232,31 @@ func TestNewMessageRepository(t *testing.T) {
 	assert.Equal(t, db, messageRepo.DB)
 }
 
-// Add these tests to msg_unit_test.go
-
 func TestGetUnreadSenderIDs(t *testing.T) {
-	// Arrange
 	mockRepo := new(MockMessageRepository)
 	receiverID := uint(10)
-	expectedSenderIDs := []uint{1, 5, 3} // Example sender IDs
+	expectedSenderIDs := []uint{1, 5, 3}
 
-	// Setup mock expectation
 	mockRepo.On("GetUnreadSenderIDs", receiverID).Return(expectedSenderIDs, nil)
 
-	// Act
 	senderIDs, err := mockRepo.GetUnreadSenderIDs(receiverID)
 
-	// Assert
 	assert.NoError(t, err, "Expected no error")
 	assert.Equal(t, expectedSenderIDs, senderIDs, "Expected sender IDs to match")
-	mockRepo.AssertExpectations(t) // Verify that the mock was called as expected
+	mockRepo.AssertExpectations(t)
 }
 
 func TestGetUnreadSenderIDsError(t *testing.T) {
-	// Arrange
 	mockRepo := new(MockMessageRepository)
 	receiverID := uint(10)
 	expectedError := errors.New("database query failed")
 
-	// Setup mock expectation to return an error
 	mockRepo.On("GetUnreadSenderIDs", receiverID).Return(nil, expectedError)
 
-	// Act
 	senderIDs, err := mockRepo.GetUnreadSenderIDs(receiverID)
 
-	// Assert
 	assert.Error(t, err, "Expected an error")
 	assert.Equal(t, expectedError, err, "Expected the specific database error")
 	assert.Nil(t, senderIDs, "Expected sender IDs slice to be nil on error")
-	mockRepo.AssertExpectations(t) // Verify that the mock was called as expected
+	mockRepo.AssertExpectations(t)
 }
