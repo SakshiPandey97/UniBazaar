@@ -2480,6 +2480,6 @@ npx cypress open
 
 ### **Video**
 
-TODO
+[View file on Google Drive](https://drive.google.com/file/d/1pLiDuRBHZfI7VznqToYj30A4KPt-EY5N/view?usp=sharing)
 
 ---
